@@ -1,0 +1,910 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sueño - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #8b5cf6; }
+        .stats-summary {
+            display: flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 15px;
+            border-radius: 30px;
+        }
+        .summary-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .summary-item i { color: #8b5cf6; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(139,92,246,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #8b5cf6; }
+        .stat-label { font-size: 11px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #8b5cf6; border-bottom: 2px solid #8b5cf6; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        .registro-card {
+            background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(16,185,129,0.1));
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(139,92,246,0.3);
+        }
+        .registro-titulo {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .input-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .input-group {
+            flex: 1;
+            min-width: 120px;
+        }
+        .input-group label {
+            font-size: 11px;
+            color: #a0a0b0;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        .input-field:focus { outline: none; border-color: #8b5cf6; }
+        .calidad-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .calidad-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: transparent;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        .calidad-btn.selected {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+            transform: scale(1.05);
+        }
+        .btn-primary {
+            background: #8b5cf6;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { background: #7c3aed; transform: translateY(-2px); }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #8b5cf6;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: #8b5cf6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover { background: rgba(139,92,246,0.1); }
+        
+        .stats-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .stats-card h4 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #8b5cf6;
+        }
+        .recomendacion-card {
+            background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(16,185,129,0.1));
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(139,92,246,0.3);
+        }
+        .recomendacion-titulo {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8b5cf6;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .historico-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sueño-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sueño-item:hover { background: rgba(139,92,246,0.15); transform: translateX(5px); }
+        .sueño-fecha { font-size: 12px; color: #8b5cf6; }
+        .sueño-info { font-size: 13px; }
+        .sueño-calidad {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .calidad-excelente { background: #10b981; }
+        .calidad-buena { background: #8b5cf6; }
+        .calidad-regular { background: #f59e0b; }
+        .calidad-mala { background: #ef4444; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 16px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end; }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #8b5cf6;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 3px; }
+        
+        .empty-state { text-align: center; padding: 50px 20px; color: #a0a0b0; }
+        canvas { max-height: 200px; width: 100%; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-moon"></i> Sueño Inteligente</h1>
+            <div class="stats-summary">
+                <div class="summary-item"><i class="fas fa-calendar-week"></i> <span id="promedioSemana">0h</span></div>
+                <div class="summary-item"><i class="fas fa-chart-line"></i> <span id="tendencia">-</span></div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('registro')"><div class="stat-value" id="promedioMes">0h</div><div class="stat-label">Promedio mes</div></div>
+            <div class="stat-card" onclick="cambiarTab('registro')"><div class="stat-value" id="mejorRacha">0</div><div class="stat-label">Mejor racha</div></div>
+            <div class="stat-card" onclick="cambiarTab('estadisticas')"><div class="stat-value" id="calidadPromedio">0%</div><div class="stat-label">Calidad promedio</div></div>
+            <div class="stat-card" onclick="cambiarTab('recomendaciones')"><div class="stat-value" id="horasSugeridas">7-9</div><div class="stat-label">Meta diaria</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="registro"><i class="fas fa-pen-alt"></i> Registrar</button>
+        <button class="tab" data-tab="historico"><i class="fas fa-history"></i> Histórico</button>
+        <button class="tab" data-tab="estadisticas"><i class="fas fa-chart-line"></i> Estadísticas</button>
+        <button class="tab" data-tab="recomendaciones"><i class="fas fa-lightbulb"></i> Recomendaciones</button>
+        <button class="tab" data-tab="ritual"><i class="fas fa-spa"></i> Ritual de sueño</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<!-- Modal Editar -->
+<div id="modalEditar" class="modal">
+    <div class="modal-content">
+        <h3>✏️ Editar registro de sueño</h3>
+        <input type="number" id="editHoras" class="input-field" step="0.5" placeholder="Horas dormidas">
+        <select id="editCalidad" class="input-field">
+            <option value="1">😫 Muy mala</option>
+            <option value="2">😟 Mala</option>
+            <option value="3">😐 Regular</option>
+            <option value="4">🙂 Buena</option>
+            <option value="5">😊 Excelente</option>
+        </select>
+        <textarea id="editNotas" class="input-field" rows="2" placeholder="Notas (opcional)"></textarea>
+        <div class="modal-buttons">
+            <button class="btn-outline" onclick="cerrarModalEditar()">Cancelar</button>
+            <button class="btn-primary" onclick="guardarEdicion()">Guardar</button>
+            <button class="btn-outline" style="background:#ef4444; color:white;" onclick="eliminarRegistro()">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== CONFIGURACIÓN ====================
+    let registros = [];
+    let editandoId = null;
+    let tabActual = 'registro';
+    let graficoTendencias = null;
+    let graficoCalidad = null;
+    
+    // Tips de sueño
+    const TIPS_SUENO = [
+        "🌙 Apaga pantallas 30 min antes de dormir. La luz azul afecta la melatonina.",
+        "🧘 Prueba respiración 4-7-8: inhala 4s, retén 7s, exhala 8s. Calma el sistema nervioso.",
+        "☕ Evita cafeína después de las 4pm. El efecto dura hasta 8 horas.",
+        "🛏️ Mantén tu habitación oscura y fresca (18-20°C es ideal).",
+        "📖 Lee un libro físico en lugar de usar el teléfono antes de dormir.",
+        "🎵 Escucha sonidos relajantes o ruido blanco para conciliar el sueño.",
+        "🕒 Acuéstate y levántate a la misma hora todos los días, incluso fines de semana.",
+        "🚿 Un baño tibio 1-2 horas antes de dormir ayuda a relajar el cuerpo.",
+        "🍵 Prueba infusiones relajantes como manzanilla o valeriana.",
+        "📝 Escribe tus pensamientos en un diario para liberar la mente antes de dormir."
+    ];
+    
+    // ==================== DATOS ====================
+    function cargarDatos() {
+        let guardado = localStorage.getItem('sueno_v3');
+        if (guardado) {
+            registros = JSON.parse(guardado);
+        } else {
+            // Datos de ejemplo
+            const hoy = new Date();
+            registros = [
+                { id: Date.now()-3, fecha: new Date(hoy.getTime() - 3*86400000).toISOString().split('T')[0], horas: 7.5, calidad: 4, notas: "Dormí bien, sin interrupciones", latencia: 15, despertares: 0 },
+                { id: Date.now()-2, fecha: new Date(hoy.getTime() - 2*86400000).toISOString().split('T')[0], horas: 6, calidad: 3, notas: "Me desperté una vez", latencia: 30, despertares: 1 },
+                { id: Date.now()-1, fecha: new Date(hoy.getTime() - 1*86400000).toISOString().split('T')[0], horas: 8, calidad: 5, notas: "Excelente descanso", latencia: 10, despertares: 0 }
+            ];
+            guardarDatos();
+        }
+        actualizarStats();
+        enviarDatosAlAsistente();
+    }
+    
+    function guardarDatos() {
+        localStorage.setItem('sueno_v3', JSON.stringify(registros));
+        actualizarStats();
+        enviarDatosAlAsistente();
+    }
+    
+    function actualizarStats() {
+        let registrosCompletados = registros.filter(r => r.horas > 0);
+        let totalHoras = registrosCompletados.reduce((s, r) => s + r.horas, 0);
+        let promedio = registrosCompletados.length ? (totalHoras / registrosCompletados.length).toFixed(1) : 0;
+        
+        // Promedio últimos 7 días
+        let hoy = new Date();
+        let ultimaSemana = registrosCompletados.filter(r => {
+            let fechaReg = new Date(r.fecha);
+            let diff = (hoy - fechaReg) / (1000 * 60 * 60 * 24);
+            return diff <= 7 && diff >= 0;
+        });
+        let promedioSemana = ultimaSemana.length ? (ultimaSemana.reduce((s, r) => s + r.horas, 0) / ultimaSemana.length).toFixed(1) : 0;
+        
+        // Calidad promedio
+        let calidadTotal = registrosCompletados.reduce((s, r) => s + (r.calidad || 0), 0);
+        let calidadPromedio = registrosCompletados.length ? Math.round((calidadTotal / registrosCompletados.length) * 20) : 0;
+        
+        // Mejor racha (días seguidos con sueño de calidad >= 4)
+        let rachaActual = 0;
+        let mejorRacha = 0;
+        let fecha = new Date();
+        for (let i = 0; i < 30; i++) {
+            let fechaStr = fecha.toISOString().split('T')[0];
+            let reg = registros.find(r => r.fecha === fechaStr);
+            if (reg && reg.horas >= 7 && (reg.calidad || 0) >= 4) {
+                rachaActual++;
+                if (rachaActual > mejorRacha) mejorRacha = rachaActual;
+            } else {
+                rachaActual = 0;
+            }
+            fecha.setDate(fecha.getDate() - 1);
+        }
+        
+        // Actualizar DOM
+        document.getElementById('promedioMes').innerText = promedio + 'h';
+        document.getElementById('promedioSemana').innerText = promedioSemana + 'h';
+        document.getElementById('mejorRacha').innerText = mejorRacha;
+        document.getElementById('calidadPromedio').innerText = calidadPromedio + '%';
+        
+        // Tendencia
+        let semanaAnterior = registrosCompletados.filter(r => {
+            let fechaReg = new Date(r.fecha);
+            let diff = (hoy - fechaReg) / (1000 * 60 * 60 * 24);
+            return diff <= 14 && diff > 7;
+        });
+        let promedioAnterior = semanaAnterior.length ? (semanaAnterior.reduce((s, r) => s + r.horas, 0) / semanaAnterior.length).toFixed(1) : 0;
+        let tendencia = parseFloat(promedioSemana) - parseFloat(promedioAnterior);
+        let tendenciaTexto = !isNaN(tendencia) ? (tendencia > 0 ? `+${tendencia.toFixed(1)}h ↑` : tendencia < 0 ? `${tendencia.toFixed(1)}h ↓` : '=') : '-';
+        document.getElementById('tendencia').innerHTML = tendenciaTexto;
+    }
+    
+    // ==================== ENVIAR DATOS AL ASISTENTE (GLOBALIZACIÓN) ====================
+    function enviarDatosAlAsistente() {
+        try {
+            let registrosCompletados = registros.filter(r => r.horas > 0);
+            let totalHoras = registrosCompletados.reduce((s, r) => s + r.horas, 0);
+            let promedio = registrosCompletados.length ? (totalHoras / registrosCompletados.length).toFixed(1) : 0;
+            
+            let hoy = new Date();
+            let ultimaSemana = registrosCompletados.filter(r => {
+                let fechaReg = new Date(r.fecha);
+                let diff = (hoy - fechaReg) / (1000 * 60 * 60 * 24);
+                return diff <= 7 && diff >= 0;
+            });
+            let promedioSemana = ultimaSemana.length ? (ultimaSemana.reduce((s, r) => s + r.horas, 0) / ultimaSemana.length).toFixed(1) : 0;
+            
+            let registroHoy = registros.find(r => r.fecha === hoy.toISOString().split('T')[0]);
+            let horasAnoche = registroHoy ? registroHoy.horas : 0;
+            
+            const datos = {
+                promedio_mes: parseFloat(promedio),
+                promedio_semana: parseFloat(promedioSemana),
+                horas_anoche: horasAnoche,
+                calidad_promedio: registrosCompletados.length ? Math.round(registrosCompletados.reduce((s, r) => s + (r.calidad || 0), 0) / registrosCompletados.length * 20) : 0,
+                total_registros: registrosCompletados.length,
+                ultima_actualizacion: Date.now()
+            };
+            
+            localStorage.setItem('reprompt_sueno_data', JSON.stringify(datos));
+            
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'GLOBAL_DATA_UPDATE',
+                    app: 'sueno',
+                    data: datos
+                }, '*');
+            }
+            
+            window.postMessage({
+                type: 'GLOBAL_DATA_UPDATE',
+                app: 'sueno',
+                data: datos
+            }, '*');
+            
+            console.log('📤 Datos de sueño enviados al asistente:', datos);
+        } catch(e) {
+            console.error('Error enviando datos:', e);
+        }
+    }
+    
+    // ==================== REGISTRO DE SUEÑO ====================
+    function registrarSueño() {
+        let horas = parseFloat(document.getElementById('horasDormidas').value);
+        let calidad = parseInt(document.getElementById('calidadSeleccionada').value) || 0;
+        let latencia = parseInt(document.getElementById('latencia').value) || 0;
+        let despertares = parseInt(document.getElementById('despertares').value) || 0;
+        let notas = document.getElementById('notasSueno').value;
+        
+        if (isNaN(horas) || horas <= 0) {
+            mostrarNotificacion('❌ Por favor ingresa las horas dormidas');
+            return;
+        }
+        
+        let hoy = new Date().toISOString().split('T')[0];
+        let existe = registros.find(r => r.fecha === hoy);
+        
+        if (existe) {
+            existe.horas = horas;
+            existe.calidad = calidad;
+            existe.latencia = latencia;
+            existe.despertares = despertares;
+            existe.notas = notas;
+        } else {
+            registros.push({
+                id: Date.now(),
+                fecha: hoy,
+                horas: horas,
+                calidad: calidad,
+                latencia: latencia,
+                despertares: despertares,
+                notas: notas
+            });
+        }
+        
+        guardarDatos();
+        
+        // Limpiar formulario
+        document.getElementById('horasDormidas').value = '';
+        document.getElementById('latencia').value = '';
+        document.getElementById('despertares').value = '';
+        document.getElementById('notasSueno').value = '';
+        
+        // Limpiar selección de calidad
+        document.getElementById('calidadSeleccionada').value = 0;
+        document.querySelectorAll('.calidad-btn').forEach(btn => btn.classList.remove('selected'));
+        
+        let calidadTexto = calidad === 5 ? 'Excelente' : calidad === 4 ? 'Buena' : calidad === 3 ? 'Regular' : calidad === 2 ? 'Mala' : 'Muy mala';
+        mostrarNotificacion(`✅ Sueño registrado: ${horas}h - Calidad: ${calidadTexto}`);
+        
+        if (tabActual === 'registro') renderizarRegistro();
+        else if (tabActual === 'historico') renderizarHistorico();
+        else if (tabActual === 'estadisticas') renderizarEstadisticas();
+        
+        if (horas < 7) {
+            setTimeout(() => {
+                mostrarNotificacion('💡 Dormiste menos de 7h. ¿Quieres ver recomendaciones para mejorar?');
+            }, 1500);
+        }
+    }
+    
+    function seleccionarCalidad(valor) {
+        // Actualizar visual de los botones
+        document.querySelectorAll('.calidad-btn').forEach(btn => btn.classList.remove('selected'));
+        let btn = document.querySelector(`.calidad-btn[data-valor="${valor}"]`);
+        if (btn) btn.classList.add('selected');
+        
+        // Actualizar el input hidden
+        document.getElementById('calidadSeleccionada').value = valor;
+        
+        console.log('Calidad seleccionada:', valor);
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarRegistro() {
+        let hoy = new Date().toISOString().split('T')[0];
+        let registroHoy = registros.find(r => r.fecha === hoy);
+        
+        // Determinar calidad seleccionada actualmente
+        let calidadActual = registroHoy ? registroHoy.calidad : 0;
+        
+        let html = `
+            <div class="registro-card">
+                <div class="registro-titulo">
+                    <i class="fas fa-bed"></i> ${registroHoy ? '✏️ Actualizar sueño de hoy' : '📝 Registrar sueño de anoche'}
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>🌙 Horas dormidas</label>
+                        <input type="number" id="horasDormidas" class="input-field" step="0.5" placeholder="Ej: 7.5" value="${registroHoy ? registroHoy.horas : ''}">
+                    </div>
+                    <div class="input-group">
+                        <label>⏱️ Minutos para dormir (latencia)</label>
+                        <input type="number" id="latencia" class="input-field" placeholder="Ej: 15" value="${registroHoy ? registroHoy.latencia || '' : ''}">
+                    </div>
+                    <div class="input-group">
+                        <label>🔄 Despertares nocturnos</label>
+                        <input type="number" id="despertares" class="input-field" placeholder="Ej: 1" value="${registroHoy ? registroHoy.despertares || '' : ''}">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>😴 Calidad del sueño</label>
+                    <div class="calidad-buttons" id="calidadButtons">
+                        <button class="calidad-btn ${calidadActual === 1 ? 'selected' : ''}" data-valor="1" onclick="seleccionarCalidad(1)">😫</button>
+                        <button class="calidad-btn ${calidadActual === 2 ? 'selected' : ''}" data-valor="2" onclick="seleccionarCalidad(2)">😟</button>
+                        <button class="calidad-btn ${calidadActual === 3 ? 'selected' : ''}" data-valor="3" onclick="seleccionarCalidad(3)">😐</button>
+                        <button class="calidad-btn ${calidadActual === 4 ? 'selected' : ''}" data-valor="4" onclick="seleccionarCalidad(4)">🙂</button>
+                        <button class="calidad-btn ${calidadActual === 5 ? 'selected' : ''}" data-valor="5" onclick="seleccionarCalidad(5)">😊</button>
+                    </div>
+                    <input type="hidden" id="calidadSeleccionada" value="${calidadActual}">
+                </div>
+                <div class="input-group" style="margin-top: 12px;">
+                    <label>📝 Notas (opcional)</label>
+                    <textarea id="notasSueno" class="input-field" rows="2" placeholder="¿Cómo te sentiste? ¿Algo afectó tu sueño?">${registroHoy ? registroHoy.notas || '' : ''}</textarea>
+                </div>
+                <button class="btn-primary" style="margin-top: 16px; width: 100%;" onclick="registrarSueño()">
+                    ${registroHoy ? '✏️ Actualizar registro' : '💾 Guardar sueño'}
+                </button>
+            </div>
+            
+            <div class="recomendacion-card">
+                <div class="recomendacion-titulo"><i class="fas fa-info-circle"></i> Tip de la noche</div>
+                <div class="recomendacion-texto">${TIPS_SUENO[Math.floor(Math.random() * TIPS_SUENO.length)]}</div>
+            </div>
+        `;
+        
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarHistorico() {
+        let registrosOrdenados = [...registros].filter(r => r.horas > 0).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        
+        if (registrosOrdenados.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-moon"></i><h3>No hay registros de sueño</h3><p>Comienza a registrar tu sueño para ver tu historial</p></div>';
+            return;
+        }
+        
+        let html = '<div class="historico-list">';
+        for (let r of registrosOrdenados) {
+            let fecha = new Date(r.fecha);
+            let calidadClase = '';
+            if (r.calidad >= 4) calidadClase = 'calidad-excelente';
+            else if (r.calidad >= 3) calidadClase = 'calidad-buena';
+            else if (r.calidad >= 2) calidadClase = 'calidad-regular';
+            else calidadClase = 'calidad-mala';
+            
+            html += `
+                <div class="sueño-item" onclick="editarRegistro(${r.id})">
+                    <div class="sueño-fecha">${fecha.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' })}</div>
+                    <div class="sueño-info"><i class="fas fa-clock"></i> ${r.horas}h</div>
+                    <div class="sueño-info"><i class="fas fa-hourglass-half"></i> ${r.latencia || '?'} min</div>
+                    <div class="sueño-info"><i class="fas fa-bed"></i> ${r.despertares || 0}x</div>
+                    <div class="sueño-calidad ${calidadClase}">${r.calidad || '?'}</div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarEstadisticas() {
+        let registrosCompletados = registros.filter(r => r.horas > 0);
+        
+        let ultimos7 = [];
+        let etiquetas7 = [];
+        let datos7 = [];
+        let datosCalidad = [];
+        
+        let hoy = new Date();
+        for (let i = 6; i >= 0; i--) {
+            let fecha = new Date(hoy);
+            fecha.setDate(hoy.getDate() - i);
+            let fechaStr = fecha.toISOString().split('T')[0];
+            let reg = registrosCompletados.find(r => r.fecha === fechaStr);
+            let horas = reg ? reg.horas : 0;
+            let calidad = reg ? reg.calidad : 0;
+            etiquetas7.push(fecha.toLocaleDateString('es-ES', { weekday:'short' }));
+            datos7.push(horas);
+            datosCalidad.push(calidad);
+        }
+        
+        let totalHoras = registrosCompletados.reduce((s, r) => s + r.horas, 0);
+        let promedio = registrosCompletados.length ? (totalHoras / registrosCompletados.length).toFixed(1) : 0;
+        let mejorNoche = registrosCompletados.length ? Math.max(...registrosCompletados.map(r => r.horas)) : 0;
+        let peorNoche = registrosCompletados.length ? Math.min(...registrosCompletados.map(r => r.horas)) : 0;
+        let calidadPromedio = registrosCompletados.length ? (registrosCompletados.reduce((s, r) => s + (r.calidad || 0), 0) / registrosCompletados.length).toFixed(1) : 0;
+        
+        let latenciaPromedio = registrosCompletados.filter(r => r.latencia).length ? 
+            Math.round(registrosCompletados.filter(r => r.latencia).reduce((s, r) => s + r.latencia, 0) / registrosCompletados.filter(r => r.latencia).length) : 0;
+        
+        let html = `
+            <div class="stats-grid" style="margin-bottom: 16px;">
+                <div class="stat-card"><div class="stat-value">${promedio}h</div><div class="stat-label">Promedio</div></div>
+                <div class="stat-card"><div class="stat-value">${mejorNoche}h</div><div class="stat-label">Mejor noche</div></div>
+                <div class="stat-card"><div class="stat-value">${peorNoche}h</div><div class="stat-label">Peor noche</div></div>
+                <div class="stat-card"><div class="stat-value">${calidadPromedio}/5</div><div class="stat-label">Calidad media</div></div>
+            </div>
+            
+            <div class="stats-card">
+                <h4>📊 Tendencias de sueño (últimos 7 días)</h4>
+                <canvas id="graficoTendencias"></canvas>
+            </div>
+            
+            <div class="stats-card">
+                <h4>⭐ Calidad del sueño</h4>
+                <canvas id="graficoCalidad"></canvas>
+            </div>
+            
+            <div class="stats-card">
+                <h4>📈 Análisis de tu sueño</h4>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div><span style="color:#8b5cf6;">⏱️ Latencia promedio:</span> ${latenciaPromedio} minutos</div>
+                    <div><span style="color:#8b5cf6;">📊 Consistencia:</span> ${calcularConsistencia()}%</div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        
+        let ctx = document.getElementById('graficoTendencias')?.getContext('2d');
+        if (ctx) {
+            if (graficoTendencias) graficoTendencias.destroy();
+            graficoTendencias = new Chart(ctx, {
+                type: 'line',
+                data: { labels: etiquetas7, datasets: [{ label: 'Horas dormidas', data: datos7, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', fill: true, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#a0a0b0' }, title: { display: true, text: 'Horas', color: '#a0a0b0' } }, x: { ticks: { color: '#a0a0b0' } } } }
+            });
+        }
+        
+        let ctx2 = document.getElementById('graficoCalidad')?.getContext('2d');
+        if (ctx2) {
+            if (graficoCalidad) graficoCalidad.destroy();
+            graficoCalidad = new Chart(ctx2, {
+                type: 'bar',
+                data: { labels: etiquetas7, datasets: [{ label: 'Calidad (1-5)', data: datosCalidad, backgroundColor: '#8b5cf6', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#a0a0b0' }, min: 0, max: 5 }, x: { ticks: { color: '#a0a0b0' } } } }
+            });
+        }
+    }
+    
+    function calcularConsistencia() {
+        let registrosCompletados = registros.filter(r => r.horas > 0);
+        if (registrosCompletados.length < 7) return 0;
+        
+        let ultimos7 = registrosCompletados.slice(0, 7);
+        let promedio = ultimos7.reduce((s, r) => s + r.horas, 0) / 7;
+        let desviacion = Math.sqrt(ultimos7.reduce((s, r) => s + Math.pow(r.horas - promedio, 2), 0) / 7);
+        let consistencia = Math.max(0, Math.min(100, Math.round(100 - (desviacion / promedio * 100))));
+        return consistencia;
+    }
+    
+    function renderizarRecomendaciones() {
+        let registrosCompletados = registros.filter(r => r.horas > 0);
+        let promedio = registrosCompletados.length ? (registrosCompletados.reduce((s, r) => s + r.horas, 0) / registrosCompletados.length).toFixed(1) : 0;
+        let ultimoRegistro = registrosCompletados[0];
+        
+        let recomendaciones = [];
+        
+        if (promedio < 7) {
+            recomendaciones.push("🕒 **Duermes menos de 7h en promedio.** Intenta acostarte 30 minutos más temprano.");
+        }
+        if (ultimoRegistro && ultimoRegistro.calidad <= 2) {
+            recomendaciones.push("😟 **Tu calidad de sueño ha sido baja.** Revisa tu rutina nocturna y evita pantallas antes de dormir.");
+        }
+        if (ultimoRegistro && ultimoRegistro.latencia > 30) {
+            recomendaciones.push("⏱️ **Tardas más de 30 min en dormir.** Prueba la técnica de respiración 4-7-8 o un baño tibio antes de acostarte.");
+        }
+        if (ultimoRegistro && ultimoRegistro.despertares > 1) {
+            recomendaciones.push("🔄 **Te despiertas varias veces.** Revisa si hay ruidos, luz o temperatura inadecuada en tu habitación.");
+        }
+        
+        if (recomendaciones.length === 0) {
+            recomendaciones.push("🌟 ¡Excelente! Tu sueño está en buen camino. Sigue manteniendo una rutina constante.");
+            recomendaciones.push("💪 Para mejorar aún más, prueba agregar un ritual de desconexión 30 min antes de dormir.");
+        }
+        
+        let html = `<div class="recomendacion-card">
+            <div class="recomendacion-titulo"><i class="fas fa-robot"></i> Recomendaciones personalizadas</div>
+            <div class="recomendacion-texto">Basado en tus ${registrosCompletados.length} registros de sueño:</div>
+            <ul style="margin-top: 12px; margin-left: 20px;">`;
+        for (let rec of recomendaciones) {
+            html += `<li style="margin-bottom: 8px;">${rec}</li>`;
+        }
+        html += `</ul></div>`;
+        
+        html += `<div class="recomendacion-card">
+            <div class="recomendacion-titulo"><i class="fas fa-book"></i> Guía rápida de higiene del sueño</div>
+            <div class="recomendacion-texto">
+                <strong>✅ Haz:</strong> Horario fijo, habitación oscura/fresca, rutina relajante.<br>
+                <strong>❌ Evita:</strong> Cafeína tarde, pantallas antes de dormir, comidas pesadas.
+            </div>
+        </div>`;
+        
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarRitual() {
+        let html = `
+            <div class="recomendacion-card">
+                <div class="recomendacion-titulo"><i class="fas fa-spa"></i> Ritual de desconexión (30 min antes de dormir)</div>
+                <div class="recomendacion-texto">
+                    <ol style="margin-left: 20px; margin-top: 12px;">
+                        <li>📱 <strong>Apaga pantallas</strong> - La luz azul inhibe la melatonina</li>
+                        <li>🕯️ <strong>Luz tenue</strong> - Usa velas o luz cálida</li>
+                        <li>📖 <strong>Lee algo relajante</strong> - Nada de trabajo o noticias</li>
+                        <li>🧘 <strong>Respiración consciente</strong> - 5 minutos de respiración profunda</li>
+                        <li>📝 <strong>Escribe tus pensamientos</strong> - Descarga tu mente en un diario</li>
+                        <li>🎵 <strong>Música o sonidos relajantes</strong> - Ruido blanco o sonidos de la naturaleza</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="recomendacion-card">
+                <div class="recomendacion-titulo"><i class="fas fa-music"></i> Sonidos recomendados</div>
+                <div class="recomendacion-texto">
+                    🌧️ Lluvia | 🌊 Olas del mar | 🌲 Bosque | 🔥 Chimenea | 🤍 Ruido blanco
+                </div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    // ==================== EDICIÓN Y ELIMINACIÓN ====================
+    function editarRegistro(id) {
+        let registro = registros.find(r => r.id === id);
+        if (!registro) return;
+        
+        document.getElementById('editHoras').value = registro.horas;
+        document.getElementById('editCalidad').value = registro.calidad || 3;
+        document.getElementById('editNotas').value = registro.notas || '';
+        editandoId = id;
+        document.getElementById('modalEditar').style.display = 'flex';
+    }
+    
+    function cerrarModalEditar() {
+        document.getElementById('modalEditar').style.display = 'none';
+        editandoId = null;
+    }
+    
+    function guardarEdicion() {
+        let horas = parseFloat(document.getElementById('editHoras').value);
+        let calidad = parseInt(document.getElementById('editCalidad').value);
+        let notas = document.getElementById('editNotas').value;
+        
+        if (isNaN(horas) || horas <= 0) {
+            mostrarNotificacion('❌ Horas inválidas');
+            return;
+        }
+        
+        let registro = registros.find(r => r.id === editandoId);
+        if (registro) {
+            registro.horas = horas;
+            registro.calidad = calidad;
+            registro.notas = notas;
+            guardarDatos();
+            mostrarNotificacion('✅ Registro actualizado');
+        }
+        
+        cerrarModalEditar();
+        if (tabActual === 'historico') renderizarHistorico();
+        else if (tabActual === 'estadisticas') renderizarEstadisticas();
+        else if (tabActual === 'registro') renderizarRegistro();
+    }
+    
+    function eliminarRegistro() {
+        if (confirm('¿Eliminar este registro de sueño?')) {
+            registros = registros.filter(r => r.id !== editandoId);
+            guardarDatos();
+            mostrarNotificacion('🗑️ Registro eliminado');
+            cerrarModalEditar();
+            if (tabActual === 'historico') renderizarHistorico();
+            else if (tabActual === 'estadisticas') renderizarEstadisticas();
+            else if (tabActual === 'registro') renderizarRegistro();
+        }
+    }
+    
+    function mostrarNotificacion(msg) {
+        let n = document.createElement('div');
+        n.className = 'notification-toast';
+        n.innerHTML = msg;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 2500);
+    }
+    
+    // ==================== PESTAÑAS ====================
+    function cambiarTab(tab) {
+        tabActual = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        let activeTab = document.querySelector(`.tab[data-tab="${tab}"]`);
+        if (activeTab) activeTab.classList.add('active');
+        
+        if (tab === 'registro') renderizarRegistro();
+        else if (tab === 'historico') renderizarHistorico();
+        else if (tab === 'estadisticas') renderizarEstadisticas();
+        else if (tab === 'recomendaciones') renderizarRecomendaciones();
+        else if (tab === 'ritual') renderizarRitual();
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+        renderizarRegistro();
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => cambiarTab(tab.getAttribute('data-tab')));
+        });
+        
+        setInterval(() => {
+            enviarDatosAlAsistente();
+        }, 30000);
+        
+        window.cambiarTab = cambiarTab;
+        window.seleccionarCalidad = seleccionarCalidad;
+        window.registrarSueño = registrarSueño;
+        window.editarRegistro = editarRegistro;
+        window.cerrarModalEditar = cerrarModalEditar;
+        window.guardarEdicion = guardarEdicion;
+        window.eliminarRegistro = eliminarRegistro;
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,860 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Logros - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #f59e0b; }
+        .stats-summary {
+            display: flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 15px;
+            border-radius: 30px;
+        }
+        .summary-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .summary-item i { color: #f59e0b; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(245,158,11,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #f59e0b; }
+        .stat-label { font-size: 10px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #f59e0b; border-bottom: 2px solid #f59e0b; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        .insignias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .insignia-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .insignia-card.obtenida { border-color: #f59e0b; background: rgba(245,158,11,0.1); }
+        .insignia-card.nueva { animation: glow 0.5s ease 3; }
+        @keyframes glow {
+            0% { box-shadow: 0 0 0 0 #f59e0b; }
+            50% { box-shadow: 0 0 20px 10px #f59e0b; }
+            100% { box-shadow: 0 0 0 0 #f59e0b; }
+        }
+        .insignia-icono { font-size: 48px; margin-bottom: 12px; }
+        .insignia-nombre { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+        .insignia-desc { font-size: 11px; color: #a0a0b0; }
+        .insignia-progreso { margin-top: 12px; font-size: 11px; color: #f59e0b; }
+        
+        .nivel-card {
+            background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(139,92,246,0.1));
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .nivel-titulo { font-size: 24px; font-weight: bold; color: #f59e0b; }
+        .nivel-progreso { margin: 12px 0; }
+        .nivel-bar { background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; overflow: hidden; }
+        .nivel-fill { background: linear-gradient(90deg, #f59e0b, #ec489a); height: 100%; width: 0%; transition: width 0.5s ease; }
+        
+        .desafio-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(245,158,11,0.3);
+            cursor: pointer;
+        }
+        .desafio-progreso { margin: 12px 0; }
+        
+        .tienda-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        .item-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .item-card:hover { transform: translateY(-3px); border-color: #f59e0b; }
+        .item-precio { color: #f59e0b; font-size: 20px; font-weight: bold; margin: 8px 0; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 24px;
+            padding: 24px;
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+        }
+        .btn-primary {
+            background: #f59e0b;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            color: #0a0a0f;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f59e0b;
+            color: #0a0a0f;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            background: rgba(0,0,0,0.5);
+            animation: fadeOut 2s forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        .empty-state { text-align: center; padding: 60px 20px; color: #a0a0b0; }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 3px; }
+        
+        .share-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+        .share-btn:hover { background: #10b981; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-trophy"></i> Logros</h1>
+            <div class="stats-summary">
+                <div class="summary-item"><i class="fas fa-star"></i> <span id="xpTotal">0</span> XP</div>
+                <div class="summary-item"><i class="fas fa-fire"></i> <span id="rachaGlobal">0</span> días</div>
+                <div class="summary-item"><i class="fas fa-calendar-week"></i> <span id="desafiosCompletados">0</span> desafíos</div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('insignias')"><div class="stat-value" id="totalInsignias">0</div><div class="stat-label">Insignias</div></div>
+            <div class="stat-card" onclick="cambiarTab('nivel')"><div class="stat-value" id="nivelActual">1</div><div class="stat-label">Nivel</div></div>
+            <div class="stat-card" onclick="cambiarTab('tienda')"><div class="stat-value" id="monedas">0</div><div class="stat-label">Monedas</div></div>
+            <div class="stat-card" onclick="cambiarTab('ligas')"><div class="stat-value" id="ligaActual">🌱</div><div class="stat-label">Liga</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="insignias"><i class="fas fa-medal"></i> Insignias</button>
+        <button class="tab" data-tab="nivel"><i class="fas fa-chart-line"></i> Progreso</button>
+        <button class="tab" data-tab="desafios"><i class="fas fa-tasks"></i> Desafíos</button>
+        <button class="tab" data-tab="tienda"><i class="fas fa-store"></i> Tienda</button>
+        <button class="tab" data-tab="ligas"><i class="fas fa-chart-simple"></i> Ligas</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<!-- Modal compra -->
+<div id="modalCompra" class="modal">
+    <div class="modal-content">
+        <div id="modalCompraContent"></div>
+        <div class="modal-buttons" style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn-secondary" onclick="cerrarModalCompra()">Cancelar</button>
+            <button class="btn-primary" id="confirmarCompraBtn">Comprar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== DATOS ====================
+    let usuario = {
+        xp: 0,
+        nivel: 1,
+        monedas: 0,
+        rachaGlobal: 0,
+        ultimoDia: null,
+        insignias: [],
+        itemsComprados: [],
+        desafiosCompletados: [],
+        historialXP: [] // { fecha, xp }
+    };
+    
+    // INSIGNIAS COMPLETAS (TODAS LAS APPS)
+    const INSIGNIAS = [
+        // Hábitos
+        { id: "primer_habito", nombre: "🌱 Primer hábito", descripcion: "Completa tu primer hábito", icono: "🌱", categoria: "hábitos", tipo: "habitos", umbral: 1 },
+        { id: "maestro_habitos", nombre: "🎯 Maestro de hábitos", descripcion: "Completa 30 hábitos", icono: "🎯", categoria: "hábitos", tipo: "habitos", umbral: 30 },
+        // Rachas
+        { id: "racha_7", nombre: "🔥 Racha de 7 días", descripcion: "Mantén una racha de 7 días", icono: "🔥", categoria: "rachas", tipo: "racha", umbral: 7 },
+        { id: "racha_30", nombre: "💎 Racha de 30 días", descripcion: "Mantén una racha de 30 días", icono: "💎", categoria: "rachas", tipo: "racha", umbral: 30 },
+        { id: "racha_100", nombre: "🏆 Leyenda", descripcion: "Mantén una racha de 100 días", icono: "🏆", categoria: "rachas", tipo: "racha", umbral: 100 },
+        // Metas
+        { id: "primer_meta", nombre: "🎯 Primera meta", descripcion: "Completa tu primera meta", icono: "🎯", categoria: "metas", tipo: "metas", umbral: 1 },
+        { id: "meta_5", nombre: "🏆 5 metas completadas", descripcion: "Completa 5 metas", icono: "🏆", categoria: "metas", tipo: "metas", umbral: 5 },
+        // Emociones
+        { id: "primer_emocion", nombre: "😊 Primer registro", descripcion: "Registra tu primera emoción", icono: "😊", categoria: "emociones", tipo: "emociones", umbral: 1 },
+        { id: "emociones_30", nombre: "🌈 Explorador emocional", descripcion: "Registra 30 emociones", icono: "🌈", categoria: "emociones", tipo: "emociones", umbral: 30 },
+        // Música
+        { id: "primer_play", nombre: "🎵 Primer play", descripcion: "Reproduce tu primera canción", icono: "🎵", categoria: "música", tipo: "musica", umbral: 1 },
+        { id: "melomano", nombre: "🎧 Melómano", descripcion: "10 horas de música escuchada", icono: "🎧", categoria: "música", tipo: "musica_horas", umbral: 600 },
+        // Biblioteca
+        { id: "lector", nombre: "📚 Lector activo", descripcion: "Lee 30 minutos por 5 días", icono: "📚", categoria: "biblioteca", tipo: "biblioteca", umbral: 5 },
+        { id: "bibliotecario", nombre: "🏛️ Bibliotecario", descripcion: "Completa 10 recursos", icono: "🏛️", categoria: "biblioteca", tipo: "biblioteca_completados", umbral: 10 },
+        // Crisis
+        { id: "apoyo", nombre: "🤝 Apoyo emocional", descripcion: "Usa la app Crisis 3 veces", icono: "🤝", categoria: "crisis", tipo: "crisis", umbral: 3 },
+        { id: "resiliente", nombre: "🌊 Resiliente", descripcion: "Supera 10 crisis", icono: "🌊", categoria: "crisis", tipo: "crisis", umbral: 10 },
+        // Profesionales
+        { id: "primer_cita", nombre: "👨‍⚕️ Primera cita", descripcion: "Agenda tu primera cita", icono: "👨‍⚕️", categoria: "profesionales", tipo: "profesionales_citas", umbral: 1 },
+        { id: "seguimiento", nombre: "📅 Seguimiento", descripcion: "3 citas con profesionales", icono: "📅", categoria: "profesionales", tipo: "profesionales_citas", umbral: 3 },
+        // Ejercicios
+        { id: "primer_ejercicio", nombre: "🏃 Primer ejercicio", descripcion: "Registra tu primer ejercicio", icono: "🏃", categoria: "ejercicios", tipo: "ejercicios", umbral: 1 },
+        { id: "deportista", nombre: "💪 Deportista", descripcion: "30 días de ejercicio", icono: "💪", categoria: "ejercicios", tipo: "ejercicios_dias", umbral: 30 },
+        // Sueño
+        { id: "sueño_7", nombre: "😴 7 noches seguidas", descripcion: "7 noches de sueño registrado", icono: "😴", categoria: "sueño", tipo: "sueno_racha", umbral: 7 },
+        { id: "descanso_sabio", nombre: "⭐ Descanso sabio", descripcion: "30 días de registro de sueño", icono: "⭐", categoria: "sueño", tipo: "sueno_dias", umbral: 30 },
+        // Comunidad
+        { id: "comunidad_activa", nombre: "👥 Miembro activo", descripcion: "Publica 5 veces en comunidad", icono: "👥", categoria: "comunidad", tipo: "comunidad", umbral: 5 },
+        { id: "influencer", nombre: "🌟 Influencer", descripcion: "Recibe 50 likes", icono: "🌟", categoria: "comunidad", tipo: "comunidad_likes", umbral: 50 }
+    ];
+    
+    // DESAFÍOS SEMANALES
+    let desafiosSemanales = [
+        { id: 1, nombre: "🔥 Racha perfecta", descripcion: "Completa al menos un hábito cada día", objetivo: 7, progreso: 0, recompensa: 100, icono: "🔥", tipo: "racha" },
+        { id: 2, nombre: "📚 Días de lectura", descripcion: "Lee 30 minutos en 5 días diferentes", objetivo: 5, progreso: 0, recompensa: 75, icono: "📚", tipo: "biblioteca" },
+        { id: 3, nombre: "😊 Registro emocional", descripcion: "Registra tu emoción 5 veces", objetivo: 5, progreso: 0, recompensa: 50, icono: "😊", tipo: "emociones" }
+    ];
+    
+    // Tienda de items
+    const TIENDA = [
+        { id: "avatar_ninja", nombre: "Avatar Ninja", descripcion: "Desbloquea el avatar Ninja", precio: 100, icono: "🥷", tipo: "avatar" },
+        { id: "avatar_mago", nombre: "Avatar Mago", descripcion: "Desbloquea el avatar Mago", precio: 200, icono: "🧙", tipo: "avatar" },
+        { id: "avatar_guerrero", nombre: "Avatar Guerrero", descripcion: "Desbloquea el avatar Guerrero", precio: 150, icono: "⚔️", tipo: "avatar" },
+        { id: "tema_oscuro", nombre: "Tema Oscuro Pro", descripcion: "Tema oscuro premium", precio: 300, icono: "🌙", tipo: "tema" },
+        { id: "recurso_libro", nombre: "Libro Exclusivo", descripcion: "Acceso a libro exclusivo", precio: 500, icono: "📖", tipo: "recurso" }
+    ];
+    
+    // Datos de otras apps
+    let datosGlobales = {
+        habitos: { completados: 0, racha: 0 },
+        metas: { completadas: 0 },
+        emociones: { total: 0 },
+        musica: { reproducciones: 0, minutos: 0 },
+        crisis: { usos: 0 },
+        comunidad: { publicaciones: 0, likesRecibidos: 0 },
+        profesionales: { citas: 0 },
+        ejercicios: { dias: 0, total: 0 },
+        sueno: { racha: 0, dias: 0 },
+        biblioteca: { diasLectura: 0, completados: 0 }
+    };
+    
+    let grafico = null;
+    let ultimaInsigniaNueva = null;
+    let desafiosInicializados = false;
+    
+    // ==================== DATOS PERSISTENTES ====================
+    function cargarDatos() {
+        let guardado = localStorage.getItem('reprompt_logros_v2');
+        if (guardado) {
+            let data = JSON.parse(guardado);
+            usuario = data.usuario || usuario;
+            desafiosSemanales = data.desafios || desafiosSemanales;
+            let semanaActual = localStorage.getItem('logros_semana');
+            let hoy = new Date().toISOString().split('T')[0];
+            if (semanaActual !== hoy.split('-').slice(0,2).join('-')) {
+                // Nueva semana, resetear desafíos
+                desafiosSemanales.forEach(d => d.progreso = 0);
+                localStorage.setItem('logros_semana', hoy.split('-').slice(0,2).join('-'));
+                guardarDatos();
+            }
+        }
+        if (!usuario.historialXP) usuario.historialXP = [];
+        actualizarStats();
+        verificarInsignias();
+        enviarDatosGlobales();
+    }
+    
+    function guardarDatos() {
+        localStorage.setItem('reprompt_logros_v2', JSON.stringify({ usuario, desafios: desafiosSemanales }));
+        actualizarStats();
+        enviarDatosGlobales();
+    }
+    
+    function actualizarStats() {
+        document.getElementById('totalInsignias').innerText = usuario.insignias.length;
+        document.getElementById('nivelActual').innerText = usuario.nivel;
+        document.getElementById('monedas').innerText = usuario.monedas;
+        document.getElementById('xpTotal').innerText = usuario.xp;
+        document.getElementById('rachaGlobal').innerText = usuario.rachaGlobal;
+        let desafiosCompletados = desafiosSemanales.filter(d => d.progreso >= d.objetivo).length;
+        document.getElementById('desafiosCompletados').innerText = desafiosCompletados;
+        let ligaNombres = { 1: "🌱 Bronce", 2: "🥈 Plata", 3: "🥇 Oro", 4: "💎 Diamante" };
+        let posicion = usuario.xp >= 500 ? 4 : usuario.xp >= 300 ? 3 : usuario.xp >= 100 ? 2 : 1;
+        document.getElementById('ligaActual').innerHTML = ligaNombres[posicion] || "🌱";
+    }
+    
+    function mostrarConfeti() {
+        let confetiDiv = document.createElement('div');
+        confetiDiv.className = 'confetti';
+        confetiDiv.innerHTML = '🎉 ✨ 🌟 🎊 🎈 🏆 ✨ 🎉';
+        document.body.appendChild(confetiDiv);
+        setTimeout(() => confetiDiv.remove(), 2000);
+    }
+    
+    function agregarNotificacion(msg, esLogro = false) {
+        let n = document.createElement('div');
+        n.className = 'notification-toast';
+        n.innerHTML = esLogro ? `🏆 ¡NUEVO LOGRO! ${msg}` : msg;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 4000);
+        if (esLogro) {
+            mostrarConfeti();
+            try {
+                let audio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+                audio.volume = 0.2;
+                audio.play().catch(e => console.log('Audio no disponible'));
+            } catch(e) {}
+        }
+    }
+    
+    // ==================== VERIFICACIÓN DE INSIGNIAS ====================
+    function verificarInsignias() {
+        let nuevasInsignias = [];
+        
+        for (let i of INSIGNIAS) {
+            if (usuario.insignias.includes(i.id)) continue;
+            
+            let cumple = false;
+            switch(i.tipo) {
+                case "habitos": cumple = datosGlobales.habitos.completados >= i.umbral; break;
+                case "racha": cumple = datosGlobales.habitos.racha >= i.umbral; break;
+                case "metas": cumple = datosGlobales.metas.completadas >= i.umbral; break;
+                case "emociones": cumple = datosGlobales.emociones.total >= i.umbral; break;
+                case "musica": cumple = datosGlobales.musica.reproducciones >= i.umbral; break;
+                case "musica_horas": cumple = datosGlobales.musica.minutos >= i.umbral; break;
+                case "crisis": cumple = datosGlobales.crisis.usos >= i.umbral; break;
+                case "comunidad": cumple = datosGlobales.comunidad.publicaciones >= i.umbral; break;
+                case "comunidad_likes": cumple = datosGlobales.comunidad.likesRecibidos >= i.umbral; break;
+                case "profesionales_citas": cumple = datosGlobales.profesionales.citas >= i.umbral; break;
+                case "ejercicios": cumple = datosGlobales.ejercicios.total >= i.umbral; break;
+                case "ejercicios_dias": cumple = datosGlobales.ejercicios.dias >= i.umbral; break;
+                case "sueno_racha": cumple = datosGlobales.sueno.racha >= i.umbral; break;
+                case "sueno_dias": cumple = datosGlobales.sueno.dias >= i.umbral; break;
+                case "biblioteca": cumple = datosGlobales.biblioteca.diasLectura >= i.umbral; break;
+                case "biblioteca_completados": cumple = datosGlobales.biblioteca.completados >= i.umbral; break;
+                default: cumple = false;
+            }
+            
+            if (cumple) {
+                nuevasInsignias.push(i);
+                usuario.insignias.push(i.id);
+                usuario.xp += 50;
+                usuario.monedas += 25;
+                agregarNotificacion(`${i.nombre} +50 XP +25 monedas`, true);
+                ultimaInsigniaNueva = i.id;
+            }
+        }
+        
+        if (nuevasInsignias.length > 0) {
+            guardarDatos();
+            if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'insignias') renderizarInsignias();
+        }
+        
+        // Calcular nivel
+        let nuevoNivel = Math.floor(usuario.xp / 100) + 1;
+        if (nuevoNivel > usuario.nivel) {
+            usuario.nivel = nuevoNivel;
+            usuario.monedas += 100;
+            agregarNotificacion(`🎉 ¡SUBISTE DE NIVEL! Nivel ${usuario.nivel} +100 monedas`, true);
+            guardarDatos();
+        }
+        
+        // Guardar historial XP
+        usuario.historialXP.push({ fecha: new Date().toISOString().split('T')[0], xp: usuario.xp });
+        if (usuario.historialXP.length > 30) usuario.historialXP.shift();
+    }
+    
+    // ==================== RECEPCIÓN DE DATOS GLOBALES ====================
+    function recibirDatosGlobales(app, data) {
+        console.log(`📥 Logros recibió datos de ${app}:`, data);
+        
+        switch(app) {
+            case 'habitos':
+                datosGlobales.habitos.completados = data.total || data.length || 0;
+                datosGlobales.habitos.racha = data.racha_total || data.racha || 0;
+                // Actualizar desafío de racha
+                let desafioRacha = desafiosSemanales.find(d => d.id === 1);
+                if (desafioRacha && data.racha >= desafioRacha.progreso + 1) {
+                    desafioRacha.progreso = data.racha;
+                    if (desafioRacha.progreso >= desafioRacha.objetivo && !usuario.desafiosCompletados.includes(desafioRacha.id)) {
+                        usuario.desafiosCompletados.push(desafioRacha.id);
+                        usuario.monedas += desafioRacha.recompensa;
+                        agregarNotificacion(`🎯 ¡Desafío completado! ${desafioRacha.nombre} +${desafioRacha.recompensa} monedas`);
+                        guardarDatos();
+                    }
+                }
+                break;
+            case 'metas':
+                datosGlobales.metas.completadas = data.completadas || 0;
+                break;
+            case 'emocional':
+                datosGlobales.emociones.total = data.total_registros || data.length || 0;
+                let desafioEmociones = desafiosSemanales.find(d => d.id === 3);
+                if (desafioEmociones && datosGlobales.emociones.total > desafioEmociones.progreso) {
+                    desafioEmociones.progreso = Math.min(desafioEmociones.objetivo, datosGlobales.emociones.total);
+                    if (desafioEmociones.progreso >= desafioEmociones.objetivo && !usuario.desafiosCompletados.includes(desafioEmociones.id)) {
+                        usuario.desafiosCompletados.push(desafioEmociones.id);
+                        usuario.monedas += desafioEmociones.recompensa;
+                        agregarNotificacion(`🎯 ¡Desafío completado! ${desafioEmociones.nombre} +${desafioEmociones.recompensa} monedas`);
+                        guardarDatos();
+                    }
+                }
+                break;
+            case 'musica':
+                datosGlobales.musica.reproducciones = data.reproducciones || 0;
+                datosGlobales.musica.minutos = data.minutosEscuchados || 0;
+                break;
+            case 'crisis':
+                datosGlobales.crisis.usos = data.crisis_totales || 0;
+                break;
+            case 'comunidad':
+                datosGlobales.comunidad.publicaciones = data.posts || 0;
+                datosGlobales.comunidad.likesRecibidos = data.likes_recibidos || 0;
+                break;
+            case 'profesionales':
+                datosGlobales.profesionales.citas = data.citas_totales || 0;
+                break;
+            case 'ejercicios':
+                datosGlobales.ejercicios.total = data.total || 0;
+                datosGlobales.ejercicios.dias = data.dias || 0;
+                break;
+            case 'sueno':
+                datosGlobales.sueno.racha = data.racha || 0;
+                datosGlobales.sueno.dias = data.total_registros || 0;
+                break;
+            case 'biblioteca':
+                datosGlobales.biblioteca.diasLectura = data.racha || 0;
+                datosGlobales.biblioteca.completados = data.recursos_completados || 0;
+                let desafioLectura = desafiosSemanales.find(d => d.id === 2);
+                if (desafioLectura && datosGlobales.biblioteca.diasLectura > desafioLectura.progreso) {
+                    desafioLectura.progreso = Math.min(desafioLectura.objetivo, datosGlobales.biblioteca.diasLectura);
+                    if (desafioLectura.progreso >= desafioLectura.objetivo && !usuario.desafiosCompletados.includes(desafioLectura.id)) {
+                        usuario.desafiosCompletados.push(desafioLectura.id);
+                        usuario.monedas += desafioLectura.recompensa;
+                        agregarNotificacion(`🎯 ¡Desafío completado! ${desafioLectura.nombre} +${desafioLectura.recompensa} monedas`);
+                        guardarDatos();
+                    }
+                }
+                break;
+        }
+        
+        // Actualizar racha global
+        if (datosGlobales.habitos.racha > usuario.rachaGlobal) {
+            usuario.rachaGlobal = datosGlobales.habitos.racha;
+            guardarDatos();
+        }
+        
+        verificarInsignias();
+        if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'insignias') renderizarInsignias();
+        if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'desafios') renderizarDesafios();
+        if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'nivel') renderizarNivel();
+    }
+    
+    function setupGlobalListener() {
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'GLOBAL_DATA_UPDATE') {
+                recibirDatosGlobales(event.data.app, event.data.data);
+            }
+        });
+        
+        setTimeout(() => {
+            try {
+                let apps = ['habitos', 'metas', 'emocional', 'musica', 'crisis', 'comunidad', 'profesionales', 'ejercicios', 'sueno', 'biblioteca'];
+                for (let app of apps) {
+                    let data = localStorage.getItem(`reprompt_${app}_data`);
+                    if (data) recibirDatosGlobales(app, JSON.parse(data));
+                }
+            } catch(e) {}
+        }, 1000);
+    }
+    
+    // ==================== COMPARTIR ====================
+    function compartirLogros() {
+        let texto = `🎮 Mis logros en REPROMPT OS:\n\n🏆 Nivel ${usuario.nivel}\n⭐ ${usuario.xp} XP\n🏅 ${usuario.insignias.length} insignias\n💰 ${usuario.monedas} monedas\n🔥 Racha de ${usuario.rachaGlobal} días\n\n¡Únete a REPROMPT OS y desbloquea tus propios logros!`;
+        if (navigator.share) {
+            navigator.share({ title: 'Mis logros REPROMPT', text: texto });
+        } else {
+            navigator.clipboard.writeText(texto);
+            agregarNotificacion("📋 Logros copiados al portapapeles");
+        }
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarInsignias() {
+        let obtenidas = usuario.insignias;
+        let html = `<div style="margin-bottom:16px; text-align:right;"><button class="share-btn" onclick="compartirLogros()"><i class="fas fa-share-alt"></i> Compartir logros</button></div>
+                    <div class="insignias-grid">`;
+        
+        for (let i of INSIGNIAS) {
+            let obtenida = obtenidas.includes(i.id);
+            let esNueva = ultimaInsigniaNueva === i.id;
+            html += `
+                <div class="insignia-card ${obtenida ? 'obtenida' : ''} ${esNueva ? 'nueva' : ''}">
+                    <div class="insignia-icono">${i.icono}</div>
+                    <div class="insignia-nombre">${i.nombre}</div>
+                    <div class="insignia-desc">${i.descripcion}</div>
+                    ${!obtenida ? `<div class="insignia-progreso">🔒 Por descubrir</div>` : '<div style="color:#10b981;">✓ Desbloqueada</div>'}
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        if (ultimaInsigniaNueva) setTimeout(() => ultimaInsigniaNueva = null, 3000);
+    }
+    
+    function renderizarNivel() {
+        let xpNecesario = usuario.nivel * 100;
+        let xpActual = usuario.xp - ((usuario.nivel - 1) * 100);
+        let progreso = Math.min(100, (xpActual / 100) * 100);
+        
+        let ctx = document.getElementById('graficoProgreso')?.getContext('2d');
+        if (ctx && grafico) grafico.destroy();
+        
+        let html = `
+            <div class="nivel-card">
+                <div class="nivel-titulo">Nivel ${usuario.nivel}</div>
+                <div class="nivel-progreso">
+                    <div class="nivel-bar"><div class="nivel-fill" style="width: ${progreso}%"></div></div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                        <span>${xpActual} XP</span>
+                        <span>100 XP</span>
+                    </div>
+                </div>
+                <p style="margin-top: 12px;">✨ Total acumulado: ${usuario.xp} XP</p>
+            </div>
+            <div class="nivel-card">
+                <h3>📈 Evolución de XP</h3>
+                <canvas id="graficoProgreso" style="max-height: 200px; width: 100%; margin-top: 12px;"></canvas>
+            </div>
+            <div class="insignias-grid">
+                <div class="insignia-card ${usuario.nivel >= 1 ? 'obtenida' : ''}">
+                    <div class="insignia-icono">🌱</div>
+                    <div class="insignia-nombre">Explorador</div>
+                    <div class="insignia-desc">Nivel 1</div>
+                </div>
+                <div class="insignia-card ${usuario.nivel >= 5 ? 'obtenida' : ''}">
+                    <div class="insignia-icono">📚</div>
+                    <div class="insignia-nombre">Aprendiz</div>
+                    <div class="insignia-desc">Nivel 5</div>
+                </div>
+                <div class="insignia-card ${usuario.nivel >= 10 ? 'obtenida' : ''}">
+                    <div class="insignia-icono">🏆</div>
+                    <div class="insignia-nombre">Maestro</div>
+                    <div class="insignia-desc">Nivel 10</div>
+                </div>
+                <div class="insignia-card ${usuario.nivel >= 20 ? 'obtenida' : ''}">
+                    <div class="insignia-icono">🧠</div>
+                    <div class="insignia-nombre">Sabio</div>
+                    <div class="insignia-desc">Nivel 20</div>
+                </div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        
+        let canvas = document.getElementById('graficoProgreso');
+        if (canvas) {
+            let ctx2 = canvas.getContext('2d');
+            let labels = usuario.historialXP.slice(-14).map(h => h.fecha.substring(5));
+            let datos = usuario.historialXP.slice(-14).map(h => h.xp);
+            grafico = new Chart(ctx2, {
+                type: 'line',
+                data: { labels: labels, datasets: [{ label: 'XP acumulado', data: datos, borderColor: '#f59e0b', fill: false, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#a0a0b0' } }, x: { ticks: { color: '#a0a0b0' } } } }
+            });
+        }
+    }
+    
+    function renderizarDesafios() {
+        let html = '<h3 style="margin-bottom:12px;">🔥 Desafíos semanales</h3>';
+        for (let d of desafiosSemanales) {
+            let completado = d.progreso >= d.objetivo;
+            let progresoPorc = (d.progreso / d.objetivo) * 100;
+            html += `
+                <div class="desafio-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div><span style="font-size: 24px;">${d.icono}</span> <strong>${d.nombre}</strong></div>
+                        <div style="color:#f59e0b;">💰 ${d.recompensa}</div>
+                    </div>
+                    <div class="desafio-desc">${d.descripcion}</div>
+                    <div class="desafio-progreso">
+                        <div class="nivel-bar"><div class="nivel-fill" style="width: ${progresoPorc}%; background:#f59e0b;"></div></div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px;">
+                            <span>${d.progreso}/${d.objetivo}</span>
+                            ${completado ? '<span style="color:#10b981;">✓ Completado</span>' : '<span>Pendiente</span>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarTienda() {
+        let itemsComprados = usuario.itemsComprados || [];
+        let html = '<div class="tienda-grid">';
+        for (let item of TIENDA) {
+            let comprado = itemsComprados.includes(item.id);
+            html += `
+                <div class="item-card" onclick="${!comprado ? `abrirModalCompra('${item.id}')` : ''}">
+                    <div class="insignia-icono">${item.icono}</div>
+                    <div class="insignia-nombre">${item.nombre}</div>
+                    <div class="insignia-desc">${item.descripcion}</div>
+                    ${!comprado ? `<div class="item-precio">💰 ${item.precio} monedas</div><button class="btn-primary" style="margin-top:8px;">Comprar</button>` : '<div style="color:#10b981;">✓ Adquirido</div>'}
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarLigas() {
+        let posicion = usuario.xp >= 500 ? 4 : usuario.xp >= 300 ? 3 : usuario.xp >= 100 ? 2 : 1;
+        let ligas = [
+            { nombre: "Bronce", icono: "🌱", minimo: 0, color: "#cd7f32" },
+            { nombre: "Plata", icono: "🥈", minimo: 100, color: "#94a3b8" },
+            { nombre: "Oro", icono: "🥇", minimo: 300, color: "#f59e0b" },
+            { nombre: "Diamante", icono: "💎", minimo: 500, color: "#10b981" }
+        ];
+        
+        let html = `
+            <div class="nivel-card">
+                <div style="font-size: 48px;">${ligas[posicion-1].icono}</div>
+                <div class="nivel-titulo">Liga ${ligas[posicion-1].nombre}</div>
+                <p>Posición #${posicion} de 4</p>
+            </div>
+            <div class="insignias-grid">
+                ${ligas.map((l, idx) => `
+                    <div class="insignia-card ${idx+1 <= posicion ? 'obtenida' : ''}">
+                        <div class="insignia-icono">${l.icono}</div>
+                        <div class="insignia-nombre">Liga ${l.nombre}</div>
+                        <div class="insignia-desc">${l.minimo}+ XP requerido</div>
+                        ${idx+1 <= posicion ? '<div style="color:#10b981;">✓ Alcanzada</div>' : `<div class="insignia-progreso">${usuario.xp}/${l.minimo} XP</div>`}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function abrirModalCompra(itemId) {
+        let item = TIENDA.find(i => i.id === itemId);
+        if (!item) return;
+        if (usuario.monedas < item.precio) {
+            agregarNotificacion(`❌ No tienes suficientes monedas. Necesitas ${item.precio} monedas.`);
+            return;
+        }
+        itemComprando = item;
+        document.getElementById('modalCompraContent').innerHTML = `
+            <h3>${item.nombre}</h3>
+            <div class="insignia-icono" style="font-size: 64px;">${item.icono}</div>
+            <p>${item.descripcion}</p>
+            <p style="color:#f59e0b; font-size: 24px; margin: 12px 0;">💰 ${item.precio} monedas</p>
+            <p>¿Confirmar compra?</p>
+        `;
+        document.getElementById('modalCompra').style.display = 'flex';
+        document.getElementById('confirmarCompraBtn').onclick = () => comprarItem();
+    }
+    
+    let itemComprando = null;
+    
+    function comprarItem() {
+        if (!itemComprando) return;
+        if (usuario.monedas >= itemComprando.precio) {
+            usuario.monedas -= itemComprando.precio;
+            if (!usuario.itemsComprados) usuario.itemsComprados = [];
+            usuario.itemsComprados.push(itemComprando.id);
+            guardarDatos();
+            agregarNotificacion(`✅ ¡Has comprado ${itemComprando.nombre}!`);
+            cerrarModalCompra();
+            renderizarTienda();
+        }
+    }
+    
+    function cerrarModalCompra() { document.getElementById('modalCompra').style.display = 'none'; itemComprando = null; }
+    
+    function cambiarTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        if (tab === 'insignias') renderizarInsignias();
+        else if (tab === 'nivel') renderizarNivel();
+        else if (tab === 'desafios') renderizarDesafios();
+        else if (tab === 'tienda') renderizarTienda();
+        else if (tab === 'ligas') renderizarLigas();
+    }
+    
+    function enviarDatosGlobales() {
+        let datos = {
+            nivel: usuario.nivel,
+            xp: usuario.xp,
+            monedas: usuario.monedas,
+            racha: usuario.rachaGlobal,
+            insignias: usuario.insignias.length,
+            desafios_completados: desafiosSemanales.filter(d => d.progreso >= d.objetivo).length,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('reprompt_logros_data', JSON.stringify(datos));
+        if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'GLOBAL_DATA_UPDATE', app: 'logros', data: datos }, '*');
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+        setupGlobalListener();
+        renderizarInsignias();
+        
+        document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => cambiarTab(tab.getAttribute('data-tab'))));
+        
+        window.cambiarTab = cambiarTab;
+        window.abrirModalCompra = abrirModalCompra;
+        window.cerrarModalCompra = cerrarModalCompra;
+        window.compartirLogros = compartirLogros;
+        
+        setInterval(() => enviarDatosGlobales(), 30000);
+        if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'APP_ACTIVE', app: 'logros' }, '*');
+    });
+</script>
+</body>
+</html>

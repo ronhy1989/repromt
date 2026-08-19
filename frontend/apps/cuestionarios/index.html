@@ -1,0 +1,706 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Cuestionarios - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #14b8a6; }
+        .stats-summary {
+            display: flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 15px;
+            border-radius: 30px;
+        }
+        .summary-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .summary-item i { color: #14b8a6; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(20,184,166,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #14b8a6; }
+        .stat-label { font-size: 11px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #14b8a6; border-bottom: 2px solid #14b8a6; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        /* Tarjetas de cuestionarios */
+        .questionnaire-card {
+            background: linear-gradient(135deg, rgba(20,184,166,0.1), rgba(139,92,246,0.1));
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(20,184,166,0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .questionnaire-card:hover { transform: translateY(-3px); border-color: #14b8a6; }
+        .questionnaire-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+        .questionnaire-icon { font-size: 32px; }
+        .questionnaire-title { font-size: 18px; font-weight: bold; }
+        .questionnaire-desc { font-size: 12px; color: #a0a0b0; margin-bottom: 12px; }
+        .questionnaire-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+        .status-completed { background: #10b981; color: white; }
+        .status-pending { background: #f59e0b; color: #0a0a0f; }
+        .status-started { background: #8b5cf6; color: white; }
+        
+        /* Preguntas */
+        .question-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .question-text { font-size: 15px; font-weight: 500; margin-bottom: 12px; }
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option:hover { background: rgba(20,184,166,0.2); }
+        .option.selected { background: rgba(20,184,166,0.3); border-left: 3px solid #14b8a6; }
+        .option-radio {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #a0a0b0;
+            display: inline-block;
+        }
+        .option.selected .option-radio { border-color: #14b8a6; background: #14b8a6; }
+        .option-text { flex: 1; font-size: 13px; }
+        
+        .btn-primary {
+            background: #14b8a6;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 16px;
+        }
+        .btn-primary:hover { background: #0d9488; transform: translateY(-2px); }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #14b8a6;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: #14b8a6;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        .results-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .result-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #14b8a6;
+            text-align: center;
+        }
+        .result-interpretation {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #e0e0e0;
+            padding: 16px;
+            background: rgba(20,184,166,0.1);
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 16px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #14b8a6;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .empty-state { text-align: center; padding: 50px 20px; color: #a0a0b0; }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-clipboard-list"></i> Cuestionarios</h1>
+            <div class="stats-summary">
+                <div class="summary-item"><i class="fas fa-check-circle"></i> <span id="completadosCount">0</span>/<span id="totalCount">8</span></div>
+                <div class="summary-item"><i class="fas fa-chart-line"></i> <span id="perfilCompletado">0</span>%</div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('lista')"><div class="stat-value" id="cuestionariosCompletados">0</div><div class="stat-label">Completados</div></div>
+            <div class="stat-card" onclick="cambiarTab('lista')"><div class="stat-value" id="cuestionariosPendientes">8</div><div class="stat-label">Pendientes</div></div>
+            <div class="stat-card" onclick="cambiarTab('perfil')"><div class="stat-value" id="nivelAutoconocimiento">0</div><div class="stat-label">Autoconocimiento</div></div>
+            <div class="stat-card" onclick="cambiarTab('resultados')"><div class="stat-value" id="ultimoCuestionario">-</div><div class="stat-label">Último</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="lista"><i class="fas fa-list"></i> Cuestionarios</button>
+        <button class="tab" data-tab="perfil"><i class="fas fa-user"></i> Mi Perfil</button>
+        <button class="tab" data-tab="resultados"><i class="fas fa-chart-bar"></i> Mis Resultados</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<div id="modalCuestionario" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitulo">📋 Cuestionario</h3>
+        <div id="modalPreguntas"></div>
+        <button class="btn-primary" id="guardarRespuestasBtn">Guardar respuestas</button>
+        <button class="btn-outline" onclick="cerrarModalCuestionario()" style="margin-top: 12px;">Cancelar</button>
+    </div>
+</div>
+
+<script>
+    // ==================== CUESTIONARIOS (Basados en investigación) ====================
+    const CUESTIONARIOS = {
+        perfil_basico: {
+            id: "perfil_basico",
+            nombre: "Perfil Básico",
+            icono: "👤",
+            descripcion: "Conócenos mejor para personalizar tu experiencia",
+            preguntas: [
+                { id: "edad", texto: "¿Cuántos años tienes?", tipo: "number", opciones: null },
+                { id: "ocupacion", texto: "¿Cuál es tu ocupación principal?", tipo: "select", opciones: ["Estudiante", "Trabajador", "Emprendedor", "Ama de casa", "Jubilado", "Ambos (estudio y trabajo)"] },
+                { id: "motivacion", texto: "¿Qué te motiva a usar REPROMPT OS?", tipo: "select", opciones: ["Desarrollo personal", "Mejorar mi salud mental", "Alcanzar metas", "Conocerme mejor", "Productividad", "Bienestar emocional"] },
+                { id: "experiencia", texto: "¿Has usado apps de desarrollo personal antes?", tipo: "select", opciones: ["Nunca", "Alguna vez", "Regularmente", "Soy experto"] }
+            ],
+            interpretar: function(respuestas) { return { score: 100, texto: "Perfil registrado. Ahora podemos personalizar mejor tu experiencia." }; }
+        },
+        big_five: {
+            id: "big_five",
+            nombre: "Personalidad (Big Five)",
+            icono: "🧠",
+            descripcion: "Descubre tus rasgos principales de personalidad",
+            preguntas: [
+                { id: "extrovertido", texto: "Me siento cómodo siendo el centro de atención", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "organizado", texto: "Me gusta tener todo organizado y planificado", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "empatico", texto: "Me importa cómo se sienten los demás", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "creativo", texto: "Disfruto explorando nuevas ideas y conceptos", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "ansioso", texto: "A menudo me preocupo por cosas que podrían salir mal", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "social", texto: "Prefiero actividades en grupo que estar solo", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "disciplinado", texto: "Soy bueno cumpliendo mis compromisos", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "confiable", texto: "Confío fácilmente en las personas", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "curioso", texto: "Me gusta aprender cosas nuevas constantemente", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "estres", texto: "Me estreso con facilidad ante situaciones difíciles", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] }
+            ],
+            interpretar: function(respuestas) {
+                let extroversion = (parseInt(respuestas.extrovertido) + parseInt(respuestas.social)) / 2;
+                let conciencia = (parseInt(respuestas.organizado) + parseInt(respuestas.disciplinado)) / 2;
+                let amabilidad = (parseInt(respuestas.empatico) + parseInt(respuestas.confiable)) / 2;
+                let apertura = (parseInt(respuestas.creativo) + parseInt(respuestas.curioso)) / 2;
+                let neuroticismo = (parseInt(respuestas.ansioso) + parseInt(respuestas.estres)) / 2;
+                
+                let perfiles = [];
+                if (extroversion >= 4) perfiles.push("Extravertido: energía social, te recargas con personas");
+                else if (extroversion <= 2) perfiles.push("Introvertido: valoras tu espacio, te recargas a solas");
+                else perfiles.push("Ambivertido: equilibrio entre soledad y compañía");
+                
+                if (conciencia >= 4) perfiles.push("Organizado: disciplinado, planificador");
+                else if (conciencia <= 2) perfiles.push("Flexible: espontáneo, adaptable");
+                else perfiles.push("Equilibrado en organización");
+                
+                if (amabilidad >= 4) perfiles.push("Empático: cooperativo, confiado");
+                else if (amabilidad <= 2) perfiles.push("Analítico: prioriza la lógica sobre las emociones");
+                
+                if (apertura >= 4) perfiles.push("Creativo: curioso, abierto a nuevas experiencias");
+                else if (apertura <= 2) perfiles.push("Tradicional: valora lo conocido y estable");
+                
+                if (neuroticismo >= 4) perfiles.push("Sensible: emociones intensas, alta reactividad");
+                else if (neuroticismo <= 2) perfiles.push("Resiliente: estabilidad emocional, baja reactividad");
+                
+                return { score: Math.round((extroversion + conciencia + amabilidad + apertura + (6 - neuroticismo)) / 5 * 20), texto: perfiles.join("\n") };
+            }
+        },
+        aprendizaje: {
+            id: "aprendizaje",
+            nombre: "Estilo de Aprendizaje",
+            icono: "📖",
+            descripcion: "Cómo aprendes mejor",
+            preguntas: [
+                { id: "visual", texto: "Recuerdo mejor lo que veo (imágenes, diagramas)", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "auditivo", texto: "Aprendo mejor escuchando explicaciones", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "kinestesico", texto: "Necesito hacer para aprender (práctica)", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "lectura", texto: "Prefiero leer y escribir para aprender", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] }
+            ],
+            interpretar: function(respuestas) {
+                let visual = parseInt(respuestas.visual);
+                let auditivo = parseInt(respuestas.auditivo);
+                let kinestesico = parseInt(respuestas.kinestesico);
+                let lectura = parseInt(respuestas.lectura);
+                let max = Math.max(visual, auditivo, kinestesico, lectura);
+                let estilo = max === visual ? "Visual" : max === auditivo ? "Auditivo" : max === kinestesico ? "Kinestésico" : "Lectura/Escritura";
+                return { score: max * 20, texto: `Tu estilo principal es ${estilo}. Te recomendamos contenido en formato ${estilo === "Visual" ? "imágenes y diagramas" : estilo === "Auditivo" ? "podcasts y explicaciones" : estilo === "Kinestésico" ? "ejercicios prácticos" : "lectura y escritura"}.` };
+            }
+        },
+        inteligencia_emocional: {
+            id: "inteligencia_emocional",
+            nombre: "Inteligencia Emocional",
+            icono: "❤️",
+            descripcion: "Evalúa tu capacidad para reconocer y gestionar emociones",
+            preguntas: [
+                { id: "autoconciencia", texto: "Reconozco mis emociones mientras las siento", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "autorregulacion", texto: "Puedo controlar mis impulsos emocionales", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "motivacion", texto: "Me automotivo fácilmente hacia metas", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "empatia", texto: "Entiendo cómo se sienten los demás", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "habilidades_sociales", texto: "Manejo bien las situaciones sociales", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] }
+            ],
+            interpretar: function(respuestas) {
+                let total = (parseInt(respuestas.autoconciencia) + parseInt(respuestas.autorregulacion) + parseInt(respuestas.motivacion) + parseInt(respuestas.empatia) + parseInt(respuestas.habilidades_sociales)) / 5;
+                let score = Math.round(total * 20);
+                let texto = score >= 80 ? "Excelente inteligencia emocional. Tienes gran autoconocimiento y empatía." :
+                            score >= 60 ? "Buena inteligencia emocional. Áreas a desarrollar: autorregulación." :
+                            score >= 40 ? "En desarrollo. Trabaja en reconocer tus emociones." :
+                            "Área de oportunidad. La inteligencia emocional se puede cultivar con práctica.";
+                return { score: score, texto: texto };
+            }
+        },
+        fortalezas: {
+            id: "fortalezas",
+            nombre: "Fortalezas de Carácter",
+            icono: "💎",
+            descripcion: "Descubre tus virtudes principales",
+            preguntas: [
+                { id: "curiosidad", texto: "Me interesa explorar y aprender cosas nuevas", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "valentia", texto: "Enfrento los desafíos aunque me den miedo", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "persistencia", texto: "Termino lo que empiezo", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "bondad", texto: "Me gusta ayudar a los demás", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "liderazgo", texto: "Sé organizar y motivar a otros", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "gratitud", texto: "Valoro y agradezco lo bueno en mi vida", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] }
+            ],
+            interpretar: function(respuestas) {
+                let fortalezas = [];
+                if (parseInt(respuestas.curiosidad) >= 4) fortalezas.push("Curiosidad");
+                if (parseInt(respuestas.valentia) >= 4) fortalezas.push("Valentía");
+                if (parseInt(respuestas.persistencia) >= 4) fortalezas.push("Persistencia");
+                if (parseInt(respuestas.bondad) >= 4) fortalezas.push("Bondad");
+                if (parseInt(respuestas.liderazgo) >= 4) fortalezas.push("Liderazgo");
+                if (parseInt(respuestas.gratitud) >= 4) fortalezas.push("Gratitud");
+                let score = fortalezas.length * 16;
+                return { score: score, texto: `Tus fortalezas principales: ${fortalezas.join(", ")}. Aprovecha estas virtudes para alcanzar tus metas.` };
+            }
+        },
+        mindset: {
+            id: "mindset",
+            nombre: "Mentalidad",
+            icono: "🌱",
+            descripcion: "¿Mentalidad fija o de crecimiento?",
+            preguntas: [
+                { id: "crecimiento1", texto: "Creo que puedo mejorar mi inteligencia con esfuerzo", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "crecimiento2", texto: "Me gustan los desafíos que me hacen crecer", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "fijo1", texto: "Si algo no se me da bien, prefiero evitarlo", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "fijo2", texto: "El fracaso me hace sentir que no soy suficientemente bueno", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] }
+            ],
+            interpretar: function(respuestas) {
+                let crecimiento = (parseInt(respuestas.crecimiento1) + parseInt(respuestas.crecimiento2)) / 2;
+                let fijo = (parseInt(respuestas.fijo1) + parseInt(respuestas.fijo2)) / 2;
+                let score = Math.round(((crecimiento - fijo + 4) / 8) * 100);
+                let texto = score >= 70 ? "Mentalidad de crecimiento. ¡Excelente! Los desafíos son oportunidades." :
+                            score >= 40 ? "Mentalidad mixta. Puedes desarrollar más tu mentalidad de crecimiento." :
+                            "Mentalidad más fija. Recuerda que puedes aprender y crecer con esfuerzo.";
+                return { score: score, texto: texto };
+            }
+        },
+        necesidades: {
+            id: "necesidades",
+            nombre: "Necesidades (Maslow)",
+            icono: "🏔️",
+            descripcion: "¿Qué necesidades sientes más satisfechas?",
+            preguntas: [
+                { id: "fisicas", texto: "Mis necesidades básicas (comida, descanso) están cubiertas", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "seguridad", texto: "Me siento seguro y estable", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "pertenencia", texto: "Tengo relaciones significativas", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "estima", texto: "Me siento valorado y reconozco mis logros", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] },
+                { id: "autorrealizacion", texto: "Siento que estoy desarrollando mi potencial", tipo: "likert", opciones: ["Totalmente en desacuerdo", "En desacuerdo", "Neutral", "De acuerdo", "Totalmente de acuerdo"] }
+            ],
+            interpretar: function(respuestas) {
+                let niveles = [
+                    { nombre: "Fisiológicas", score: parseInt(respuestas.fisicas) * 20 },
+                    { nombre: "Seguridad", score: parseInt(respuestas.seguridad) * 20 },
+                    { nombre: "Pertenencia", score: parseInt(respuestas.pertenencia) * 20 },
+                    { nombre: "Estima", score: parseInt(respuestas.estima) * 20 },
+                    { nombre: "Autorrealización", score: parseInt(respuestas.autorrealizacion) * 20 }
+                ];
+                let score = niveles.reduce((s, n) => s + n.score, 0) / 5;
+                let necesidadesBajas = niveles.filter(n => n.score < 60).map(n => n.nombre);
+                let texto = necesidadesBajas.length ? `Áreas a fortalecer: ${necesidadesBajas.join(", ")}. Prioriza estas necesidades para tu bienestar.` : "¡Tienes un buen equilibrio en todas las áreas! Sigue cultivándote.";
+                return { score: score, texto: texto };
+            }
+        },
+        proposito: {
+            id: "proposito",
+            nombre: "Propósito (IKIGAI)",
+            icono: "✨",
+            descripcion: "Descubre tu razón de ser",
+            preguntas: [
+                { id: "pasion", texto: "¿Qué disfrutas hacer sin sentir el tiempo?", tipo: "texto", opciones: null },
+                { id: "mision", texto: "¿Qué necesita el mundo que tú puedas ofrecer?", tipo: "texto", opciones: null },
+                { id: "vocacion", texto: "¿En qué eres bueno naturalmente?", tipo: "texto", opciones: null },
+                { id: "profesion", texto: "¿Qué te pagarían por hacer?", tipo: "texto", opciones: null }
+            ],
+            interpretar: function(respuestas) {
+                let respuestasValidas = Object.values(respuestas).filter(r => r && r.length > 3);
+                let score = Math.min(100, respuestasValidas.length * 25);
+                return { score: score, texto: score >= 75 ? "Tienes claridad en tu propósito. ¡Sigue explorando!" : "Sigue explorando estas cuatro áreas: pasión, misión, vocación y profesión. El IKIGAI está en su intersección." };
+            }
+        }
+    };
+    
+    let respuestasUsuario = {};
+    let cuestionariosCompletados = [];
+    
+    // ==================== FUNCIONES ====================
+    function cargarRespuestas() {
+        let guardado = localStorage.getItem('cuestionarios_respuestas');
+        if (guardado) respuestasUsuario = JSON.parse(guardado);
+        guardado = localStorage.getItem('cuestionarios_completados');
+        if (guardado) cuestionariosCompletados = JSON.parse(guardado);
+        actualizarStats();
+        enviarDatosAsistente();
+    }
+    
+    function guardarRespuestas() {
+        localStorage.setItem('cuestionarios_respuestas', JSON.stringify(respuestasUsuario));
+        localStorage.setItem('cuestionarios_completados', JSON.stringify(cuestionariosCompletados));
+        actualizarStats();
+        enviarDatosAsistente();
+        if (tabActual === 'lista') renderizarLista();
+        else if (tabActual === 'perfil') renderizarPerfil();
+        else if (tabActual === 'resultados') renderizarResultados();
+    }
+    
+    function actualizarStats() {
+        let completados = cuestionariosCompletados.length;
+        let total = Object.keys(CUESTIONARIOS).length;
+        document.getElementById('completadosCount').innerText = completados;
+        document.getElementById('totalCount').innerText = total;
+        document.getElementById('cuestionariosCompletados').innerText = completados;
+        document.getElementById('cuestionariosPendientes').innerText = total - completados;
+        let porcentaje = Math.round((completados / total) * 100);
+        document.getElementById('perfilCompletado').innerText = porcentaje;
+        let nivelAutoconocimiento = Math.min(100, completados * 12);
+        document.getElementById('nivelAutoconocimiento').innerText = nivelAutoconocimiento;
+        if (cuestionariosCompletados.length > 0) {
+            let ultimo = cuestionariosCompletados[cuestionariosCompletados.length - 1];
+            document.getElementById('ultimoCuestionario').innerHTML = CUESTIONARIOS[ultimo]?.nombre.substring(0, 10) || '✓';
+        }
+    }
+    
+    function enviarDatosAsistente() {
+        try {
+            let perfilCompleto = cuestionariosCompletados.includes('perfil_basico');
+            let datos = {
+                perfil_completo: perfilCompleto,
+                completados: cuestionariosCompletados.length,
+                total: Object.keys(CUESTIONARIOS).length,
+                personalidad: respuestasUsuario.big_five ? "completado" : null,
+                inteligencia_emocional: respuestasUsuario.inteligencia_emocional ? respuestasUsuario.inteligencia_emocional.interpretacion : null,
+                ultima_actualizacion: Date.now()
+            };
+            localStorage.setItem('reprompt_cuestionarios_data', JSON.stringify(datos));
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'GLOBAL_DATA_UPDATE', app: 'cuestionarios', data: datos }, '*');
+            }
+        } catch(e) {}
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarLista() {
+        let html = '';
+        for (let [id, c] of Object.entries(CUESTIONARIOS)) {
+            let completado = cuestionariosCompletados.includes(id);
+            let statusClass = completado ? 'status-completed' : 'status-pending';
+            let statusText = completado ? 'Completado ✓' : 'Pendiente';
+            html += `
+                <div class="questionnaire-card" onclick="abrirCuestionario('${id}')">
+                    <div class="questionnaire-header">
+                        <div class="questionnaire-icon">${c.icono}</div>
+                        <div class="questionnaire-title">${c.nombre}</div>
+                    </div>
+                    <div class="questionnaire-desc">${c.descripcion}</div>
+                    <div><span class="questionnaire-status ${statusClass}">${statusText}</span></div>
+                </div>
+            `;
+        }
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarPerfil() {
+        let completados = cuestionariosCompletados.length;
+        let total = Object.keys(CUESTIONARIOS).length;
+        let porcentaje = Math.round((completados / total) * 100);
+        let datos = respuestasUsuario.perfil_basico || {};
+        let nombre = datos.edad ? `${datos.edad} años, ${datos.ocupacion || ''}` : 'No definido';
+        
+        let html = `
+            <div class="results-card">
+                <div class="result-score">${porcentaje}%</div>
+                <div style="text-align:center; margin-bottom:16px">Perfil completado</div>
+                <div class="progress-bar-container" style="background:rgba(255,255,255,0.2); border-radius:10px; height:8px; margin-bottom:16px"><div style="width:${porcentaje}%; background:#14b8a6; height:100%; border-radius:10px"></div></div>
+                <div class="result-interpretation">
+                    <strong>👤 Datos básicos:</strong> ${nombre}<br><br>
+                    <strong>📊 Progreso:</strong> ${completados}/${total} cuestionarios completados<br><br>
+                    <strong>💡 Recomendación:</strong> ${porcentaje < 50 ? "Completa más cuestionarios para que el asistente IA te conozca mejor." : "¡Excelente! El asistente IA ahora puede ofrecerte recomendaciones más personalizadas."}
+                </div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarResultados() {
+        let html = '';
+        for (let id of cuestionariosCompletados) {
+            let c = CUESTIONARIOS[id];
+            let resp = respuestasUsuario[id];
+            if (!resp || !resp.interpretacion) continue;
+            html += `
+                <div class="results-card">
+                    <div class="questionnaire-header">
+                        <div class="questionnaire-icon">${c.icono}</div>
+                        <div class="questionnaire-title">${c.nombre}</div>
+                    </div>
+                    <div class="result-score">${resp.score || '—'}</div>
+                    <div class="result-interpretation">${resp.interpretacion || resp.texto || 'Sin interpretación'}</div>
+                </div>
+            `;
+        }
+        if (html === '') html = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><br>Completa cuestionarios para ver tus resultados</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function abrirCuestionario(id) {
+        let c = CUESTIONARIOS[id];
+        let respuestasGuardadas = respuestasUsuario[id] || {};
+        let html = '<div id="preguntasContainer">';
+        for (let i = 0; i < c.preguntas.length; i++) {
+            let p = c.preguntas[i];
+            html += `<div class="question-item" data-id="${p.id}">
+                        <div class="question-text">${i+1}. ${p.texto}</div>
+                        <div class="options-grid" id="opciones-${p.id}">`;
+            if (p.tipo === 'likert') {
+                for (let j = 0; j < p.opciones.length; j++) {
+                    let val = j + 1;
+                    let selected = respuestasGuardadas[p.id] == val ? 'selected' : '';
+                    html += `<div class="option ${selected}" data-value="${val}" onclick="seleccionarOpcion('${id}', '${p.id}', ${val})">
+                                <div class="option-radio"></div>
+                                <div class="option-text">${p.opciones[j]}</div>
+                            </div>`;
+                }
+            } else if (p.tipo === 'select') {
+                html += `<select id="select-${p.id}" class="input-field" style="width:100%; padding:10px; background:#1a1a2e; border-radius:8px;">`;
+                html += `<option value="">Selecciona...</option>`;
+                for (let opt of p.opciones) {
+                    let selected = respuestasGuardadas[p.id] === opt ? 'selected' : '';
+                    html += `<option value="${opt}" ${selected}>${opt}</option>`;
+                }
+                html += `</select>`;
+            } else if (p.tipo === 'number') {
+                html += `<input type="number" id="input-${p.id}" class="input-field" placeholder="Escribe tu respuesta" value="${respuestasGuardadas[p.id] || ''}" style="width:100%; padding:10px; background:#1a1a2e; border-radius:8px;">`;
+            } else if (p.tipo === 'texto') {
+                html += `<textarea id="input-${p.id}" class="input-field" rows="2" placeholder="Escribe tu respuesta..." style="width:100%; padding:10px; background:#1a1a2e; border-radius:8px;">${respuestasGuardadas[p.id] || ''}</textarea>`;
+            }
+            html += `</div></div>`;
+        }
+        html += '</div>';
+        document.getElementById('modalTitulo').innerHTML = `${c.icono} ${c.nombre}`;
+        document.getElementById('modalPreguntas').innerHTML = html;
+        document.getElementById('guardarRespuestasBtn').onclick = () => guardarCuestionario(id);
+        document.getElementById('modalCuestionario').style.display = 'flex';
+        window.cuestionarioActual = id;
+    }
+    
+    window.seleccionarOpcion = function(cuestionarioId, preguntaId, valor) {
+        let opciones = document.querySelectorAll(`#opciones-${preguntaId} .option`);
+        opciones.forEach(opt => opt.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+        if (!respuestasUsuario[cuestionarioId]) respuestasUsuario[cuestionarioId] = {};
+        respuestasUsuario[cuestionarioId][preguntaId] = valor;
+    };
+    
+    function guardarCuestionario(id) {
+        let c = CUESTIONARIOS[id];
+        if (!respuestasUsuario[id]) respuestasUsuario[id] = {};
+        for (let p of c.preguntas) {
+            if (p.tipo === 'likert') {
+                let selected = document.querySelector(`#opciones-${p.id} .option.selected`);
+                if (selected) respuestasUsuario[id][p.id] = parseInt(selected.getAttribute('data-value'));
+            } else if (p.tipo === 'select') {
+                let select = document.getElementById(`select-${p.id}`);
+                if (select && select.value) respuestasUsuario[id][p.id] = select.value;
+            } else {
+                let input = document.getElementById(`input-${p.id}`);
+                if (input && input.value) respuestasUsuario[id][p.id] = input.value;
+            }
+        }
+        let interpretacion = c.interpretar(respuestasUsuario[id]);
+        respuestasUsuario[id].score = interpretacion.score;
+        respuestasUsuario[id].interpretacion = interpretacion.texto;
+        if (!cuestionariosCompletados.includes(id)) cuestionariosCompletados.push(id);
+        guardarRespuestas();
+        cerrarModalCuestionario();
+        mostrarNotificacion(`✓ ${c.nombre} completado`);
+        if (tabActual === 'lista') renderizarLista();
+        else if (tabActual === 'resultados') renderizarResultados();
+    }
+    
+    function cerrarModalCuestionario() { document.getElementById('modalCuestionario').style.display = 'none'; }
+    function mostrarNotificacion(msg) { let n = document.createElement('div'); n.className = 'notification-toast'; n.innerHTML = msg; document.body.appendChild(n); setTimeout(() => n.remove(), 2500); }
+    
+    function cambiarTab(tab) {
+        tabActual = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        if (tab === 'lista') renderizarLista();
+        else if (tab === 'perfil') renderizarPerfil();
+        else if (tab === 'resultados') renderizarResultados();
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarRespuestas();
+        renderizarLista();
+        document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => cambiarTab(t.getAttribute('data-tab'))));
+        window.abrirCuestionario = abrirCuestionario;
+        window.cerrarModalCuestionario = cerrarModalCuestionario;
+        window.cambiarTab = cambiarTab;
+    });
+</script>
+</body>
+</html>

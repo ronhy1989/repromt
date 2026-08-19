@@ -1,0 +1,702 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Biblioteca Personal - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #f59e0b; }
+        .stats-summary {
+            display: flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 15px;
+            border-radius: 30px;
+        }
+        .summary-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .summary-item i { color: #f59e0b; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(245,158,11,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #f59e0b; }
+        .stat-label { font-size: 10px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #f59e0b; border-bottom: 2px solid #f59e0b; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        .recursos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .recurso-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .recurso-card:hover { transform: translateY(-3px); border-color: #f59e0b; background: rgba(245,158,11,0.1); }
+        .recurso-icono { font-size: 40px; margin-bottom: 12px; }
+        .recurso-titulo { font-size: 16px; font-weight: bold; margin-bottom: 6px; }
+        .recurso-autor { font-size: 11px; color: #f59e0b; margin-bottom: 8px; }
+        .recurso-desc { font-size: 12px; color: #a0a0b0; line-height: 1.4; margin-bottom: 12px; }
+        .recurso-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #a0a0b0;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .progreso-bar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            height: 4px;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .progreso-fill {
+            background: #f59e0b;
+            height: 100%;
+            border-radius: 10px;
+            width: 0%;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 24px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        .btn-favorito {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .btn-favorito.activo { background: #f59e0b; color: #0a0a0f; }
+        
+        .recomendacion-card {
+            background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(139,92,246,0.1));
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        .recomendacion-titulo { font-size: 14px; font-weight: 600; color: #f59e0b; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        
+        .empty-state { text-align: center; padding: 60px 20px; color: #a0a0b0; }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f59e0b;
+            color: #0a0a0f;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 3px; }
+        
+        .filtros {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .filtro-btn {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            color: #a0a0b0;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .filtro-btn.active { background: #f59e0b; color: #0a0a0f; }
+        .busqueda {
+            flex: 1;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            color: white;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-landmark"></i> Biblioteca Personal</h1>
+            <div class="stats-summary">
+                <div class="summary-item"><i class="fas fa-book-open"></i> <span id="totalLibros">0</span></div>
+                <div class="summary-item"><i class="fas fa-hourglass-half"></i> <span id="minutosLeidos">0</span> min</div>
+                <div class="summary-item"><i class="fas fa-fire"></i> <span id="rachaLectura">0</span> días</div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('libros')"><div class="stat-value" id="librosLeidos">0</div><div class="stat-label">Completados</div></div>
+            <div class="stat-card" onclick="cambiarTab('favoritos')"><div class="stat-value" id="favoritosCount">0</div><div class="stat-label">Favoritos</div></div>
+            <div class="stat-card" onclick="cambiarTab('estadisticas')"><div class="stat-value" id="nivelLector">🌱</div><div class="stat-label">Nivel lector</div></div>
+            <div class="stat-card" onclick="cambiarTab('recomendaciones')"><div class="stat-value" id="recomendacionesCount">0</div><div class="stat-label">Recomendaciones</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="libros"><i class="fas fa-book"></i> Biblioteca</button>
+        <button class="tab" data-tab="audios"><i class="fas fa-headphones"></i> Audiolibros</button>
+        <button class="tab" data-tab="favoritos"><i class="fas fa-heart"></i> Favoritos</button>
+        <button class="tab" data-tab="progreso"><i class="fas fa-chart-line"></i> Mi progreso</button>
+        <button class="tab" data-tab="recomendaciones"><i class="fas fa-lightbulb"></i> Recomendaciones</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<!-- Modal detalle recurso -->
+<div id="modalRecurso" class="modal">
+    <div class="modal-content">
+        <div id="modalContent"></div>
+        <div class="modal-buttons" style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn-favorito" id="modalFavoritoBtn" onclick="toggleFavoritoModal()">❤️ Favorito</button>
+            <button class="btn-favorito" onclick="cerrarModal()" style="background:#ef4444;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== BIBLIOTECA DE RECURSOS ====================
+    const RECURSOS = {
+        libros: [
+            { id: 1, titulo: "Hábitos Atómicos", autor: "James Clear", tipo: "libro", duracion: "4h", paginas: 320, descripcion: "Cambios pequeños que transforman tu vida", resumen: "Mejora un 1% cada día para lograr resultados extraordinarios.", url_audio: null, imagen: "📖" },
+            { id: 2, titulo: "El Poder del Ahora", autor: "Eckhart Tolle", tipo: "libro", duracion: "3h", paginas: 256, descripcion: "Guía para la iluminación espiritual", resumen: "Vive el presente para liberarte del sufrimiento.", url_audio: null, imagen: "🧘" },
+            { id: 3, titulo: "El Arte de No Amargarse", autor: "Rafael Santandreu", tipo: "libro", duracion: "2.5h", paginas: 224, descripcion: "Psicología para la vida cotidiana", resumen: "Aprende a gestionar emociones difíciles.", url_audio: null, imagen: "🌸" },
+            { id: 4, titulo: "Mindset", autor: "Carol Dweck", tipo: "libro", duracion: "3.5h", paginas: 288, descripcion: "La actitud del éxito", resumen: "Mentalidad de crecimiento vs fija.", url_audio: null, imagen: "🧠" },
+            { id: 5, titulo: "La Biblioteca de la Medianoche", autor: "Matt Haig", tipo: "libro", duracion: "3h", paginas: 304, descripcion: "Novela sobre segundas oportunidades", resumen: "Explora vidas alternativas y el poder de las decisiones.", url_audio: null, imagen: "📚" }
+        ],
+        audios: [
+            { id: 101, titulo: "Meditación Guiada para Dormir", autor: "REPROMPT", tipo: "audio", duracion: "15 min", descripcion: "Relajación profunda", url_audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", imagen: "🎧" },
+            { id: 102, titulo: "Respiración 4-7-8", autor: "Técnica de relajación", tipo: "audio", duracion: "5 min", descripcion: "Calma la ansiedad", url_audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", imagen: "🌊" },
+            { id: 103, titulo: "Afirmaciones Positivas", autor: "REPROMPT", tipo: "audio", duracion: "10 min", descripcion: "Fortalece tu autoestima", url_audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3", imagen: "💪" }
+        ]
+    };
+    
+    let usuario = {
+        favoritos: [],
+        progreso: {},
+        estadisticas: { totalMinutos: 0, racha: 0, ultimoDia: null, nivel: 1 }
+    };
+    
+    let filtroActual = 'todos';
+    let busquedaActual = '';
+    let modalRecursoActual = null;
+    
+    // ==================== DATOS PERSISTENTES ====================
+    function cargarDatos() {
+        let guardado = localStorage.getItem('biblioteca_usuario_v1');
+        if (guardado) {
+            usuario = JSON.parse(guardado);
+        }
+        actualizarStats();
+        enviarDatosGlobales();
+    }
+    
+    function guardarDatos() {
+        localStorage.setItem('biblioteca_usuario_v1', JSON.stringify(usuario));
+        actualizarStats();
+        enviarDatosGlobales();
+    }
+    
+    function actualizarStats() {
+        let totalLibros = RECURSOS.libros.length + RECURSOS.audios.length;
+        let completados = Object.values(usuario.progreso).filter(p => p.completado).length;
+        let favoritosCount = usuario.favoritos.length;
+        let minutosLeidos = usuario.estadisticas.totalMinutos || 0;
+        let racha = usuario.estadisticas.racha || 0;
+        
+        document.getElementById('totalLibros').innerText = totalLibros;
+        document.getElementById('librosLeidos').innerText = completados;
+        document.getElementById('favoritosCount').innerText = favoritosCount;
+        document.getElementById('minutosLeidos').innerText = minutosLeidos;
+        document.getElementById('rachaLectura').innerText = racha;
+        
+        let nivel = calcularNivel(completados);
+        document.getElementById('nivelLector').innerHTML = nivel.icono;
+        document.getElementById('recomendacionesCount').innerText = obtenerRecomendaciones().length;
+    }
+    
+    function calcularNivel(completados) {
+        if (completados >= 10) return { nombre: "Sabio", icono: "🏛️" };
+        if (completados >= 5) return { nombre: "Erudito", icono: "📚" };
+        if (completados >= 2) return { nombre: "Lector", icono: "📖" };
+        return { nombre: "Explorador", icono: "🌱" };
+    }
+    
+    // ==================== FUNCIONES PRINCIPALES ====================
+    function obtenerTodosRecursos() {
+        return [...RECURSOS.libros, ...RECURSOS.audios];
+    }
+    
+    function esFavorito(id) {
+        return usuario.favoritos.includes(id);
+    }
+    
+    function toggleFavorito(id) {
+        if (esFavorito(id)) {
+            usuario.favoritos = usuario.favoritos.filter(f => f !== id);
+            mostrarNotificacion("❌ Eliminado de favoritos");
+        } else {
+            usuario.favoritos.push(id);
+            mostrarNotificacion("⭐ Añadido a favoritos");
+        }
+        guardarDatos();
+        renderizarVistaActual();
+    }
+    
+    function toggleFavoritoModal() {
+        if (modalRecursoActual) {
+            toggleFavorito(modalRecursoActual.id);
+            actualizarBotonFavoritoModal();
+        }
+    }
+    
+    function actualizarBotonFavoritoModal() {
+        const btn = document.getElementById('modalFavoritoBtn');
+        if (btn && modalRecursoActual) {
+            if (esFavorito(modalRecursoActual.id)) {
+                btn.innerHTML = '❤️ Favorito (quitar)';
+                btn.classList.add('activo');
+            } else {
+                btn.innerHTML = '🤍 Marcar favorito';
+                btn.classList.remove('activo');
+            }
+        }
+    }
+    
+    function registrarProgreso(id, minutos) {
+        if (!usuario.progreso[id]) {
+            usuario.progreso[id] = { progreso: 0, completado: false, minutos: 0 };
+        }
+        usuario.progreso[id].minutos = (usuario.progreso[id].minutos || 0) + minutos;
+        usuario.progreso[id].progreso = Math.min(100, usuario.progreso[id].progreso + (minutos / 5));
+        
+        if (usuario.progreso[id].progreso >= 100 && !usuario.progreso[id].completado) {
+            usuario.progreso[id].completado = true;
+            mostrarNotificacion("🏆 ¡Recurso completado! +20 XP");
+            usuario.estadisticas.totalMinutos = (usuario.estadisticas.totalMinutos || 0) + minutos;
+            actualizarRacha();
+        } else {
+            usuario.estadisticas.totalMinutos = (usuario.estadisticas.totalMinutos || 0) + minutos;
+        }
+        
+        guardarDatos();
+    }
+    
+    function actualizarRacha() {
+        let hoy = new Date().toISOString().split('T')[0];
+        if (usuario.estadisticas.ultimoDia === hoy) return;
+        
+        let ayer = new Date();
+        ayer.setDate(ayer.getDate() - 1);
+        let ayerStr = ayer.toISOString().split('T')[0];
+        
+        if (usuario.estadisticas.ultimoDia === ayerStr) {
+            usuario.estadisticas.racha = (usuario.estadisticas.racha || 0) + 1;
+        } else {
+            usuario.estadisticas.racha = 1;
+        }
+        usuario.estadisticas.ultimoDia = hoy;
+    }
+    
+    function obtenerRecomendaciones() {
+        let recomendaciones = [];
+        let completados = Object.values(usuario.progreso).filter(p => p.completado).length;
+        
+        if (completados === 0) {
+            recomendaciones.push(RECURSOS.libros[0]);
+            recomendaciones.push(RECURSOS.audios[0]);
+        } else if (completados < 3) {
+            recomendaciones.push(RECURSOS.libros[2]);
+            recomendaciones.push(RECURSOS.audios[1]);
+        } else {
+            recomendaciones.push(RECURSOS.libros[3]);
+            recomendaciones.push(RECURSOS.libros[4]);
+        }
+        
+        return recomendaciones;
+    }
+    
+    // ==================== REPRODUCTOR PERSISTENTE ====================
+    function reproducirAudio(recurso) {
+        const track = {
+            id: recurso.id,
+            nombre: recurso.titulo,
+            artista: recurso.autor,
+            duracion: recurso.duracion,
+            youtubeId: null,
+            tipo: 'audio',
+            url: recurso.url_audio
+        };
+        
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'REPROMPT_AUDIO_PLAY',
+                track: track,
+                recurso: recurso
+            }, '*');
+            mostrarNotificacion(`🎧 Reproduciendo: ${recurso.titulo}`);
+            registrarProgreso(recurso.id, 1);
+        } else {
+            mostrarNotificacion("⚠️ No se pudo conectar con el reproductor");
+        }
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarBiblioteca(tipo = 'todos') {
+        let recursos = [];
+        if (tipo === 'libros') recursos = RECURSOS.libros;
+        else if (tipo === 'audios') recursos = RECURSOS.audios;
+        else recursos = obtenerTodosRecursos();
+        
+        if (busquedaActual) {
+            recursos = recursos.filter(r => 
+                r.titulo.toLowerCase().includes(busquedaActual.toLowerCase()) ||
+                r.autor.toLowerCase().includes(busquedaActual.toLowerCase())
+            );
+        }
+        
+        if (recursos.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-book-open"></i><br>No hay recursos en esta categoría</div>';
+            return;
+        }
+        
+        let html = `<div class="filtros">
+                        <input type="text" id="busquedaInput" class="busqueda" placeholder="🔍 Buscar libro o autor..." onkeyup="buscarRecursos()">
+                        <button class="filtro-btn ${filtroActual === 'todos' ? 'active' : ''}" onclick="filtrarPorTipo('todos')">Todos</button>
+                        <button class="filtro-btn ${filtroActual === 'libros' ? 'active' : ''}" onclick="filtrarPorTipo('libros')">📖 Libros</button>
+                        <button class="filtro-btn ${filtroActual === 'audios' ? 'active' : ''}" onclick="filtrarPorTipo('audios')">🎧 Audios</button>
+                    </div>
+                    <div class="recursos-grid">`;
+        
+        for (let r of recursos) {
+            let progreso = usuario.progreso[r.id];
+            let porcentaje = progreso ? progreso.progreso : 0;
+            let favorito = esFavorito(r.id);
+            
+            html += `
+                <div class="recurso-card" onclick="abrirRecurso(${r.id})">
+                    <div class="recurso-icono">${r.imagen || (r.tipo === 'libro' ? '📖' : '🎧')}</div>
+                    <div class="recurso-titulo">${escapeHtml(r.titulo)} ${favorito ? '<span style="color:#f59e0b;">⭐</span>' : ''}</div>
+                    <div class="recurso-autor">${escapeHtml(r.autor)} • ${r.duracion}</div>
+                    <div class="recurso-desc">${escapeHtml(r.descripcion)}</div>
+                    <div class="progreso-bar"><div class="progreso-fill" style="width: ${porcentaje}%"></div></div>
+                    <div class="recurso-meta">
+                        <span><i class="fas fa-chart-line"></i> ${porcentaje}%</span>
+                        ${r.tipo === 'audio' ? '<span><i class="fas fa-headphones"></i> Escuchar</span>' : '<span><i class="fas fa-book"></i> Leer</span>'}
+                    </div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarFavoritos() {
+        let favoritos = obtenerTodosRecursos().filter(r => esFavorito(r.id));
+        
+        if (favoritos.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-heart"></i><br>No tienes favoritos aún. Marca recursos que te interesen.</div>';
+            return;
+        }
+        
+        let html = '<div class="recursos-grid">';
+        for (let r of favoritos) {
+            let progreso = usuario.progreso[r.id];
+            let porcentaje = progreso ? progreso.progreso : 0;
+            html += `
+                <div class="recurso-card" onclick="abrirRecurso(${r.id})">
+                    <div class="recurso-icono">${r.imagen || (r.tipo === 'libro' ? '📖' : '🎧')}</div>
+                    <div class="recurso-titulo">${escapeHtml(r.titulo)} ⭐</div>
+                    <div class="recurso-autor">${escapeHtml(r.autor)} • ${r.duracion}</div>
+                    <div class="progreso-bar"><div class="progreso-fill" style="width: ${porcentaje}%"></div></div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarProgreso() {
+        let completados = Object.keys(usuario.progreso).length;
+        let completadosTotal = Object.values(usuario.progreso).filter(p => p.completado).length;
+        let nivel = calcularNivel(completadosTotal);
+        
+        let html = `
+            <div class="recomendacion-card">
+                <div class="recomendacion-titulo"><i class="fas fa-chart-line"></i> Tu estadísticas</div>
+                <div class="stats-grid" style="margin-top: 12px;">
+                    <div class="stat-card"><div class="stat-value">${usuario.estadisticas.totalMinutos || 0}</div><div class="stat-label">Minutos totales</div></div>
+                    <div class="stat-card"><div class="stat-value">${completadosTotal}</div><div class="stat-label">Recursos completados</div></div>
+                    <div class="stat-card"><div class="stat-value">${usuario.estadisticas.racha || 0}</div><div class="stat-label">Racha 🔥</div></div>
+                    <div class="stat-card"><div class="stat-value">${nivel.icono}</div><div class="stat-label">${nivel.nombre}</div></div>
+                </div>
+            </div>
+            <div class="recomendacion-card">
+                <div class="recomendacion-titulo"><i class="fas fa-trophy"></i> Logros desbloqueados</div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    ${completadosTotal >= 1 ? '<span style="background:rgba(245,158,11,0.2); padding:4px 12px; border-radius:20px;">📖 Primer libro</span>' : ''}
+                    ${completadosTotal >= 3 ? '<span style="background:rgba(245,158,11,0.2); padding:4px 12px; border-radius:20px;">🏆 3 recursos</span>' : ''}
+                    ${usuario.estadisticas.racha >= 7 ? '<span style="background:rgba(245,158,11,0.2); padding:4px 12px; border-radius:20px;">🔥 Racha de 7 días</span>' : ''}
+                    ${usuario.favoritos.length >= 3 ? '<span style="background:rgba(245,158,11,0.2); padding:4px 12px; border-radius:20px;">⭐ 3 favoritos</span>' : ''}
+                </div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarRecomendaciones() {
+        let recomendaciones = obtenerRecomendaciones();
+        
+        if (recomendaciones.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-lightbulb"></i><br>Pronto tendrás recomendaciones personalizadas</div>';
+            return;
+        }
+        
+        let html = `<div class="recomendacion-card">
+                        <div class="recomendacion-titulo"><i class="fas fa-robot"></i> Basado en tu progreso</div>
+                        <div class="recomendacion-texto">Te recomendamos estos recursos para seguir creciendo:</div>
+                    </div>
+                    <div class="recursos-grid">`;
+        
+        for (let r of recomendaciones) {
+            html += `
+                <div class="recurso-card" onclick="abrirRecurso(${r.id})">
+                    <div class="recurso-icono">${r.imagen || (r.tipo === 'libro' ? '📖' : '🎧')}</div>
+                    <div class="recurso-titulo">${escapeHtml(r.titulo)}</div>
+                    <div class="recurso-autor">${escapeHtml(r.autor)} • ${r.duracion}</div>
+                    <div class="recurso-desc">${escapeHtml(r.descripcion)}</div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function abrirRecurso(id) {
+        let recurso = obtenerTodosRecursos().find(r => r.id === id);
+        if (!recurso) return;
+        modalRecursoActual = recurso;
+        
+        let progreso = usuario.progreso[id];
+        let porcentaje = progreso ? progreso.progreso : 0;
+        let favorito = esFavorito(id);
+        
+        let contenido = `
+            <h2><i class="fas ${recurso.tipo === 'libro' ? 'fa-book' : 'fa-headphones'}"></i> ${escapeHtml(recurso.titulo)}</h2>
+            <p style="color: #f59e0b; margin: 8px 0;">${escapeHtml(recurso.autor)}</p>
+            <p>${escapeHtml(recurso.descripcion)}</p>
+            <div class="progreso-bar" style="margin: 12px 0;"><div class="progreso-fill" style="width: ${porcentaje}%"></div></div>
+            <p><strong>Resumen:</strong> ${escapeHtml(recurso.resumen || 'Descubre más sobre este recurso en la biblioteca.')}</p>
+        `;
+        
+        if (recurso.tipo === 'audio' && recurso.url_audio) {
+            contenido += `
+                <button class="btn-favorito" style="background:#f59e0b; width:100%; margin-top:16px;" onclick="reproducirAudio(modalRecursoActual)">
+                    <i class="fas fa-play"></i> Reproducir con REPROMPT Player
+                </button>
+                <p style="font-size: 11px; color: #a0a0b0; margin-top: 8px; text-align:center;">🎧 Usa el reproductor persistente del sistema</p>
+            `;
+        } else if (recurso.tipo === 'libro') {
+            contenido += `
+                <button class="btn-favorito" style="background:#10b981; width:100%; margin-top:16px;" onclick="registrarProgreso(${recurso.id}, 30); cerrarModal();">
+                    <i class="fas fa-check"></i> Marcar como leído
+                </button>
+            `;
+        }
+        
+        document.getElementById('modalContent').innerHTML = contenido;
+        document.getElementById('modalRecurso').style.display = 'flex';
+        actualizarBotonFavoritoModal();
+    }
+    
+    function cerrarModal() {
+        document.getElementById('modalRecurso').style.display = 'none';
+        modalRecursoActual = null;
+    }
+    
+    // ==================== GLOBALIZACIÓN ====================
+    function enviarDatosGlobales() {
+        let completados = Object.values(usuario.progreso).filter(p => p.completado).length;
+        let datos = {
+            total_minutos: usuario.estadisticas.totalMinutos || 0,
+            recursos_completados: completados,
+            favoritos: usuario.favoritos.length,
+            racha: usuario.estadisticas.racha || 0,
+            nivel: calcularNivel(completados).nombre,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('reprompt_biblioteca_data', JSON.stringify(datos));
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'GLOBAL_DATA_UPDATE', app: 'biblioteca', data: datos }, '*');
+        }
+    }
+    
+    // ==================== UTILIDADES ====================
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    function mostrarNotificacion(msg) { let n = document.createElement('div'); n.className = 'notification-toast'; n.innerHTML = msg; document.body.appendChild(n); setTimeout(() => n.remove(), 2500); }
+    
+    function buscarRecursos() { busquedaActual = document.getElementById('busquedaInput')?.value || ''; renderizarBiblioteca(filtroActual === 'todos' ? 'todos' : filtroActual); }
+    function filtrarPorTipo(tipo) { filtroActual = tipo; renderizarBiblioteca(tipo === 'todos' ? 'todos' : tipo); }
+    
+    function renderizarVistaActual() {
+        let tab = document.querySelector('.tab.active')?.getAttribute('data-tab') || 'libros';
+        if (tab === 'libros') renderizarBiblioteca('todos');
+        else if (tab === 'audios') renderizarBiblioteca('audios');
+        else if (tab === 'favoritos') renderizarFavoritos();
+        else if (tab === 'progreso') renderizarProgreso();
+        else if (tab === 'recomendaciones') renderizarRecomendaciones();
+    }
+    
+    function cambiarTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        renderizarVistaActual();
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+        renderizarBiblioteca('todos');
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => cambiarTab(tab.getAttribute('data-tab')));
+        });
+        
+        window.cambiarTab = cambiarTab;
+        window.abrirRecurso = abrirRecurso;
+        window.cerrarModal = cerrarModal;
+        window.toggleFavoritoModal = toggleFavoritoModal;
+        window.buscarRecursos = buscarRecursos;
+        window.filtrarPorTipo = filtrarPorTipo;
+        window.reproducirAudio = reproducirAudio;
+        window.registrarProgreso = registrarProgreso;
+        
+        setInterval(() => enviarDatosGlobales(), 30000);
+        
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'APP_ACTIVE', app: 'biblioteca' }, '*');
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,718 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Emociones - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #f59e0b; }
+        .stats-summary {
+            display: flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 15px;
+            border-radius: 30px;
+        }
+        .summary-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .summary-item i { color: #f59e0b; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(245,158,11,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #f59e0b; }
+        .stat-label { font-size: 11px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #f59e0b; border-bottom: 2px solid #f59e0b; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        /* Emociones grid mejorada */
+        .emociones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .emotion-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .emotion-card:hover {
+            transform: translateY(-3px);
+            background: rgba(245,158,11,0.2);
+        }
+        .emotion-card.selected {
+            border-color: #f59e0b;
+            background: rgba(245,158,11,0.3);
+        }
+        .emotion-emoji { font-size: 32px; }
+        .emotion-name { font-size: 11px; margin-top: 6px; color: #a0a0b0; }
+        
+        .registro-card {
+            background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(139,92,246,0.1));
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        .input-group { margin-bottom: 16px; }
+        .input-label {
+            font-size: 13px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #a0a0b0;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a3a;
+            border-radius: 12px;
+            color: white;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f59e0b, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245,158,11,0.4); }
+        
+        .insight-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .insight-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f59e0b;
+        }
+        .insight-text {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #e0e0e0;
+            padding: 12px;
+            background: rgba(245,158,11,0.1);
+            border-radius: 12px;
+            border-left: 3px solid #f59e0b;
+        }
+        
+        .historico-list { display: flex; flex-direction: column; gap: 10px; }
+        .registro-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .registro-item:hover { background: rgba(245,158,11,0.15); transform: translateX(5px); }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 16px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90%;
+        }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f59e0b;
+            color: #0a0a0f;
+            padding: 10px 18px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .empty-state { text-align: center; padding: 40px; color: #a0a0b0; }
+        canvas { max-height: 200px; width: 100%; }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-heart"></i> Sistema Emocional</h1>
+            <div class="stats-summary">
+                <div class="summary-item"><i class="fas fa-calendar-week"></i> <span id="promedioSemana">0</span></div>
+                <div class="summary-item"><i class="fas fa-chart-line"></i> <span id="tendencia">-</span></div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('registro')"><div class="stat-value" id="promedioMes">0</div><div class="stat-label">Promedio mes</div></div>
+            <div class="stat-card" onclick="cambiarTab('registro')"><div class="stat-value" id="mejorRacha">0</div><div class="stat-label">Mejor racha</div></div>
+            <div class="stat-card" onclick="cambiarTab('estadisticas')"><div class="stat-value" id="emocionDominante">😐</div><div class="stat-label">Emoción dominante</div></div>
+            <div class="stat-card" onclick="cambiarTab('estadisticas')"><div class="stat-value" id="balanceEmocional">0%</div><div class="stat-label">Balance</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="registro"><i class="fas fa-pen-alt"></i> Registrar</button>
+        <button class="tab" data-tab="historico"><i class="fas fa-history"></i> Histórico</button>
+        <button class="tab" data-tab="estadisticas"><i class="fas fa-chart-line"></i> Estadísticas</button>
+        <button class="tab" data-tab="insights"><i class="fas fa-brain"></i> Insights</button>
+        <button class="tab" data-tab="recursos"><i class="fas fa-book"></i> Recursos</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<div id="modalEditar" class="modal">
+    <div class="modal-content">
+        <h3>✏️ Editar registro emocional</h3>
+        <select id="editEmocion" class="input-field"></select>
+        <input type="range" id="editIntensidad" min="1" max="10" value="5" class="input-field">
+        <select id="editCategoria" class="input-field">
+            <option value="personal">Personal</option>
+            <option value="trabajo">Trabajo/Estudio</option>
+            <option value="familia">Familia</option>
+            <option value="amigos">Amigos</option>
+            <option value="salud">Salud</option>
+        </select>
+        <textarea id="editNotas" class="input-field" rows="2" placeholder="Notas..."></textarea>
+        <div class="modal-buttons" style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn-primary" onclick="guardarEdicionEmocion()">Guardar</button>
+            <button class="btn-primary" style="background:#ef4444;" onclick="eliminarRegistroEmocion()">Eliminar</button>
+            <button onclick="cerrarModalEditar()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== EMOCIONES AMPLIADAS (Rueda de Plutchik adaptada) ====================
+    const EMOCIONES = [
+        { id: 'alegria', nombre: 'Alegría', emoji: '😊', valor: 5, grupo: 'positivo' },
+        { id: 'euforia', nombre: 'Euforia', emoji: '🤩', valor: 5, grupo: 'positivo' },
+        { id: 'feliz', nombre: 'Feliz', emoji: '🙂', valor: 4, grupo: 'positivo' },
+        { id: 'tranquilo', nombre: 'Tranquilo', emoji: '😌', valor: 4, grupo: 'positivo' },
+        { id: 'agradecido', nombre: 'Agradecido', emoji: '🙏', valor: 4, grupo: 'positivo' },
+        { id: 'motivado', nombre: 'Motivado', emoji: '💪', valor: 4, grupo: 'positivo' },
+        { id: 'neutral', nombre: 'Neutral', emoji: '😐', valor: 3, grupo: 'neutral' },
+        { id: 'cansado', nombre: 'Cansado', emoji: '😴', valor: 2, grupo: 'negativo' },
+        { id: 'triste', nombre: 'Triste', emoji: '😔', valor: 2, grupo: 'negativo' },
+        { id: 'melancolico', nombre: 'Melancólico', emoji: '😢', valor: 2, grupo: 'negativo' },
+        { id: 'ansioso', nombre: 'Ansioso', emoji: '😰', valor: 2, grupo: 'negativo' },
+        { id: 'estresado', nombre: 'Estresado', emoji: '😫', valor: 2, grupo: 'negativo' },
+        { id: 'enojado', nombre: 'Enojado', emoji: '😠', valor: 1, grupo: 'negativo' },
+        { id: 'frustrado', nombre: 'Frustrado', emoji: '😤', valor: 1, grupo: 'negativo' },
+        { id: 'miedo', nombre: 'Miedo', emoji: '😨', valor: 1, grupo: 'negativo' }
+    ];
+    
+    let registros = [];
+    let emocionSeleccionada = null;
+    let tabActual = 'registro';
+    let grafico = null;
+    let editandoId = null;
+    
+    // ==================== DATOS ====================
+    function cargarDatos() {
+        let guardado = localStorage.getItem('emociones_v2');
+        if (guardado) {
+            registros = JSON.parse(guardado);
+        } else {
+            registros = [];
+        }
+        actualizarStats();
+        enviarDatosAlAsistente();
+    }
+    
+    function guardarDatos() {
+        localStorage.setItem('emociones_v2', JSON.stringify(registros));
+        actualizarStats();
+        enviarDatosAlAsistente();
+    }
+    
+    function actualizarStats() {
+        let completados = registros.filter(r => r.valor);
+        let total = completados.reduce((s, r) => s + r.valor, 0);
+        let promedio = completados.length ? (total / completados.length).toFixed(1) : 0;
+        
+        let hoy = new Date();
+        let semana = completados.filter(r => {
+            let diff = (hoy - new Date(r.fecha)) / (1000*60*60*24);
+            return diff <= 7 && diff >= 0;
+        });
+        let promSemana = semana.length ? (semana.reduce((s, r) => s + r.valor, 0) / semana.length).toFixed(1) : 0;
+        
+        let racha = 0;
+        let mejorRacha = 0;
+        let fecha = new Date();
+        for (let i = 0; i < 30; i++) {
+            let fechaStr = fecha.toISOString().split('T')[0];
+            let reg = registros.find(r => r.fecha === fechaStr);
+            if (reg && reg.valor >= 3) {
+                racha++;
+                if (racha > mejorRacha) mejorRacha = racha;
+            } else {
+                racha = 0;
+            }
+            fecha.setDate(fecha.getDate() - 1);
+        }
+        
+        let conteo = {};
+        for (let r of completados) { conteo[r.emocionId] = (conteo[r.emocionId] || 0) + 1; }
+        let maxId = Object.keys(conteo).reduce((a, b) => conteo[a] > conteo[b] ? a : b, 'neutral');
+        let emocionDom = EMOCIONES.find(e => e.id === maxId);
+        
+        let positivos = completados.filter(r => r.valor >= 4).length;
+        let negativos = completados.filter(r => r.valor <= 2).length;
+        let balance = completados.length ? Math.round((positivos - negativos) / completados.length * 100) : 0;
+        
+        document.getElementById('promedioMes').innerText = promedio;
+        document.getElementById('promedioSemana').innerText = promSemana;
+        document.getElementById('mejorRacha').innerText = mejorRacha;
+        document.getElementById('emocionDominante').innerHTML = emocionDom ? emocionDom.emoji : '😐';
+        document.getElementById('balanceEmocional').innerText = balance + '%';
+        
+        let semanaAnterior = completados.filter(r => {
+            let diff = (hoy - new Date(r.fecha)) / (1000*60*60*24);
+            return diff <= 14 && diff > 7;
+        });
+        let promAnterior = semanaAnterior.length ? (semanaAnterior.reduce((s, r) => s + r.valor, 0) / semanaAnterior.length).toFixed(1) : 0;
+        let tendencia = promSemana - promAnterior;
+        let tendenciaTexto = !isNaN(tendencia) ? (tendencia > 0 ? `+${tendencia.toFixed(1)} ↑` : tendencia < 0 ? `${tendencia.toFixed(1)} ↓` : '=') : '-';
+        document.getElementById('tendencia').innerHTML = tendenciaTexto;
+    }
+    
+    function enviarDatosAlAsistente() {
+        try {
+            let completados = registros.filter(r => r.valor);
+            let promedio = completados.length ? (completados.reduce((s, r) => s + r.valor, 0) / completados.length).toFixed(1) : 0;
+            let hoy = new Date().toISOString().split('T')[0];
+            let registroHoy = registros.find(r => r.fecha === hoy);
+            let datos = {
+                promedio_mes: parseFloat(promedio),
+                ultima_emocion: registroHoy ? registroHoy.emocionId : null,
+                ultima_intensidad: registroHoy ? registroHoy.intensidad : null,
+                racha: parseInt(document.getElementById('mejorRacha').innerText),
+                total_registros: completados.length
+            };
+            localStorage.setItem('reprompt_emociones_data', JSON.stringify(datos));
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'GLOBAL_DATA_UPDATE', app: 'emociones', data: datos }, '*');
+            }
+        } catch(e) {}
+    }
+    
+    // ==================== REGISTRO ====================
+    function seleccionarEmocion(id) {
+        emocionSeleccionada = id;
+        document.querySelectorAll('.emotion-card').forEach(c => c.classList.remove('selected'));
+        let card = document.querySelector(`.emotion-card[data-id="${id}"]`);
+        if (card) card.classList.add('selected');
+        
+        let emocion = EMOCIONES.find(e => e.id === id);
+        if (emocion && document.getElementById('intensidad')) {
+            document.getElementById('intensidad').value = emocion.valor * 2;
+        }
+    }
+    
+    function guardarEmocion() {
+        if (!emocionSeleccionada) { mostrarNotificacion('⚠️ Selecciona una emoción'); return; }
+        let emocion = EMOCIONES.find(e => e.id === emocionSeleccionada);
+        let intensidad = parseInt(document.getElementById('intensidad')?.value) || 5;
+        let categoria = document.getElementById('categoria')?.value || 'personal';
+        let notas = document.getElementById('notas')?.value || '';
+        
+        let hoy = new Date().toISOString().split('T')[0];
+        let existe = registros.find(r => r.fecha === hoy);
+        
+        if (existe) {
+            existe.emocionId = emocionSeleccionada;
+            existe.valor = emocion.valor;
+            existe.intensidad = intensidad;
+            existe.categoria = categoria;
+            existe.notas = notas;
+        } else {
+            registros.push({
+                id: Date.now().toString(),
+                fecha: hoy,
+                emocionId: emocionSeleccionada,
+                valor: emocion.valor,
+                intensidad: intensidad,
+                categoria: categoria,
+                notas: notas
+            });
+        }
+        
+        guardarDatos();
+        document.getElementById('notas').value = '';
+        mostrarNotificacion(`✅ ${emocion.emoji} ${emocion.nombre} (${intensidad}/10)`);
+        
+        // Pregunta reflexiva si emoción negativa
+        if (emocion.valor <= 2 && !notas) {
+            setTimeout(() => {
+                let pregunta = "¿Qué pensamiento provocó esa emoción? ¿Podrías verlo desde otra perspectiva?";
+                document.getElementById('notas').placeholder = pregunta;
+                document.getElementById('notas').focus();
+            }, 1500);
+        }
+        
+        if (tabActual === 'registro') renderizarRegistro();
+        else if (tabActual === 'historico') renderizarHistorico();
+        else if (tabActual === 'estadisticas') renderizarEstadisticas();
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarRegistro() {
+        let hoy = new Date().toISOString().split('T')[0];
+        let registroHoy = registros.find(r => r.fecha === hoy);
+        
+        let html = `
+            <div class="registro-card">
+                <div class="registro-titulo"><i class="fas fa-heart"></i> ${registroHoy ? '✏️ Actualizar' : '📝 ¿Cómo te sientes?'}</div>
+                <div class="emociones-grid" id="emocionesGrid">
+                    ${EMOCIONES.map(e => `
+                        <div class="emotion-card ${registroHoy && registroHoy.emocionId === e.id ? 'selected' : ''}" data-id="${e.id}" onclick="seleccionarEmocion('${e.id}')">
+                            <div class="emotion-emoji">${e.emoji}</div>
+                            <div class="emotion-name">${e.nombre}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="input-group">
+                    <div class="input-label"><i class="fas fa-chart-line"></i> Intensidad (1-10)</div>
+                    <input type="range" id="intensidad" min="1" max="10" value="${registroHoy ? registroHoy.intensidad || 5 : 5}" class="input-field">
+                </div>
+                <div class="input-group">
+                    <div class="input-label"><i class="fas fa-tag"></i> Categoría</div>
+                    <select id="categoria" class="input-field">
+                        <option value="personal" ${registroHoy && registroHoy.categoria === 'personal' ? 'selected' : ''}>Personal</option>
+                        <option value="trabajo" ${registroHoy && registroHoy.categoria === 'trabajo' ? 'selected' : ''}>Trabajo/Estudio</option>
+                        <option value="familia" ${registroHoy && registroHoy.categoria === 'familia' ? 'selected' : ''}>Familia</option>
+                        <option value="amigos" ${registroHoy && registroHoy.categoria === 'amigos' ? 'selected' : ''}>Amigos</option>
+                        <option value="salud" ${registroHoy && registroHoy.categoria === 'salud' ? 'selected' : ''}>Salud</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <div class="input-label"><i class="fas fa-pen"></i> Notas (opcional)</div>
+                    <textarea id="notas" class="input-field" rows="2" placeholder="¿Qué pensamientos te acompañaban?">${registroHoy ? registroHoy.notas || '' : ''}</textarea>
+                </div>
+                <button class="btn-primary" onclick="guardarEmocion()">${registroHoy ? '✏️ Actualizar' : '💾 Guardar'}</button>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-info-circle"></i> Tip emocional</div>
+                <div class="insight-text">${generarTipEmocional()}</div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        if (registroHoy) emocionSeleccionada = registroHoy.emocionId;
+    }
+    
+    function generarTipEmocional() {
+        let tips = [
+            "🌿 Nombrar tus emociones reduce su intensidad. ¿Puedes identificar exactamente qué sientes?",
+            "🧘 Respira profundamente: inhala 4s, sostén 4s, exhala 6s. Calma el sistema nervioso.",
+            "📝 Escribir cómo te sientes ayuda a procesar las emociones. Llevas ${registros.length} registros.",
+            "💪 Las emociones pasan. Como las nubes en el cielo, llegan y se van. Observa sin juzgar.",
+            "🤝 Hablar con alguien de confianza puede ayudarte a ver las cosas desde otra perspectiva."
+        ];
+        if (registros.length > 0) {
+            let ultimo = registros[registros.length-1];
+            if (ultimo.valor <= 2) {
+                tips.push("💙 Las emociones difíciles también son válidas. Date permiso para sentirlas.");
+            }
+        }
+        return tips[Math.floor(Math.random() * tips.length)];
+    }
+    
+    function renderizarHistorico() {
+        let ordenados = [...registros].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        if (ordenados.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-heart"></i><br>No hay registros aún.<br>Registra tu primera emoción</div>';
+            return;
+        }
+        
+        let html = '<div class="historico-list">';
+        for (let r of ordenados.slice(0, 15)) {
+            let e = EMOCIONES.find(e => e.id === r.emocionId);
+            let fecha = new Date(r.fecha);
+            html += `
+                <div class="registro-item" onclick="editarRegistroEmocion('${r.id}')">
+                    <div><span style="font-size: 24px;">${e ? e.emoji : '😐'}</span> ${e ? e.nombre : '?'}</div>
+                    <div>${fecha.toLocaleDateString()}</div>
+                    <div>💪 ${r.intensidad || 5}/10</div>
+                    <div><i class="fas fa-tag"></i> ${r.categoria || 'personal'}</div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarEstadisticas() {
+        let ultimos7 = [];
+        let labels = [];
+        let datos = [];
+        let hoy = new Date();
+        for (let i = 6; i >= 0; i--) {
+            let fecha = new Date(hoy);
+            fecha.setDate(hoy.getDate() - i);
+            let fechaStr = fecha.toISOString().split('T')[0];
+            let reg = registros.find(r => r.fecha === fechaStr);
+            labels.push(fecha.toLocaleDateString('es-ES', { weekday: 'short' }));
+            datos.push(reg ? reg.valor : null);
+        }
+        
+        let positivos = registros.filter(r => r.valor >= 4).length;
+        let negativos = registros.filter(r => r.valor <= 2).length;
+        let neutros = registros.length - positivos - negativos;
+        
+        let html = `
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-chart-line"></i> Evolución (últimos 7 días)</div>
+                <canvas id="graficoEmociones"></canvas>
+            </div>
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-chart-pie"></i> Distribución emocional</div>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div><span style="color:#10b981;">😊 Positivas:</span> ${positivos}</div>
+                    <div><span style="color:#f59e0b;">😐 Neutrales:</span> ${neutros}</div>
+                    <div><span style="color:#ef4444;">😢 Negativas:</span> ${negativos}</div>
+                </div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        
+        let ctx = document.getElementById('graficoEmociones')?.getContext('2d');
+        if (ctx) {
+            if (grafico) grafico.destroy();
+            grafico = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: [{ label: 'Estado emocional', data: datos, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3 }] },
+                options: { responsive: true, scales: { y: { min: 0, max: 6, ticks: { callback: v => v === 1 ? '😢' : v === 2 ? '😔' : v === 3 ? '😐' : v === 4 ? '🙂' : v === 5 ? '😊' : '' } } } }
+            });
+        }
+    }
+    
+    function renderizarInsights() {
+        let completados = registros.filter(r => r.valor);
+        let promedio = completados.length ? (completados.reduce((s, r) => s + r.valor, 0) / completados.length).toFixed(1) : 0;
+        let ultimo = completados[completados.length-1];
+        
+        let insights = [];
+        if (promedio >= 4) insights.push("✨ Estás en un gran momento emocional. Aprovecha para avanzar en tus metas.");
+        else if (promedio <= 2) insights.push("💙 Has tenido días difíciles. Es importante validar tus emociones. Considera hablar con alguien.");
+        
+        if (ultimo && ultimo.categoria === 'trabajo' && ultimo.valor <= 2) {
+            insights.push("💼 Notamos que el trabajo te afecta. ¿Puedes establecer límites más claros?");
+        }
+        if (ultimo && ultimo.categoria === 'familia' && ultimo.valor >= 4) {
+            insights.push("👨‍👩‍👧 La familia te está dando alegría. Aprovecha para fortalecer esos vínculos.");
+        }
+        
+        let sueñoData = localStorage.getItem('reprompt_sueno_data');
+        if (sueñoData) {
+            let sueño = JSON.parse(sueñoData);
+            if (sueño.horas_anoche < 6 && ultimo && ultimo.valor <= 2) {
+                insights.push("😴 Dormiste menos de 6h. El sueño afecta directamente tu estado de ánimo. Intenta descansar más.");
+            }
+        }
+        
+        if (insights.length === 0) insights.push("🌟 Sigue registrando tus emociones. El autoconocimiento es un superpoder.");
+        
+        let html = `<div class="insight-card"><div class="insight-title"><i class="fas fa-brain"></i> Insights personalizados</div>${insights.map(i => `<div class="insight-text">${i}</div>`).join('')}</div>`;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarRecursos() {
+        document.getElementById('contenidoDinamico').innerHTML = `
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-book"></i> Lectura recomendada</div>
+                <div class="insight-text"><strong>📘 Inteligencia Emocional</strong> - Daniel Goleman<br>La base científica de la gestión emocional.</div>
+                <div class="insight-text" style="margin-top: 8px;"><strong>📗 El poder de las emociones</strong> - Rafael Bisquerra<br>Educación emocional práctica.</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-heart"></i> Técnica RULER</div>
+                <div class="insight-text">🔹 <strong>Reconocer</strong>: Identifica la emoción<br>🔹 <strong>Entender</strong>: ¿Qué la causó?<br>🔹 <strong>Etiquetar</strong>: Nómbrala con precisión<br>🔹 <strong>Expresar</strong>: Compártela apropiadamente<br>🔹 <strong>Regular</strong>: Estrategias para manejarla</div>
+            </div>
+        `;
+    }
+    
+    // ==================== EDICIÓN ====================
+    function editarRegistroEmocion(id) {
+        let reg = registros.find(r => r.id === id);
+        if (!reg) return;
+        editandoId = id;
+        document.getElementById('editEmocion').innerHTML = EMOCIONES.map(e => `<option value="${e.id}" ${reg.emocionId === e.id ? 'selected' : ''}>${e.emoji} ${e.nombre}</option>`).join('');
+        document.getElementById('editIntensidad').value = reg.intensidad || 5;
+        document.getElementById('editCategoria').value = reg.categoria || 'personal';
+        document.getElementById('editNotas').value = reg.notas || '';
+        document.getElementById('modalEditar').style.display = 'flex';
+    }
+    
+    function guardarEdicionEmocion() {
+        let reg = registros.find(r => r.id === editandoId);
+        if (reg) {
+            reg.emocionId = document.getElementById('editEmocion').value;
+            let emocion = EMOCIONES.find(e => e.id === reg.emocionId);
+            reg.valor = emocion.valor;
+            reg.intensidad = parseInt(document.getElementById('editIntensidad').value);
+            reg.categoria = document.getElementById('editCategoria').value;
+            reg.notas = document.getElementById('editNotas').value;
+            guardarDatos();
+            mostrarNotificacion('✅ Registro actualizado');
+        }
+        cerrarModalEditar();
+        if (tabActual === 'historico') renderizarHistorico();
+        else if (tabActual === 'estadisticas') renderizarEstadisticas();
+    }
+    
+    function eliminarRegistroEmocion() {
+        if (confirm('¿Eliminar este registro?')) {
+            registros = registros.filter(r => r.id !== editandoId);
+            guardarDatos();
+            mostrarNotificacion('🗑️ Registro eliminado');
+            cerrarModalEditar();
+            if (tabActual === 'historico') renderizarHistorico();
+            else if (tabActual === 'estadisticas') renderizarEstadisticas();
+        }
+    }
+    
+    function cerrarModalEditar() { document.getElementById('modalEditar').style.display = 'none'; editandoId = null; }
+    function mostrarNotificacion(msg) { let n = document.createElement('div'); n.className = 'notification-toast'; n.innerHTML = msg; document.body.appendChild(n); setTimeout(() => n.remove(), 2500); }
+    
+    function cambiarTab(tab) {
+        tabActual = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        if (tab === 'registro') renderizarRegistro();
+        else if (tab === 'historico') renderizarHistorico();
+        else if (tab === 'estadisticas') renderizarEstadisticas();
+        else if (tab === 'insights') renderizarInsights();
+        else if (tab === 'recursos') renderizarRecursos();
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+        renderizarRegistro();
+        document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => cambiarTab(t.getAttribute('data-tab'))));
+        setInterval(() => enviarDatosAlAsistente(), 30000);
+        window.seleccionarEmocion = seleccionarEmocion;
+        window.guardarEmocion = guardarEmocion;
+        window.editarRegistroEmocion = editarRegistroEmocion;
+        window.guardarEdicionEmocion = guardarEdicionEmocion;
+        window.eliminarRegistroEmocion = eliminarRegistroEmocion;
+        window.cerrarModalEditar = cerrarModalEditar;
+        window.cambiarTab = cambiarTab;
+    });
+</script>
+</body>
+</html>

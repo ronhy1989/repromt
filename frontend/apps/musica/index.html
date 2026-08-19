@@ -1,0 +1,590 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Música - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #1DB954; }
+        .premium-badge {
+            background: linear-gradient(135deg, #f59e0b, #8b5cf6);
+            border-radius: 30px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(29,185,84,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #1DB954; }
+        .stat-label { font-size: 11px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #1DB954; border-bottom: 2px solid #1DB954; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        .playlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .track-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .track-card:hover { transform: translateY(-3px); border-color: #1DB954; background: rgba(29,185,84,0.1); }
+        .track-card.active-track {
+            border-color: #1DB954;
+            background: rgba(29,185,84,0.2);
+            box-shadow: 0 0 12px rgba(29,185,84,0.3);
+        }
+        .track-icon { font-size: 32px; margin-bottom: 12px; }
+        .track-name { font-size: 14px; font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .track-artist { font-size: 11px; color: #a0a0b0; margin-bottom: 8px; }
+        .track-duration { font-size: 10px; color: #1DB954; }
+        
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #1DB954;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 20000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .empty-state { text-align: center; padding: 50px 20px; color: #a0a0b0; }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #1DB954; border-radius: 3px; }
+        
+        .premium-card {
+            background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(139,92,246,0.1));
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        .premium-card button {
+            background: #f59e0b;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            margin-top: 12px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+        .premium-card button:hover { background: #f6ad2c; transform: scale(1.02); }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-music"></i> Música Terapéutica</h1>
+            <div class="premium-badge" id="premiumBadge">
+                <i class="fas fa-crown"></i>
+                <span id="estadoPremium">Gratuito</span>
+            </div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="totalCanciones">0</div><div class="stat-label">Canciones</div></div>
+            <div class="stat-card"><div class="stat-value" id="minutosEscuchados">0</div><div class="stat-label">Minutos</div></div>
+            <div class="stat-card"><div class="stat-value" id="favoritas">0</div><div class="stat-label">Favoritas</div></div>
+            <div class="stat-card"><div class="stat-value" id="sesiones">0</div><div class="stat-label">Sesiones</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="concentracion"><i class="fas fa-brain"></i> Concentración</button>
+        <button class="tab" data-tab="dormir"><i class="fas fa-bed"></i> Dormir</button>
+        <button class="tab" data-tab="meditar"><i class="fas fa-spa"></i> Meditar</button>
+        <button class="tab" data-tab="motivacion"><i class="fas fa-bolt"></i> Motivación</button>
+        <button class="tab" data-tab="audiolibros"><i class="fas fa-book"></i> Audiolibros</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<script>
+    // ==================== BIBLIOTECA DE MÚSICA ====================
+    const MUSICA = {
+        concentracion: [
+            { id: 1, nombre: "LoFi Hip Hop Radio", artista: "LoFi Girl", duracion: "∞", youtubeId: "5qap5aO4i9A", tipo: "live" },
+            { id: 2, nombre: "Música Clásica", artista: "Mozart", duracion: "120 min", youtubeId: "jGPg9VqP2vY", tipo: "video" },
+            { id: 3, nombre: "Piano Relajante", artista: "Piano Music", duracion: "60 min", youtubeId: "vWGb4yPw3oQ", tipo: "video" }
+        ],
+        dormir: [
+            { id: 4, nombre: "528 Hz - Sanación Profunda", artista: "Frecuencia del Amor", duracion: "∞", youtubeId: "YkBntoPOOUM", tipo: "live" },
+            { id: 5, nombre: "Sonido de Lluvia", artista: "Naturaleza", duracion: "∞", youtubeId: "mPZkdNFkNps", tipo: "live" },
+            { id: 6, nombre: "Ruido Blanco", artista: "White Noise", duracion: "∞", youtubeId: "nMfPqeZjc2c", tipo: "live" }
+        ],
+        meditar: [
+            { id: 7, nombre: "Meditación Guiada", artista: "Mindfulness", duracion: "30 min", youtubeId: "inpok4MKVLM", tipo: "video" },
+            { id: 8, nombre: "Sonidos del Bosque", artista: "Naturaleza", duracion: "∞", youtubeId: "T5B2S2xXm4c", tipo: "live" }
+        ],
+        motivacion: [
+            { id: 9, nombre: "Música Motivacional", artista: "Epic Music", duracion: "60 min", youtubeId: "ASj81daun5Q", tipo: "video" },
+            { id: 10, nombre: "Rock Energético", artista: "Classic Rock", duracion: "60 min", youtubeId: "fJ9rUzIMcZQ", tipo: "video" }
+        ],
+        audiolibros: [
+            { id: 11, nombre: "Hábitos Atómicos", artista: "James Clear", duracion: "15 min", youtubeId: "U5PZmN4wI2s", tipo: "video" },
+            { id: 12, nombre: "El Poder del Ahora", artista: "Eckhart Tolle", duracion: "20 min", youtubeId: "xLJotO8OEo8", tipo: "video" }
+        ]
+    };
+    
+    let tienePremium = true;
+    let currentTab = 'concentracion';
+    
+    let estadisticas = {
+        totalCanciones: 0,
+        minutosEscuchados: 0,
+        favoritas: 0,
+        sesiones: 0
+    };
+    
+    // ==================== FUNCIÓN QUE ENVÍA AL SISTEMA PADRE ====================
+    function reproducirEnSistemaPadre(track) {
+        if (!track) return;
+        
+        console.log('🎵 [App Música] Enviando al sistema padre:', track.nombre);
+        
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+                type: 'REPROMPT_MUSIC_PLAY',
+                track: track
+            }, '*');
+            mostrarNotificacion(`🎵 Reproduciendo: ${track.nombre}`, '#1DB954');
+            registrarReproduccion(5);
+            
+            // Resaltar en lista
+            const activeCard = document.querySelector(`.track-card[data-track-id="${track.id}"]`);
+            if (activeCard) {
+                document.querySelectorAll('.track-card').forEach(c => c.classList.remove('active-track'));
+                activeCard.classList.add('active-track');
+            }
+            return true;
+        }
+        
+        mostrarNotificacion('⚠️ No se pudo conectar con el sistema', '#f59e0b');
+        return false;
+    }
+    
+    // ==================== FUNCIONES DE LA APP ====================
+    function cargarDatos() {
+        let guardado = localStorage.getItem('musica_estadisticas');
+        if (guardado) estadisticas = JSON.parse(guardado);
+        actualizarUI();
+    }
+    
+    function guardarDatos() {
+        localStorage.setItem('musica_estadisticas', JSON.stringify(estadisticas));
+        actualizarUI();
+    }
+    
+    function actualizarUI() {
+        let total = 0;
+        for (let cat in MUSICA) {
+            total += MUSICA[cat].length;
+        }
+        document.getElementById('totalCanciones').innerText = total;
+        document.getElementById('minutosEscuchados').innerText = estadisticas.minutosEscuchados;
+        document.getElementById('favoritas').innerText = estadisticas.favoritas;
+        document.getElementById('sesiones').innerText = estadisticas.sesiones;
+    }
+    
+    function registrarReproduccion(minutos) {
+        if (minutos > 0) {
+            estadisticas.minutosEscuchados += minutos;
+            estadisticas.sesiones++;
+            guardarDatos();
+        }
+    }
+    
+    function abrirTienda() {
+        if (window.parent && window.parent.app && window.parent.app.openApp) {
+            window.parent.app.openApp('store');
+        } else {
+            window.open('/apps/store/index.html', '_blank');
+        }
+    }
+    
+    function renderizarSeccion(categoria) {
+        currentTab = categoria;
+        let canciones = MUSICA[categoria] || [];
+        
+        if (canciones.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-music" style="font-size: 48px;"></i><br><br>No hay contenido en esta categoría</div>';
+            return;
+        }
+        
+        let html = '<div class="playlist-grid">';
+        for (let c of canciones) {
+            let esPremium = c.id > 8;
+            let bloqueado = esPremium && !tienePremium;
+            html += `
+                <div class="track-card" data-track-id="${c.id}" onclick="${!bloqueado ? `reproducirEnSistemaPadre(${JSON.stringify(c).replace(/"/g, '&quot;')})` : 'abrirTienda()'}">
+                    <div class="track-icon">${c.tipo === 'live' ? '📻' : '🎵'}</div>
+                    <div class="track-name">
+                        ${c.nombre}
+                        ${esPremium ? (tienePremium ? '<span style="color:#f59e0b;">⭐</span>' : '<span style="color:#f59e0b;">🔒</span>') : ''}
+                    </div>
+                    <div class="track-artist">${c.artista}</div>
+                    <div class="track-duration"><i class="fas fa-clock"></i> ${c.duracion}</div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        
+        if (!tienePremium) {
+            html += `
+                <div class="premium-card">
+                    <i class="fas fa-crown" style="font-size: 32px; color: #f59e0b;"></i>
+                    <h3 style="margin: 12px 0;">🎵 Desbloquea Premium</h3>
+                    <p style="font-size: 12px; color: #a0a0b0;">Accede a todas las canciones y audiolibros exclusivos</p>
+                    <button onclick="abrirTienda()">🎁 Probar Premium Gratis</button>
+                </div>
+            `;
+        }
+        
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function mostrarNotificacion(msg, color = '#1DB954') {
+        let n = document.createElement('div');
+        n.className = 'notification-toast';
+        n.style.background = color;
+        n.innerHTML = msg;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 3000);
+    }
+    
+    function cambiarTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        renderizarSeccion(tab);
+    }
+    
+    // ==================== 🆕 LISTENER PARA COMANDOS DE LA IA ====================
+    window.addEventListener('message', (event) => {
+        // Comandos de navegación desde el reproductor persistente
+        if (event.data && event.data.type === 'REPROMPT_MUSIC_NAVIGATE') {
+            console.log('🎵 [App Música] Navegación recibida:', event.data.action);
+            const activeCard = document.querySelector('.track-card.active-track');
+            if (activeCard) {
+                const trackId = parseInt(activeCard.getAttribute('data-track-id'));
+                const canciones = MUSICA[currentTab] || [];
+                const currentIndex = canciones.findIndex(c => c.id === trackId);
+                
+                if (event.data.action === 'next') {
+                    let nextIndex = currentIndex + 1;
+                    if (nextIndex >= canciones.length) nextIndex = 0;
+                    if (canciones[nextIndex]) {
+                        reproducirEnSistemaPadre(canciones[nextIndex]);
+                    }
+                } else if (event.data.action === 'prev') {
+                    let prevIndex = currentIndex - 1;
+                    if (prevIndex < 0) prevIndex = canciones.length - 1;
+                    if (canciones[prevIndex]) {
+                        reproducirEnSistemaPadre(canciones[prevIndex]);
+                    }
+                }
+            }
+            return;
+        }
+        
+        // 🆕 COMANDOS DE LA IA (REPROMPT INTELLIGENCE)
+        if (event.data && event.data.type === 'REPROMPT_MUSIC_COMMAND') {
+            console.log('🎵 [App Música] Comando de IA recibido:', event.data);
+            const { command, data } = event.data;
+            
+            switch(command) {
+                case 'play':
+                    if (data.categoria && MUSICA[data.categoria]) {
+                        const track = MUSICA[data.categoria][0];
+                        if (track) {
+                            reproducirEnSistemaPadre(track);
+                            cambiarTab(data.categoria);
+                        }
+                    } else if (data.busqueda) {
+                        // Buscar en todas las categorías
+                        let encontrado = null;
+                        let categoriaEncontrada = null;
+                        for (let cat in MUSICA) {
+                            encontrado = MUSICA[cat].find(t => 
+                                t.nombre.toLowerCase().includes(data.busqueda.toLowerCase()) ||
+                                t.artista.toLowerCase().includes(data.busqueda.toLowerCase())
+                            );
+                            if (encontrado) {
+                                categoriaEncontrada = cat;
+                                break;
+                            }
+                        }
+                        if (encontrado) {
+                            reproducirEnSistemaPadre(encontrado);
+                            cambiarTab(categoriaEncontrada);
+                        } else {
+                            mostrarNotificacion(`❌ No se encontró: ${data.busqueda}`, '#f59e0b');
+                        }
+                    }
+                    break;
+                    
+                case 'next':
+                    const activeCardNext = document.querySelector('.track-card.active-track');
+                    if (activeCardNext) {
+                        const trackId = parseInt(activeCardNext.getAttribute('data-track-id'));
+                        const canciones = MUSICA[currentTab] || [];
+                        const currentIndex = canciones.findIndex(c => c.id === trackId);
+                        let nextIndex = currentIndex + 1;
+                        if (nextIndex >= canciones.length) nextIndex = 0;
+                        if (canciones[nextIndex]) {
+                            reproducirEnSistemaPadre(canciones[nextIndex]);
+                        }
+                    } else if (MUSICA[currentTab] && MUSICA[currentTab].length > 0) {
+                        reproducirEnSistemaPadre(MUSICA[currentTab][0]);
+                    }
+                    break;
+                    
+                case 'prev':
+                    const activeCardPrev = document.querySelector('.track-card.active-track');
+                    if (activeCardPrev) {
+                        const trackId = parseInt(activeCardPrev.getAttribute('data-track-id'));
+                        const canciones = MUSICA[currentTab] || [];
+                        const currentIndex = canciones.findIndex(c => c.id === trackId);
+                        let prevIndex = currentIndex - 1;
+                        if (prevIndex < 0) prevIndex = canciones.length - 1;
+                        if (canciones[prevIndex]) {
+                            reproducirEnSistemaPadre(canciones[prevIndex]);
+                        }
+                    } else if (MUSICA[currentTab] && MUSICA[currentTab].length > 0) {
+                        reproducirEnSistemaPadre(MUSICA[currentTab][0]);
+                    }
+                    break;
+                    
+                case 'categoria':
+                    if (data.categoria && MUSICA[data.categoria]) {
+                        cambiarTab(data.categoria);
+                        const track = MUSICA[data.categoria][0];
+                        if (track && data.reproducir !== false) {
+                            reproducirEnSistemaPadre(track);
+                        }
+                    }
+                    break;
+                    
+                case 'estado':
+                    // Responder con el estado actual
+                    const activeTrack = document.querySelector('.track-card.active-track');
+                    if (window.parent && window.parent !== window) {
+                        window.parent.postMessage({
+                            type: 'REPROMPT_MUSIC_STATUS',
+                            data: {
+                                currentTab: currentTab,
+                                activeTrack: activeTrack ? {
+                                    id: parseInt(activeTrack.getAttribute('data-track-id')),
+                                    nombre: activeTrack.querySelector('.track-name')?.innerText?.replace(/[⭐🔒]/g, '').trim()
+                                } : null,
+                                playlistLength: MUSICA[currentTab]?.length || 0
+                            }
+                        }, '*');
+                    }
+                    break;
+            }
+        }
+    });
+    
+    // ==================== EXPONER API PARA LA IA ====================
+    window.musicApp = {
+        reproducir: (categoria, busqueda) => {
+            console.log('🎵 API: Reproducir', categoria, busqueda);
+            if (categoria && MUSICA[categoria]) {
+                const track = MUSICA[categoria][0];
+                if (track) {
+                    reproducirEnSistemaPadre(track);
+                    cambiarTab(categoria);
+                    return true;
+                }
+            } else if (busqueda) {
+                for (let cat in MUSICA) {
+                    const track = MUSICA[cat].find(t => 
+                        t.nombre.toLowerCase().includes(busqueda.toLowerCase())
+                    );
+                    if (track) {
+                        reproducirEnSistemaPadre(track);
+                        cambiarTab(cat);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        },
+        pausar: () => {
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'REPROMPT_MUSIC_PAUSE' }, '*');
+            }
+        },
+        siguiente: () => {
+            const activeCard = document.querySelector('.track-card.active-track');
+            if (activeCard) {
+                const trackId = parseInt(activeCard.getAttribute('data-track-id'));
+                const canciones = MUSICA[currentTab] || [];
+                const currentIndex = canciones.findIndex(c => c.id === trackId);
+                let nextIndex = currentIndex + 1;
+                if (nextIndex >= canciones.length) nextIndex = 0;
+                if (canciones[nextIndex]) {
+                    reproducirEnSistemaPadre(canciones[nextIndex]);
+                }
+            }
+        },
+        anterior: () => {
+            const activeCard = document.querySelector('.track-card.active-track');
+            if (activeCard) {
+                const trackId = parseInt(activeCard.getAttribute('data-track-id'));
+                const canciones = MUSICA[currentTab] || [];
+                const currentIndex = canciones.findIndex(c => c.id === trackId);
+                let prevIndex = currentIndex - 1;
+                if (prevIndex < 0) prevIndex = canciones.length - 1;
+                if (canciones[prevIndex]) {
+                    reproducirEnSistemaPadre(canciones[prevIndex]);
+                }
+            }
+        },
+        getEstado: () => {
+            const activeTrack = document.querySelector('.track-card.active-track');
+            return {
+                currentTab: currentTab,
+                activeTrack: activeTrack ? {
+                    id: parseInt(activeTrack.getAttribute('data-track-id')),
+                    nombre: activeTrack.querySelector('.track-name')?.innerText?.replace(/[⭐🔒]/g, '').trim()
+                } : null,
+                playlist: MUSICA[currentTab] || []
+            };
+        }
+    };
+    
+    // Exponer funciones globales
+    window.reproducirEnSistemaPadre = reproducirEnSistemaPadre;
+    window.cambiarTab = cambiarTab;
+    window.abrirTienda = abrirTienda;
+    
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+        renderizarSeccion('concentracion');
+        
+        document.querySelectorAll('.tab').forEach(t => {
+            t.addEventListener('click', () => cambiarTab(t.getAttribute('data-tab')));
+        });
+        
+        document.getElementById('premiumBadge').addEventListener('click', abrirTienda);
+        
+        // Estadísticas interactivas
+        document.querySelectorAll('.stat-card').forEach((card, idx) => {
+            card.addEventListener('click', () => {
+                let mensajes = [
+                    `🎵 Total: ${document.getElementById('totalCanciones').innerText} canciones disponibles`,
+                    `⏱️ Has escuchado ${document.getElementById('minutosEscuchados').innerText} minutos`,
+                    `❤️ ${document.getElementById('favoritas').innerText} canciones favoritas`,
+                    `🎧 ${document.getElementById('sesiones').innerText} sesiones de escucha`
+                ];
+                mostrarNotificacion(mensajes[idx % mensajes.length]);
+            });
+        });
+        
+        // Notificar a REPROMPT que esta app está activa
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'APP_ACTIVE', app: 'musica' }, '*');
+        }
+        
+        console.log('🎵 App de Música lista - Escuchando comandos de IA');
+    });
+</script>
+</body>
+</html>

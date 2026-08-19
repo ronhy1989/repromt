@@ -1,0 +1,1131 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Comunidad - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #10b981; }
+        .notif-badge {
+            position: relative;
+            cursor: pointer;
+            background: rgba(255,255,255,0.05);
+            border-radius: 30px;
+            padding: 8px 12px;
+        }
+        .notif-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stats-summary {
+            display: flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 15px;
+            border-radius: 30px;
+        }
+        .summary-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .summary-item i { color: #10b981; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(16,185,129,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #10b981; }
+        .stat-label { font-size: 10px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #10b981; border-bottom: 2px solid #10b981; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        /* Grupos */
+        .grupos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .grupo-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .grupo-card:hover { transform: translateY(-3px); border-color: #10b981; background: rgba(16,185,129,0.1); }
+        .grupo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .grupo-nombre { font-size: 18px; font-weight: bold; }
+        .grupo-badge { background: rgba(16,185,129,0.2); padding: 4px 8px; border-radius: 20px; font-size: 10px; }
+        .grupo-desc { font-size: 12px; color: #a0a0b0; margin-bottom: 12px; }
+        .grupo-stats { display: flex; gap: 12px; font-size: 11px; color: #10b981; }
+        
+        /* Posts con imágenes */
+        .post-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .post-autor { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .post-avatar { width: 32px; height: 32px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .post-nombre { font-weight: bold; font-size: 13px; }
+        .post-fecha { font-size: 10px; color: #a0a0b0; }
+        .post-titulo { font-size: 16px; font-weight: bold; margin-bottom: 8px; }
+        .post-contenido { font-size: 13px; color: #e0e0e0; line-height: 1.5; margin-bottom: 12px; }
+        .post-imagen {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
+            margin: 12px 0;
+            cursor: pointer;
+        }
+        .post-actions { display: flex; gap: 15px; margin-top: 12px; flex-wrap: wrap; }
+        .post-action { background: none; border: none; color: #a0a0b0; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .post-action:hover { color: #10b981; }
+        .comentarios { margin-top: 12px; padding-left: 20px; border-left: 2px solid rgba(16,185,129,0.3); }
+        .comentario { padding: 8px 0; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Mensajería directa */
+        .chat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .chat-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .chat-item:hover { background: rgba(16,185,129,0.1); }
+        .chat-avatar { width: 40px; height: 40px; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .chat-info { flex: 1; margin-left: 12px; }
+        .chat-nombre { font-weight: bold; }
+        .chat-preview { font-size: 11px; color: #a0a0b0; }
+        .chat-time { font-size: 10px; color: #a0a0b0; }
+        .chat-unread { background: #10b981; border-radius: 50%; width: 8px; height: 8px; }
+        
+        .chat-window {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background: #1a1a24;
+            border-radius: 20px;
+            border: 1px solid rgba(16,185,129,0.3);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .chat-header {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px 20px 0 0;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+        }
+        .message-outgoing {
+            background: #10b981;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .message-incoming {
+            background: rgba(255,255,255,0.1);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-input {
+            padding: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 8px;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            color: white;
+        }
+        
+        .search-bar {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 10px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            color: white;
+        }
+        .btn-primary {
+            background: #10b981;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 24px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(16,185,129,0.3);
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: white;
+            margin: 8px 0;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .empty-state { text-align: center; padding: 60px 20px; color: #a0a0b0; }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #10b981; border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-users"></i> Comunidad</h1>
+            <div style="display: flex; gap: 10px;">
+                <div class="notif-badge" onclick="toggleNotificaciones()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-count" id="notifCount">0</span>
+                </div>
+                <div class="stats-summary">
+                    <div class="summary-item"><i class="fas fa-fire"></i> <span id="karma">0</span> karma</div>
+                    <div class="summary-item"><i class="fas fa-trophy"></i> <span id="rango">🌱 Explorador</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('grupos')"><div class="stat-value" id="totalGrupos">0</div><div class="stat-label">Grupos</div></div>
+            <div class="stat-card" onclick="cambiarTab('posts')"><div class="stat-value" id="totalPosts">0</div><div class="stat-label">Publicaciones</div></div>
+            <div class="stat-card" onclick="cambiarTab('mensajes')"><div class="stat-value" id="mensajesNoLeidos">0</div><div class="stat-label">Mensajes</div></div>
+            <div class="stat-card" onclick="cambiarTab('retos')"><div class="stat-value" id="retosActivos">0</div><div class="stat-label">Retos activos</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="grupos"><i class="fas fa-layer-group"></i> Grupos</button>
+        <button class="tab" data-tab="posts"><i class="fas fa-newspaper"></i> Publicaciones</button>
+        <button class="tab" data-tab="mensajes"><i class="fas fa-comments"></i> Mensajes</button>
+        <button class="tab" data-tab="retos"><i class="fas fa-trophy"></i> Retos</button>
+        <button class="tab" data-tab="mi-perfil"><i class="fas fa-user"></i> Mi perfil</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<!-- Panel de notificaciones -->
+<div id="notifPanel" class="modal" style="display: none; align-items: flex-start; justify-content: flex-end; background: transparent;">
+    <div style="background: #1a1a24; border-radius: 16px; width: 320px; margin-top: 60px; margin-right: 20px; border: 1px solid rgba(16,185,129,0.3);">
+        <div style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <strong>Notificaciones</strong>
+            <button onclick="marcarTodasLeidas()" style="float:right; background:none; border:none; color:#10b981;">Marcar todas</button>
+        </div>
+        <div id="notifList" style="max-height: 400px; overflow-y: auto;"></div>
+    </div>
+</div>
+
+<!-- Modal crear post con imagen -->
+<div id="modalPost" class="modal">
+    <div class="modal-content">
+        <h3>📝 Crear publicación</h3>
+        <select id="postGrupo" class="input-field"></select>
+        <input type="text" id="postTitulo" class="input-field" placeholder="Título">
+        <textarea id="postContenido" class="input-field" rows="4" placeholder="Comparte tu experiencia, pregunta o reflexión..."></textarea>
+        <div style="margin: 8px 0;">
+            <label>🖼️ Imagen (opcional)</label>
+            <input type="file" id="postImagen" accept="image/*" onchange="previewImagen()">
+            <img id="imagenPreview" class="image-preview" style="display: none;">
+        </div>
+        <div class="modal-buttons" style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn-secondary" onclick="cerrarModalPost()">Cancelar</button>
+            <button class="btn-primary" onclick="publicarPost()">Publicar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver imagen ampliada -->
+<div id="modalImagen" class="modal">
+    <div class="modal-content" style="text-align: center; background: transparent; border: none;">
+        <img id="imagenAmpliada" style="max-width: 90vw; max-height: 90vh; border-radius: 16px;">
+        <button class="btn-secondary" onclick="cerrarModalImagen()" style="margin-top: 16px;">Cerrar</button>
+    </div>
+</div>
+
+<!-- Chat window -->
+<div id="chatWindow" class="chat-window" style="display: none;">
+    <div class="chat-header">
+        <span id="chatNombre">Usuario</span>
+        <button onclick="cerrarChat()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Escribe un mensaje...">
+        <button class="btn-primary" onclick="enviarMensaje()" style="padding: 8px 16px; width: auto;">Enviar</button>
+    </div>
+</div>
+
+<script>
+    // ==================== DATOS ====================
+    let grupos = [
+        { id: "general", nombre: "🌍 Comunidad General", descripcion: "Espacio para compartir, apoyarnos y crecer juntos", miembros: 234, posts: 45, privado: false, creador: "sistema" },
+        { id: "ansiedad", nombre: "😌 Grupo de Ansiedad", descripcion: "Apoyo mutuo para manejar la ansiedad y el estrés", miembros: 156, posts: 32, privado: false, creador: "sistema" },
+        { id: "crecimiento", nombre: "🌱 Grupo de Crecimiento", descripcion: "Desarrollo personal, metas y motivación", miembros: 189, posts: 41, privado: false, creador: "sistema" },
+        { id: "habitos", nombre: "🔄 Grupo de Hábitos", descripcion: "Construyendo hábitos saludables juntos", miembros: 112, posts: 28, privado: false, creador: "sistema" }
+    ];
+    
+    const RETOS = [
+        { id: 1, nombre: "📝 Diario de gratitud", descripcion: "Escribe 3 cosas por las que estás agradecido cada día", duracion: 7, participantes: 45, progreso: 0, completado: false, xpOtorgada: false },
+        { id: 2, nombre: "🧘 Meditación diaria", descripcion: "Medita 10 minutos al día durante una semana", duracion: 7, participantes: 38, progreso: 0, completado: false, xpOtorgada: false },
+        { id: 3, nombre: "🚶‍♂️ 10,000 pasos", descripcion: "Camina 10,000 pasos diarios por 5 días", duracion: 5, participantes: 52, progreso: 0, completado: false, xpOtorgada: false }
+    ];
+    
+    let usuario = {
+        id: "user_" + Date.now(),
+        nombre: "Usuario",
+        avatar: "👤",
+        karma: 0,
+        gruposUnidos: ["general", "ansiedad", "crecimiento", "habitos"],
+        mensajes: [] // { con: usuarioId, mensajes: [{ texto, fecha, enviadoPor }] }
+    };
+    
+    let usuarios = []; // Lista de usuarios de la comunidad
+    let conversaciones = []; // { con: nombre, ultimoMensaje, fecha, noLeidos }
+    let postsGlobales = [
+        { id: 1, grupo: "general", autor: "María", autorId: "user_1", titulo: "Mi experiencia con la meditación", contenido: "Llevo 30 días meditando y mi ansiedad ha disminuido notablemente. ¡Anímense!", fecha: "2025-03-28", likes: 12, comentarios: [{ autor: "Carlos", texto: "Gracias por compartir, me anima a empezar" }], imagen: null },
+        { id: 2, grupo: "ansiedad", autor: "Laura", autorId: "user_2", titulo: "Técnica que me ayuda en crisis", contenido: "La respiración 4-7-8 me ha salvado varias veces. ¿Alguien más la usa?", fecha: "2025-03-27", likes: 8, comentarios: [], imagen: null }
+    ];
+    
+    let notificaciones = [];
+    let chatAbiertoCon = null;
+    let imagenSeleccionada = null;
+    
+    // ==================== DATOS PERSISTENTES ====================
+    function cargarDatos() {
+        let guardado = localStorage.getItem('reprompt_comunidad_v3');
+        if (guardado) {
+            let data = JSON.parse(guardado);
+            usuario = data.usuario || usuario;
+            notificaciones = data.notificaciones || [];
+            conversaciones = data.conversaciones || [];
+        }
+        let gruposGuardados = localStorage.getItem('reprompt_comunidad_grupos');
+        if (gruposGuardados) grupos = JSON.parse(gruposGuardados);
+        let postsGuardados = localStorage.getItem('reprompt_comunidad_posts');
+        if (postsGuardados) postsGlobales = JSON.parse(postsGuardados);
+        
+        // Agregar usuario actual a la lista de usuarios
+        if (!usuarios.find(u => u.id === usuario.id)) {
+            usuarios.push({ id: usuario.id, nombre: usuario.nombre, avatar: usuario.avatar });
+        }
+        
+        actualizarStats();
+        enviarDatosGlobales();
+        actualizarNotifCount();
+    }
+    
+    function guardarDatos() {
+        localStorage.setItem('reprompt_comunidad_v3', JSON.stringify({ usuario, notificaciones, conversaciones }));
+        localStorage.setItem('reprompt_comunidad_grupos', JSON.stringify(grupos));
+        localStorage.setItem('reprompt_comunidad_posts', JSON.stringify(postsGlobales));
+        actualizarStats();
+        enviarDatosGlobales();
+    }
+    
+    function actualizarStats() {
+        document.getElementById('totalGrupos').innerText = grupos.length;
+        document.getElementById('totalPosts').innerText = postsGlobales.length;
+        document.getElementById('retosActivos').innerText = RETOS.filter(r => !r.completado).length;
+        document.getElementById('karma').innerText = usuario.karma;
+        let noLeidos = conversaciones.reduce((sum, c) => sum + (c.noLeidos || 0), 0);
+        document.getElementById('mensajesNoLeidos').innerText = noLeidos;
+        let rango = usuario.karma < 50 ? "🌱 Explorador" : usuario.karma < 200 ? "🌿 Colaborador" : usuario.karma < 500 ? "🌟 Miembro activo" : "🏆 Líder de comunidad";
+        document.getElementById('rango').innerText = rango;
+    }
+    
+    function actualizarNotifCount() {
+        let noLeidas = notificaciones.filter(n => !n.leido).length;
+        document.getElementById('notifCount').innerText = noLeidas;
+    }
+    
+    function agregarNotificacion(tipo, mensaje, link) {
+        notificaciones.unshift({
+            id: Date.now(),
+            tipo: tipo,
+            mensaje: mensaje,
+            link: link,
+            leido: false,
+            fecha: new Date().toISOString()
+        });
+        if (notificaciones.length > 50) notificaciones.pop();
+        guardarDatos();
+        actualizarNotifCount();
+    }
+    
+    function toggleNotificaciones() {
+        let panel = document.getElementById('notifPanel');
+        panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+        if (panel.style.display === 'flex') renderizarNotificaciones();
+    }
+    
+    function renderizarNotificaciones() {
+        let html = '';
+        for (let n of notificaciones.slice(0, 20)) {
+            html += `<div class="notif-item ${!n.leido ? 'unread' : ''}" onclick="marcarLeida(${n.id})" style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+                        <div style="font-size:12px;">${n.mensaje}</div>
+                        <div style="font-size:10px; color:#a0a0b0;">${new Date(n.fecha).toLocaleString()}</div>
+                    </div>`;
+        }
+        if (notificaciones.length === 0) html = '<div style="padding:20px; text-align:center;">No hay notificaciones</div>';
+        document.getElementById('notifList').innerHTML = html;
+    }
+    
+    function marcarLeida(id) {
+        let notif = notificaciones.find(n => n.id === id);
+        if (notif) notif.leido = true;
+        guardarDatos();
+        actualizarNotifCount();
+        renderizarNotificaciones();
+    }
+    
+    function marcarTodasLeidas() {
+        notificaciones.forEach(n => n.leido = true);
+        guardarDatos();
+        actualizarNotifCount();
+        renderizarNotificaciones();
+    }
+    
+    // ==================== IMÁGENES ====================
+    function previewImagen() {
+        let file = document.getElementById('postImagen').files[0];
+        if (file) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let preview = document.getElementById('imagenPreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                imagenSeleccionada = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    // ==================== PUBLICACIONES ====================
+    function publicarPost() {
+        let grupo = document.getElementById('postGrupo').value;
+        let titulo = document.getElementById('postTitulo').value.trim();
+        let contenido = document.getElementById('postContenido').value.trim();
+        if (!titulo || !contenido) { mostrarNotificacion("❌ Completa título y contenido"); return; }
+        
+        let nuevoPost = {
+            id: Date.now(),
+            grupo: grupo,
+            autor: usuario.nombre,
+            autorId: usuario.id,
+            titulo: titulo,
+            contenido: contenido,
+            fecha: new Date().toISOString().split('T')[0],
+            likes: 0,
+            comentarios: [],
+            imagen: imagenSeleccionada || null
+        };
+        postsGlobales.unshift(nuevoPost);
+        usuario.karma += 10;
+        guardarDatos();
+        agregarNotificacion('post', `${usuario.nombre} publicó: "${titulo}"`, 'posts');
+        cerrarModalPost();
+        mostrarNotificacion("✅ Publicación creada. +10 karma");
+        if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'posts') renderizarPosts();
+        
+        // Limpiar imagen
+        imagenSeleccionada = null;
+        document.getElementById('postImagen').value = '';
+        document.getElementById('imagenPreview').style.display = 'none';
+    }
+    
+    function darLike(postId) {
+        let post = postsGlobales.find(p => p.id === postId);
+        if (post) {
+            post.likes++;
+            usuario.karma += 2;
+            guardarDatos();
+            if (post.autorId !== usuario.id) {
+                agregarNotificacion('like', `${usuario.nombre} le dio like a tu publicación "${post.titulo}"`, 'posts');
+            }
+            renderizarPosts();
+            mostrarNotificacion("👍 Like! +2 karma");
+        }
+    }
+    
+    function agregarComentario(postId) {
+        let texto = prompt("Escribe tu comentario:");
+        if (!texto) return;
+        let post = postsGlobales.find(p => p.id === postId);
+        if (post) {
+            post.comentarios.push({ autor: usuario.nombre, autorId: usuario.id, texto: texto, fecha: new Date().toISOString() });
+            usuario.karma += 3;
+            guardarDatos();
+            if (post.autorId !== usuario.id) {
+                agregarNotificacion('comentario', `${usuario.nombre} comentó en tu publicación "${post.titulo}"`, 'posts');
+            }
+            renderizarPosts();
+            mostrarNotificacion("💬 Comentario agregado. +3 karma");
+        }
+    }
+    
+    function eliminarComentario(postId, comentarioIndex) {
+        let post = postsGlobales.find(p => p.id === postId);
+        if (post && post.comentarios[comentarioIndex] && post.comentarios[comentarioIndex].autorId === usuario.id) {
+            post.comentarios.splice(comentarioIndex, 1);
+            guardarDatos();
+            renderizarPosts();
+            mostrarNotificacion("🗑️ Comentario eliminado");
+        }
+    }
+    
+    function eliminarPost(postId) {
+        if (confirm("¿Eliminar esta publicación?")) {
+            postsGlobales = postsGlobales.filter(p => p.id !== postId);
+            guardarDatos();
+            mostrarNotificacion("🗑️ Publicación eliminada");
+            if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'posts') renderizarPosts();
+        }
+    }
+    
+    function compartirPost(post) {
+        let url = window.location.href;
+        let texto = `📝 ${post.titulo}\n\n${post.contenido}\n\nCompartido desde REPROMPT Comunidad`;
+        if (navigator.share) {
+            navigator.share({ title: post.titulo, text: texto, url: url });
+        } else {
+            navigator.clipboard.writeText(texto + "\n" + url);
+            mostrarNotificacion("📋 Enlace copiado al portapapeles");
+        }
+    }
+    
+    function verImagenAmpliada(url) {
+        document.getElementById('imagenAmpliada').src = url;
+        document.getElementById('modalImagen').style.display = 'flex';
+    }
+    
+    function cerrarModalImagen() {
+        document.getElementById('modalImagen').style.display = 'none';
+    }
+    
+    // ==================== MENSAJERÍA DIRECTA ====================
+    function iniciarChatCon(usuarioNombre, usuarioId) {
+        if (!usuarioId) {
+            let user = usuarios.find(u => u.nombre === usuarioNombre);
+            if (user) usuarioId = user.id;
+        }
+        chatAbiertoCon = { nombre: usuarioNombre, id: usuarioId };
+        document.getElementById('chatNombre').innerText = usuarioNombre;
+        document.getElementById('chatWindow').style.display = 'flex';
+        cargarChat();
+        
+        // Marcar como leídos
+        let conv = conversaciones.find(c => c.con === usuarioId);
+        if (conv) {
+            conv.noLeidos = 0;
+            guardarDatos();
+            if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'mensajes') renderizarMensajes();
+        }
+    }
+    
+    function cerrarChat() {
+        document.getElementById('chatWindow').style.display = 'none';
+        chatAbiertoCon = null;
+    }
+    
+    function cargarChat() {
+        let mensajes = [];
+        let conv = conversaciones.find(c => c.con === chatAbiertoCon.id);
+        if (conv) mensajes = conv.mensajes || [];
+        
+        let html = '';
+        for (let m of mensajes) {
+            let clase = m.enviadoPor === usuario.id ? 'message-outgoing' : 'message-incoming';
+            html += `<div class="message ${clase}">
+                        <div>${escapeHtml(m.texto)}</div>
+                        <div style="font-size: 9px; opacity: 0.7; margin-top: 4px;">${new Date(m.fecha).toLocaleTimeString()}</div>
+                    </div>`;
+        }
+        document.getElementById('chatMessages').innerHTML = html;
+        document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+    }
+    
+    function enviarMensaje() {
+        let input = document.getElementById('chatInput');
+        let texto = input.value.trim();
+        if (!texto || !chatAbiertoCon) return;
+        
+        let conv = conversaciones.find(c => c.con === chatAbiertoCon.id);
+        if (!conv) {
+            conv = { con: chatAbiertoCon.id, conNombre: chatAbiertoCon.nombre, mensajes: [], noLeidos: 0 };
+            conversaciones.push(conv);
+        }
+        
+        conv.mensajes.push({
+            texto: texto,
+            fecha: new Date().toISOString(),
+            enviadoPor: usuario.id
+        });
+        conv.ultimoMensaje = texto;
+        conv.fecha = new Date().toISOString();
+        
+        guardarDatos();
+        input.value = '';
+        cargarChat();
+        
+        // Simular respuesta automática (para demo)
+        setTimeout(() => {
+            let respuesta = `Gracias por tu mensaje. Soy ${chatAbiertoCon.nombre}. ¿En qué más puedo ayudarte?`;
+            conv.mensajes.push({
+                texto: respuesta,
+                fecha: new Date().toISOString(),
+                enviadoPor: chatAbiertoCon.id
+            });
+            conv.ultimoMensaje = respuesta;
+            guardarDatos();
+            cargarChat();
+            agregarNotificacion('mensaje', `${chatAbiertoCon.nombre} te respondió`, 'mensajes');
+        }, 2000);
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarGrupos() {
+        let html = `<div style="margin-bottom:16px;"><button class="btn-primary" onclick="mostrarModalGrupo()">+ Crear grupo</button></div>
+                    <div class="grupos-grid">`;
+        for (let g of grupos) {
+            let unido = usuario.gruposUnidos.includes(g.id);
+            html += `
+                <div class="grupo-card">
+                    <div class="grupo-header">
+                        <span class="grupo-nombre">${g.nombre}</span>
+                        ${g.privado ? '<span class="grupo-badge">🔒 Privado</span>' : '<span class="grupo-badge">🌐 Público</span>'}
+                    </div>
+                    <div class="grupo-desc">${g.descripcion}</div>
+                    <div class="grupo-stats">
+                        <span><i class="fas fa-users"></i> ${g.miembros}</span>
+                        <span><i class="fas fa-comments"></i> ${g.posts}</span>
+                    </div>
+                    <div class="grupo-actions">
+                        ${!unido ? `<button class="btn-secondary" onclick="unirseGrupo('${g.id}')">Unirse</button>` : `<button class="btn-secondary" style="background:#10b981;" onclick="cambiarTab('posts'); filtrarPorGrupo('${g.id}')">Ver publicaciones</button>`}
+                    </div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarPosts() {
+        let posts = [...postsGlobales];
+        let busqueda = document.getElementById('busquedaInput')?.value || '';
+        if (busqueda) {
+            posts = posts.filter(p => 
+                p.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
+                p.contenido.toLowerCase().includes(busqueda.toLowerCase()) ||
+                p.autor.toLowerCase().includes(busqueda.toLowerCase())
+            );
+        }
+        
+        let gruposOptions = grupos.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
+        
+        let html = `
+            <div class="search-bar">
+                <input type="text" id="busquedaInput" class="search-input" placeholder="🔍 Buscar publicaciones..." onkeyup="renderizarPosts()">
+                <button class="btn-primary" onclick="document.getElementById('modalPost').style.display='flex'" style="width:auto; padding:10px 20px;">+ Publicar</button>
+            </div>`;
+        
+        if (posts.length === 0) {
+            html += '<div class="empty-state"><i class="fas fa-newspaper"></i><br>No hay publicaciones. ¡Sé el primero en compartir!</div>';
+        } else {
+            for (let p of posts) {
+                let grupo = grupos.find(g => g.id === p.grupo);
+                html += `
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-autor" onclick="iniciarChatCon('${p.autor}', '${p.autorId}')">
+                                <div class="post-avatar">${p.autor.charAt(0)}</div>
+                                <div>
+                                    <div class="post-nombre">${p.autor}</div>
+                                    <div class="post-fecha">${p.fecha} • ${grupo?.nombre || p.grupo}</div>
+                                </div>
+                            </div>
+                            <div class="post-actions" style="margin:0;">
+                                <button class="post-action" onclick="compartirPost(${JSON.stringify(p).replace(/"/g, '&quot;')})"><i class="fas fa-share-alt"></i> Compartir</button>
+                                ${p.autorId === usuario.id ? `<button class="post-action" onclick="eliminarPost(${p.id})"><i class="fas fa-trash"></i> Eliminar</button>` : ''}
+                            </div>
+                        </div>
+                        <div class="post-titulo">${escapeHtml(p.titulo)}</div>
+                        <div class="post-contenido">${escapeHtml(p.contenido)}</div>
+                        ${p.imagen ? `<img src="${p.imagen}" class="post-imagen" onclick="verImagenAmpliada('${p.imagen}')">` : ''}
+                        <div class="post-actions">
+                            <button class="post-action" onclick="darLike(${p.id})"><i class="fas fa-heart"></i> ${p.likes}</button>
+                            <button class="post-action" onclick="agregarComentario(${p.id})"><i class="fas fa-comment"></i> ${p.comentarios.length}</button>
+                        </div>
+                        ${p.comentarios.length > 0 ? `<div class="comentarios">${p.comentarios.map((c, idx) => `
+                            <div class="comentario">
+                                <div><strong>${c.autor}</strong>: ${escapeHtml(c.texto)}</div>
+                                ${c.autorId === usuario.id ? `<button class="post-action" onclick="eliminarComentario(${p.id}, ${idx})"><i class="fas fa-trash"></i></button>` : ''}
+                            </div>
+                        `).join('')}</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        
+        let select = document.getElementById('postGrupo');
+        if (select) select.innerHTML = gruposOptions;
+    }
+    
+    function renderizarMensajes() {
+        let conversacionesOrdenadas = [...conversaciones].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        
+        if (conversacionesOrdenadas.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><br>No tienes conversaciones. Haz clic en el nombre de un usuario para iniciar un chat.</div>';
+            return;
+        }
+        
+        let html = '<div class="chat-list">';
+        for (let c of conversacionesOrdenadas) {
+            let user = usuarios.find(u => u.id === c.con) || { nombre: c.conNombre || "Usuario", avatar: "👤" };
+            html += `
+                <div class="chat-item" onclick="iniciarChatCon('${user.nombre}', '${c.con}')">
+                    <div class="chat-avatar">${user.avatar || user.nombre.charAt(0)}</div>
+                    <div class="chat-info">
+                        <div class="chat-nombre">${user.nombre}</div>
+                        <div class="chat-preview">${c.ultimoMensaje ? escapeHtml(c.ultimoMensaje.substring(0, 50)) : 'Inicia una conversación'}</div>
+                    </div>
+                    <div class="chat-time">${c.fecha ? new Date(c.fecha).toLocaleTimeString() : ''}</div>
+                    ${c.noLeidos > 0 ? `<div class="chat-unread"></div>` : ''}
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarRetos() {
+        let html = '';
+        for (let r of RETOS) {
+            let participando = usuario.retosParticipando?.includes(r.id);
+            let progresoPorc = (r.progreso / r.duracion) * 100;
+            html += `
+                <div class="reto-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(139,92,246,0.1)); border-radius: 20px; padding: 20px; margin-bottom: 16px;">
+                    <h3>${r.nombre}</h3>
+                    <p>${r.descripcion}</p>
+                    <div class="reto-progreso" style="margin: 12px 0;">
+                        <div class="reto-bar" style="background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px;"><div class="reto-fill" style="background: #10b981; height: 100%; width: ${progresoPorc}%; border-radius: 10px;"></div></div>
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px;">
+                            <span>${r.progreso}/${r.duracion} días</span>
+                            <span>${r.participantes} participantes</span>
+                        </div>
+                    </div>
+                    ${!participando ? `<button class="btn-secondary" onclick="unirseReto(${r.id})">Unirse al reto</button>` : 
+                                     `<button class="btn-primary" onclick="progresarReto(${r.id})" style="background:#10b981;">✅ Marcar progreso</button>`}
+                </div>
+            `;
+        }
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarMiPerfil() {
+        let rango = usuario.karma < 50 ? "🌱 Explorador" : usuario.karma < 200 ? "🌿 Colaborador" : usuario.karma < 500 ? "🌟 Miembro activo" : "🏆 Líder de comunidad";
+        let postsPropios = postsGlobales.filter(p => p.autorId === usuario.id).length;
+        let comentariosPropios = postsGlobales.reduce((sum, p) => sum + p.comentarios.filter(c => c.autorId === usuario.id).length, 0);
+        
+        let html = `
+            <div class="reto-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(139,92,246,0.1)); border-radius: 20px; padding: 20px; margin-bottom: 16px;">
+                <h3><i class="fas fa-user-circle"></i> ${usuario.nombre}</h3>
+                <div class="stats-grid" style="margin: 16px 0;">
+                    <div class="stat-card"><div class="stat-value">${usuario.karma}</div><div class="stat-label">Karma</div></div>
+                    <div class="stat-card"><div class="stat-value">${rango}</div><div class="stat-label">Rango</div></div>
+                    <div class="stat-card"><div class="stat-value">${postsPropios}</div><div class="stat-label">Publicaciones</div></div>
+                    <div class="stat-card"><div class="stat-value">${comentariosPropios}</div><div class="stat-label">Comentarios</div></div>
+                </div>
+                <button class="btn-secondary" onclick="cambiarNombre()">✏️ Cambiar nombre</button>
+            </div>
+            <div class="reto-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(139,92,246,0.1)); border-radius: 20px; padding: 20px;">
+                <h3><i class="fas fa-trophy"></i> Logros</h3>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    ${usuario.karma >= 50 ? '<span style="background:rgba(16,185,129,0.2); padding:4px 12px; border-radius:20px;">🌱 Explorador</span>' : ''}
+                    ${usuario.karma >= 200 ? '<span style="background:rgba(16,185,129,0.2); padding:4px 12px; border-radius:20px;">🌿 Colaborador</span>' : ''}
+                    ${usuario.karma >= 500 ? '<span style="background:rgba(16,185,129,0.2); padding:4px 12px; border-radius:20px;">🌟 Miembro activo</span>' : ''}
+                    ${usuario.karma >= 1000 ? '<span style="background:rgba(16,185,129,0.2); padding:4px 12px; border-radius:20px;">🏆 Líder</span>' : ''}
+                </div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function unirseReto(retoId) {
+        let reto = RETOS.find(r => r.id === retoId);
+        if (reto && !usuario.retosParticipando?.includes(retoId)) {
+            if (!usuario.retosParticipando) usuario.retosParticipando = [];
+            usuario.retosParticipando.push(retoId);
+            reto.participantes++;
+            guardarDatos();
+            agregarNotificacion('reto', `Te has unido al reto "${reto.nombre}"`, 'retos');
+            mostrarNotificacion(`🎉 Te has unido al reto "${reto.nombre}"`);
+            renderizarRetos();
+        }
+    }
+    
+    function progresarReto(retoId) {
+        let reto = RETOS.find(r => r.id === retoId);
+        if (reto && usuario.retosParticipando?.includes(retoId)) {
+            reto.progreso = Math.min(reto.duracion, reto.progreso + 1);
+            if (reto.progreso >= reto.duracion && !reto.completado) {
+                reto.completado = true;
+                usuario.karma += 50;
+                agregarNotificacion('logro', `¡Completaste el reto "${reto.nombre}"! +50 karma`, 'retos');
+                mostrarNotificacion("🏆 ¡Reto completado! +50 karma");
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'GLOBAL_XP_GAIN', app: 'comunidad', xp: 50, motivo: `Reto completado: ${reto.nombre}` }, '*');
+                }
+            }
+            guardarDatos();
+            renderizarRetos();
+        }
+    }
+    
+    function unirseGrupo(grupoId) {
+        let grupo = grupos.find(g => g.id === grupoId);
+        if (grupo && !usuario.gruposUnidos.includes(grupoId)) {
+            usuario.gruposUnidos.push(grupoId);
+            grupo.miembros++;
+            guardarDatos();
+            mostrarNotificacion(`✅ Te has unido a "${grupo.nombre}"`);
+            renderizarGrupos();
+        }
+    }
+    
+    function cambiarNombre() {
+        let nuevo = prompt("Nuevo nombre de usuario:", usuario.nombre);
+        if (nuevo && nuevo.trim()) {
+            usuario.nombre = nuevo.trim();
+            guardarDatos();
+            renderizarMiPerfil();
+            mostrarNotificacion("✅ Nombre actualizado");
+        }
+    }
+    
+    function filtrarPorGrupo(grupoId) {
+        let posts = postsGlobales.filter(p => p.grupo === grupoId);
+        renderizarPostsFiltrados(posts);
+    }
+    
+    function renderizarPostsFiltrados(posts) {
+        let gruposOptions = grupos.map(g => `<option value="${g.id}">${g.nombre}</option>`).join('');
+        let html = `<div class="search-bar">
+                        <input type="text" id="busquedaInput" class="search-input" placeholder="🔍 Buscar publicaciones..." onkeyup="renderizarPosts()">
+                        <button class="btn-primary" onclick="document.getElementById('modalPost').style.display='flex'" style="width:auto; padding:10px 20px;">+ Publicar</button>
+                    </div>`;
+        if (posts.length === 0) {
+            html += '<div class="empty-state"><i class="fas fa-newspaper"></i><br>No hay publicaciones en este grupo.</div>';
+        } else {
+            for (let p of posts) {
+                let grupo = grupos.find(g => g.id === p.grupo);
+                html += `
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-autor" onclick="iniciarChatCon('${p.autor}', '${p.autorId}')">
+                                <div class="post-avatar">${p.autor.charAt(0)}</div>
+                                <div>
+                                    <div class="post-nombre">${p.autor}</div>
+                                    <div class="post-fecha">${p.fecha} • ${grupo?.nombre || p.grupo}</div>
+                                </div>
+                            </div>
+                            <div class="post-actions" style="margin:0;">
+                                <button class="post-action" onclick="compartirPost(${JSON.stringify(p).replace(/"/g, '&quot;')})"><i class="fas fa-share-alt"></i> Compartir</button>
+                                ${p.autorId === usuario.id ? `<button class="post-action" onclick="eliminarPost(${p.id})"><i class="fas fa-trash"></i> Eliminar</button>` : ''}
+                            </div>
+                        </div>
+                        <div class="post-titulo">${escapeHtml(p.titulo)}</div>
+                        <div class="post-contenido">${escapeHtml(p.contenido)}</div>
+                        ${p.imagen ? `<img src="${p.imagen}" class="post-imagen" onclick="verImagenAmpliada('${p.imagen}')">` : ''}
+                        <div class="post-actions">
+                            <button class="post-action" onclick="darLike(${p.id})"><i class="fas fa-heart"></i> ${p.likes}</button>
+                            <button class="post-action" onclick="agregarComentario(${p.id})"><i class="fas fa-comment"></i> ${p.comentarios.length}</button>
+                        </div>
+                        ${p.comentarios.length > 0 ? `<div class="comentarios">${p.comentarios.map((c, idx) => `<div class="comentario"><div><strong>${c.autor}</strong>: ${escapeHtml(c.texto)}</div>${c.autorId === usuario.id ? `<button class="post-action" onclick="eliminarComentario(${p.id}, ${idx})"><i class="fas fa-trash"></i></button>` : ''}</div>`).join('')}</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        let select = document.getElementById('postGrupo');
+        if (select) select.innerHTML = gruposOptions;
+    }
+    
+    function mostrarModalGrupo() {
+        let nombre = prompt("Nombre del grupo:");
+        if (!nombre) return;
+        let descripcion = prompt("Descripción del grupo:");
+        let privado = confirm("¿Grupo privado? (Cancelar para público)");
+        let nuevoGrupo = {
+            id: Date.now().toString(),
+            nombre: nombre,
+            descripcion: descripcion || "Grupo creado por " + usuario.nombre,
+            miembros: 1,
+            posts: 0,
+            privado: privado,
+            creador: usuario.nombre
+        };
+        grupos.push(nuevoGrupo);
+        usuario.gruposUnidos.push(nuevoGrupo.id);
+        guardarDatos();
+        mostrarNotificacion(`✅ Grupo "${nombre}" creado`);
+        renderizarGrupos();
+    }
+    
+    function cambiarTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        if (tab === 'grupos') renderizarGrupos();
+        else if (tab === 'posts') renderizarPosts();
+        else if (tab === 'mensajes') renderizarMensajes();
+        else if (tab === 'retos') renderizarRetos();
+        else if (tab === 'mi-perfil') renderizarMiPerfil();
+    }
+    
+    function cerrarModalPost() {
+        document.getElementById('modalPost').style.display = 'none';
+        imagenSeleccionada = null;
+        document.getElementById('postImagen').value = '';
+        document.getElementById('imagenPreview').style.display = 'none';
+    }
+    
+    function mostrarNotificacion(msg) {
+        let n = document.createElement('div');
+        n.className = 'notification-toast';
+        n.innerHTML = msg;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 2500);
+    }
+    
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    
+    function enviarDatosGlobales() {
+        let datos = {
+            karma: usuario.karma,
+            posts: postsGlobales.length,
+            retos_completados: RETOS.filter(r => r.completado).length,
+            conversaciones: conversaciones.length,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('reprompt_comunidad_data', JSON.stringify(datos));
+        if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'GLOBAL_DATA_UPDATE', app: 'comunidad', data: datos }, '*');
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+        renderizarGrupos();
+        
+        document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => cambiarTab(tab.getAttribute('data-tab'))));
+        
+        window.cambiarTab = cambiarTab;
+        window.publicarPost = publicarPost;
+        window.darLike = darLike;
+        window.agregarComentario = agregarComentario;
+        window.eliminarComentario = eliminarComentario;
+        window.eliminarPost = eliminarPost;
+        window.compartirPost = compartirPost;
+        window.verImagenAmpliada = verImagenAmpliada;
+        window.cerrarModalImagen = cerrarModalImagen;
+        window.iniciarChatCon = iniciarChatCon;
+        window.enviarMensaje = enviarMensaje;
+        window.cerrarChat = cerrarChat;
+        window.unirseReto = unirseReto;
+        window.progresarReto = progresarReto;
+        window.unirseGrupo = unirseGrupo;
+        window.cambiarNombre = cambiarNombre;
+        window.toggleNotificaciones = toggleNotificaciones;
+        window.marcarLeida = marcarLeida;
+        window.marcarTodasLeidas = marcarTodasLeidas;
+        window.cerrarModalPost = cerrarModalPost;
+        window.previewImagen = previewImagen;
+        window.mostrarModalGrupo = mostrarModalGrupo;
+        
+        setInterval(() => enviarDatosGlobales(), 30000);
+        if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'APP_ACTIVE', app: 'comunidad' }, '*');
+    });
+</script>
+</body>
+</html>

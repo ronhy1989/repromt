@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Zona Gamer - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        .game-controller {
+            width: 100%;
+            max-width: 700px;
+            background: linear-gradient(145deg, #2a2a3a, #1a1a2a);
+            border-radius: 35px;
+            padding: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 2px solid rgba(0,255,136,0.3);
+            max-height: 98vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-controller::-webkit-scrollbar {
+            width: 3px;
+        }
+        .game-controller::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+        .game-controller::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 3px;
+        }
+
+        .game-header { text-align: center; margin-bottom: 6px; flex-shrink: 0; }
+        .game-header h1 { 
+            font-size: 1.2rem; 
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .game-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .game-card {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 18px;
+            padding: 4px 2px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .game-card.active { 
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border-color: #00ff88;
+            transform: scale(1.02);
+        }
+        .game-card i { font-size: 16px; display: block; }
+        .game-card span { font-size: 7px; font-weight: 600; }
+
+        .game-area { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 6px; flex-shrink: 0; }
+        .left-controls { background: rgba(0,0,0,0.5); border-radius: 25px; padding: 8px 5px; }
+        .dpad { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .dpad-row { display: flex; justify-content: center; gap: 6px; }
+
+        .ctrl-btn {
+            background: rgba(30,30,45,0.95);
+            border: 2px solid rgba(0,255,136,0.6);
+            border-radius: 14px;
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+            color: #00ff88;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+        }
+        .ctrl-btn:active { transform: translateY(2px); background: #00ff88; color: #0a0a0f; }
+
+        .canvas-wrapper {
+            background: #0a0a0f;
+            border-radius: 18px;
+            padding: 4px;
+            border: 3px solid #00ff88;
+            position: relative;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #0f0f14;
+            border-radius: 12px;
+            width: 100%;
+            height: auto;
+        }
+
+        .game-message {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+        .game-message.hide { display: none; }
+        .countdown-number { font-size: 40px; font-weight: bold; color: #00ff88; font-family: monospace; }
+        .pause-text { font-size: 18px; font-weight: bold; color: #ffaa44; }
+
+        .right-controls {
+            background: rgba(0,0,0,0.5);
+            border-radius: 25px;
+            padding: 8px 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .action-btn {
+            background: rgba(30,30,45,0.95);
+            border: 1px solid rgba(0,255,136,0.5);
+            border-radius: 25px;
+            padding: 6px 8px;
+            color: #00ff88;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .action-btn:active { transform: scale(0.96); background: #00ff88; color: #0a0a0f; }
+        .shoot-btn {
+            background: rgba(30,30,45,0.95);
+            border: 2px solid #ff4444;
+            border-radius: 35px;
+            padding: 8px 12px;
+            color: #ff4444;
+            font-size: 18px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .shoot-btn:active { transform: scale(0.96); background: #ff4444; color: #0a0a0f; }
+
+        .info-footer {
+            background: rgba(0,0,0,0.6);
+            border-radius: 16px;
+            padding: 5px 8px;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+        .lives-panel { display: flex; justify-content: center; gap: 6px; margin-bottom: 4px; }
+        .heart { font-size: 14px; color: #ff4444; }
+        .heart.lost { opacity: 0.3; }
+        .stats-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; font-size: 8px; }
+        .stat-item { text-align: center; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 16px; }
+        .stat-label { color: #aaa; font-size: 6px; }
+        .stat-value { color: #00ff88; font-weight: bold; font-size: 10px; font-family: monospace; }
+
+        .progress-container {
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            padding: 3px 6px;
+            margin-top: 4px;
+        }
+        .progress-label {
+            font-size: 7px;
+            color: #ffaa44;
+            margin-bottom: 2px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .progress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #ffaa44);
+            width: 0%;
+            border-radius: 6px;
+            transition: width 0.3s;
+        }
+
+        .tanks-shop {
+            background: rgba(0,0,0,0.7);
+            border-radius: 16px;
+            padding: 6px;
+            margin-top: 6px;
+            border: 1px solid #ffaa00;
+            max-height: 140px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .tanks-shop::-webkit-scrollbar {
+            width: 3px;
+        }
+        .tanks-shop::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        .tanks-shop::-webkit-scrollbar-thumb {
+            background: #ffaa00;
+        }
+        .tanks-resources {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 5px;
+            font-size: 8px;
+        }
+        .tanks-resources span { color: #ffaa00; font-weight: bold; }
+        .tanks-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+        }
+        .tank-shop-btn {
+            background: #1a1a2a;
+            border: 1px solid #ffaa00;
+            border-radius: 20px;
+            padding: 3px 7px;
+            color: #ffaa00;
+            font-size: 8px;
+            cursor: pointer;
+        }
+        .tank-shop-btn:active { transform: scale(0.95); background: #ffaa00; color: #000; }
+
+        .game-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .game-over-card {
+            background: #1a1a2e;
+            border-radius: 35px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #00ff88;
+        }
+        .game-over-card button {
+            background: #00ff88;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            margin-top: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .victory-card {
+            background: linear-gradient(135deg, #1a2a1a, #0a1a0a);
+            border: 2px solid #ffaa44;
+        }
+        .victory-card h2 { color: #ffaa44; }
+        .hide { display: none; }
+
+        @media (max-width: 550px) {
+            .ctrl-btn { width: 40px; height: 40px; font-size: 18px; }
+            .action-btn { padding: 5px 6px; font-size: 9px; }
+            .shoot-btn { padding: 7px 10px; font-size: 16px; }
+            .tank-shop-btn { font-size: 7px; padding: 2px 5px; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-controller">
+    <div class="game-header">
+        <h1><i class="fas fa-gamepad"></i> ZONA GAMER</h1>
+        <div class="game-selector">
+            <div class="game-card" data-game="snake"><i class="fas fa-dragon"></i><span>GUSANITO</span></div>
+            <div class="game-card" data-game="tanks"><i class="fas fa-tank"></i><span>TANQUES RA</span></div>
+            <div class="game-card" data-game="racing"><i class="fas fa-car"></i><span>CARRERAS</span></div>
+            <div class="game-card" data-game="tetris"><i class="fas fa-th"></i><span>TETRIS</span></div>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="left-controls">
+            <div class="dpad">
+                <div class="dpad-row"><div class="ctrl-btn" data-action="up">▲</div></div>
+                <div class="dpad-row">
+                    <div class="ctrl-btn" data-action="left">◀</div>
+                    <div class="ctrl-btn" data-action="down">▼</div>
+                    <div class="ctrl-btn" data-action="right">▶</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            <div id="gameMessageOverlay" class="game-message hide"><div id="countdownDisplay" class="countdown-number"></div></div>
+        </div>
+
+        <div class="right-controls">
+            <div class="shoot-btn" id="shootBtn">💣</div>
+            <div class="action-btn" id="rotateBtn">🔄 ROTAR</div>
+            <div class="action-btn" id="pauseBtn">⏸ PAUSA</div>
+            <div class="action-btn" id="resetBtn">🔄 REINICIAR</div>
+        </div>
+    </div>
+
+    <div class="info-footer">
+        <div class="lives-panel" id="livesPanel">
+            <i class="fas fa-heart heart"></i><i class="fas fa-heart heart"></i><i class="fas fa-heart heart"></i>
+        </div>
+        <div class="stats-row">
+            <div class="stat-item"><span class="stat-label">PUNTAJE</span><br><span class="stat-value" id="scoreValue">0</span></div>
+            <div class="stat-item"><span class="stat-label">NIVEL</span><br><span class="stat-value" id="levelValue">1</span></div>
+            <div class="stat-item"><span class="stat-label">RÉCORD</span><br><span class="stat-value" id="highScoreValue">0</span></div>
+            <div class="stat-item"><span class="stat-label">💰 MINERALES</span><br><span class="stat-value" id="mineralsValue">500</span></div>
+        </div>
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-label">
+                <span>📊 PROGRESO AL NIVEL <span id="nextLevelNum">2</span></span>
+                <span id="enemiesRemaining">0/5</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tanksShopPanel"></div>
+</div>
+
+<div id="gameOverlay" class="game-overlay hide">
+    <div class="game-over-card" id="gameOverCard">
+        <h2 id="gameOverTitle">💀 GAME OVER 💀</h2>
+        <p id="gameOverScore">Puntaje: 0</p>
+        <p id="gameOverLevel">Nivel alcanzado: 0</p>
+        <p id="gameOverHigh">Récord: 0</p>
+        <button id="playAgainBtn">🔄 JUGAR DE NUEVO</button>
+        <button id="changeGameBtn" style="background:#444; margin-top:8px;">🎮 CAMBIAR JUEGO</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const messageOverlay = document.getElementById('gameMessageOverlay');
+    const countdownDisplay = document.getElementById('countdownDisplay');
+    const tanksShopPanel = document.getElementById('tanksShopPanel');
+
+    let currentGame = null;
+    let gameRunning = false;
+    let gameLoop = null;
+    let isPaused = false;
+    let isCountdown = false;
+    let countdownInterval = null;
+    let score = 0;
+    let level = 1;
+    let lives = 3;
+    let powerUp = null;
+    let particles = [];
+    
+    // Variables para el sistema de niveles
+    let enemiesToNextLevel = 5;
+    let enemiesKilledThisLevel = 0;
+    let isBossActive = false;
+
+    let highScores = {
+        snake: parseInt(localStorage.getItem('brick_highscore_snake')) || 0,
+        tanks: parseInt(localStorage.getItem('brick_highscore_tanks')) || 0,
+        racing: parseInt(localStorage.getItem('brick_highscore_racing')) || 0,
+        tetris: parseInt(localStorage.getItem('brick_highscore_tetris')) || 0
+    };
+
+    function updateUI() {
+        document.getElementById('scoreValue').innerText = score;
+        document.getElementById('levelValue').innerText = level;
+        document.getElementById('nextLevelNum').innerText = level + 1;
+        if (currentGame && highScores[currentGame]) {
+            document.getElementById('highScoreValue').innerText = highScores[currentGame];
+        }
+        const hearts = document.querySelectorAll('.heart');
+        hearts.forEach((heart, i) => {
+            if (i < lives) heart.classList.remove('lost');
+            else heart.classList.add('lost');
+        });
+        
+        const remaining = Math.max(0, enemiesToNextLevel - enemiesKilledThisLevel);
+        document.getElementById('enemiesRemaining').innerHTML = `${remaining}/${enemiesToNextLevel}`;
+        const progress = (enemiesKilledThisLevel / enemiesToNextLevel) * 100;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+    }
+
+    function saveHighScore() {
+        if (currentGame && score > highScores[currentGame]) {
+            highScores[currentGame] = score;
+            localStorage.setItem(`brick_highscore_${currentGame}`, score);
+            document.getElementById('highScoreValue').innerText = score;
+        }
+    }
+
+    function addParticle(x, y, type) {
+        particles.push({ x, y, type, life: 15 });
+    }
+
+    function loseLife() {
+        if (!gameRunning) return;
+        lives--;
+        updateUI();
+        addParticle(playerTank.x, playerTank.y, 'explosion');
+        if (lives <= 0) {
+            gameRunning = false;
+            if (gameLoop) clearInterval(gameLoop);
+            saveHighScore();
+            document.getElementById('gameOverScore').innerText = `Puntaje: ${score}`;
+            document.getElementById('gameOverLevel').innerText = `Nivel alcanzado: ${level}`;
+            document.getElementById('gameOverHigh').innerText = `${highScores[currentGame] || 0}`;
+            document.getElementById('gameOverTitle').innerHTML = '💀 GAME OVER 💀';
+            document.getElementById('gameOverCard').classList.remove('victory-card');
+            document.getElementById('gameOverlay').classList.remove('hide');
+        } else {
+            resetGamePosition();
+        }
+    }
+
+    function addLife() {
+        if (lives < 3) {
+            lives++;
+            updateUI();
+            mostrarToast('❤️ ¡Vida extra!');
+        }
+    }
+
+    function mostrarToast(msg) {
+        const toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#00ff88; color:#0a0a0f; padding:6px 12px; border-radius:30px; font-weight:bold; z-index:2000; font-size:10px; white-space:nowrap;';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1500);
+    }
+
+    function spawnPowerUp(x, y) {
+        if (powerUp) return;
+        if (Math.random() < 0.08) {
+            powerUp = { x: x, y: y, type: Math.random() < 0.3 ? 'life' : 'points', active: true };
+        }
+    }
+
+    function checkPowerUpCollision(playerX, playerY) {
+        if (!powerUp || !powerUp.active) return false;
+        const distance = Math.hypot((playerX - powerUp.x) * 20, (playerY - powerUp.y) * 20);
+        if (distance < 20) {
+            if (powerUp.type === 'life') {
+                addLife();
+                score += 50;
+                mostrarToast('❤️ +50 + vida extra');
+            } else {
+                score += 100;
+                mostrarToast('⭐ +100 puntos');
+            }
+            updateUI();
+            powerUp = null;
+            addParticle(powerUp.x, powerUp.y, 'explosion');
+            return true;
+        }
+        return false;
+    }
+
+    function drawPowerUp() {
+        if (!powerUp) return;
+        const x = powerUp.x * 20;
+        const y = powerUp.y * 20;
+        ctx.fillStyle = powerUp.type === 'life' ? '#ff4444' : '#ffaa00';
+        ctx.beginPath();
+        ctx.arc(x + 10, y + 10, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '12px monospace';
+        ctx.fillText(powerUp.type === 'life' ? '❤️' : '⭐', x + 5, y + 14);
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = powerUp.type === 'life' ? '#ff4444' : '#ffaa00';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+
+    function drawParticles() {
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.life--;
+            if (p.type === 'explosion') {
+                ctx.fillStyle = `rgba(255, ${150 - p.life * 10}, 0, ${p.life / 15})`;
+                ctx.beginPath();
+                ctx.arc(p.x * 20 + 10, p.y * 20 + 10, 7 - p.life / 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        particles = particles.filter(p => p.life > 0);
+    }
+
+    function resetGamePosition() {
+        if (currentGame === 'snake') initSnake();
+        if (currentGame === 'tanks') initTanks();
+        if (currentGame === 'racing') initRacing();
+        if (currentGame === 'tetris') initTetris();
+        gameRunning = true;
+    }
+
+    function startCountdown(callback) {
+        if (countdownInterval) clearInterval(countdownInterval);
+        isCountdown = true;
+        let val = 3;
+        messageOverlay.classList.remove('hide');
+        countdownDisplay.innerText = val;
+        countdownInterval = setInterval(() => {
+            val--;
+            if (val >= 1) {
+                countdownDisplay.innerText = val;
+            } else {
+                countdownDisplay.innerText = "GO!";
+                setTimeout(() => {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    messageOverlay.classList.add('hide');
+                    isCountdown = false;
+                    if (callback) callback();
+                }, 400);
+            }
+        }, 700);
+    }
+
+    function pauseGame() {
+        if (!gameRunning || isCountdown) return;
+        isPaused = !isPaused;
+        if (isPaused) {
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = null;
+            messageOverlay.classList.remove('hide');
+            countdownDisplay.innerHTML = '<div class="pause-text">⏸ PAUSA</div>';
+        } else {
+            messageOverlay.classList.add('hide');
+            startGameLoop();
+        }
+    }
+
+    function startGameLoop() {
+        if (gameLoop) clearInterval(gameLoop);
+        let intervalTime = 100;
+        if (currentGame === 'snake') intervalTime = Math.max(80, 150 - (level - 1) * 5);
+        else if (currentGame === 'tanks') intervalTime = 50;
+        else if (currentGame === 'racing') intervalTime = 20;
+        else if (currentGame === 'tetris') intervalTime = 30;
+        gameLoop = setInterval(() => {
+            if (!gameRunning || isPaused || isCountdown) return;
+            if (currentGame === 'snake') updateSnake();
+            if (currentGame === 'tanks') updateTanks();
+            if (currentGame === 'racing') updateRacing();
+            if (currentGame === 'tetris') updateTetris();
+            draw();
+        }, intervalTime);
+    }
+
+    // ==================== GUSANITO ====================
+    let snake = [], snakeDirection = 'right', snakeNextDirection = 'right', food = { x: 0, y: 0 };
+    function initSnake() {
+        snake = [{ x: 10, y: 10 }, { x: 9, y: 10 }, { x: 8, y: 10 }, { x: 7, y: 10 }];
+        snakeDirection = 'right'; snakeNextDirection = 'right'; powerUp = null;
+        generateFoodSnake();
+        tanksShopPanel.innerHTML = '';
+    }
+    function generateFoodSnake() {
+        do { food = { x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20) }; }
+        while (snake.some(s => s.x === food.x && s.y === food.y));
+        spawnPowerUp(food.x, food.y);
+    }
+    function updateSnake() {
+        if (!gameRunning) return;
+        snakeDirection = snakeNextDirection;
+        let newHead = { ...snake[0] };
+        switch (snakeDirection) {
+            case 'right': newHead.x++; break;
+            case 'left': newHead.x--; break;
+            case 'up': newHead.y--; break;
+            case 'down': newHead.y++; break;
+        }
+        checkPowerUpCollision(newHead.x, newHead.y);
+        if (newHead.x === food.x && newHead.y === food.y) {
+            snake.unshift(newHead);
+            score += 10;
+            updateUI();
+            generateFoodSnake();
+            if (score % 50 === 0) { level++; updateUI(); }
+        } else {
+            snake.unshift(newHead);
+            snake.pop();
+        }
+        if (newHead.x < 0 || newHead.x >= 20 || newHead.y < 0 || newHead.y >= 20 ||
+            snake.slice(1).some(s => s.x === newHead.x && s.y === newHead.y)) loseLife();
+    }
+    function drawSnake() {
+        snake.forEach((s, i) => {
+            ctx.fillStyle = i === 0 ? '#00ff88' : '#00cc66';
+            ctx.fillRect(s.x * 20, s.y * 20, 18, 18);
+            if (i === 0) {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(s.x * 20 + 12, s.y * 20 + 4, 3, 3);
+                ctx.fillRect(s.x * 20 + 4, s.y * 20 + 4, 3, 3);
+            }
+        });
+        ctx.fillStyle = '#ff4444';
+        ctx.beginPath();
+        ctx.arc(food.x * 20 + 9, food.y * 20 + 9, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px monospace';
+        ctx.fillText('🍎', food.x * 20 + 5, food.y * 20 + 13);
+        drawPowerUp();
+        drawParticles();
+    }
+
+    // ==================== TANQUES RED ALERT ====================
+    let minerals = 500;
+    let baseHealth = 8;
+    let baseMaxHealth = 8;
+    let baseShield = 0;
+    let baseShieldRegenTimer = 0;
+    let attackMode = true;
+    let upgrades = { cannon: 1, armor: 1, speed: 1, double: false, turrets: 2 };
+    let playerTank = { x: 10, y: 15, dir: 'up' };
+    let tankBullets = [];
+    let tankEnemyBullets = [];
+    let tankEnemies = [];
+    let tankWalls = [];
+    let turrets = [];
+    let crystals = [];
+    let miningTrucks = [];
+    let soldiers = [];
+    let allyTanks = [];
+    let tempAllies = [];
+    let tankLastShot = 0;
+    let enemySpawnCounter = 0;
+    let enemiesKilledCount = 0;
+    
+    const enemyTypes = {
+        1: { name: 'Ligero', hp: 1, color: '#ff8888', points: 100, mineralDrop: 50, shootDelay: 40, damage: 1 },
+        2: { name: 'Pesado', hp: 3, color: '#ff4444', points: 200, mineralDrop: 100, shootDelay: 30, damage: 2 },
+        3: { name: 'Artillería', hp: 2, color: '#ff6666', points: 150, mineralDrop: 75, shootDelay: 25, damage: 2 },
+        4: { name: 'BOSS NIVEL 5', hp: 15, color: '#aa00aa', points: 1000, mineralDrop: 300, shootDelay: 20, damage: 3 },
+        5: { name: 'SUPREMO FINAL', hp: 50, color: '#ff0000', points: 5000, mineralDrop: 1000, shootDelay: 15, damage: 4 }
+    };
+    
+    // Función para subir de nivel (conservando soldados y tanques aliados)
+    function advanceToNextLevel() {
+        if (level >= 10) {
+            gameRunning = false;
+            if (gameLoop) clearInterval(gameLoop);
+            saveHighScore();
+            document.getElementById('gameOverScore').innerText = `Puntaje: ${score}`;
+            document.getElementById('gameOverLevel').innerText = `¡COMPLETASTE LOS 10 NIVELES!`;
+            document.getElementById('gameOverHigh').innerText = `${highScores[currentGame] || 0}`;
+            document.getElementById('gameOverTitle').innerHTML = '🏆 ¡VICTORIA! 🏆';
+            document.getElementById('gameOverCard').classList.add('victory-card');
+            document.getElementById('gameOverlay').classList.remove('hide');
+            return;
+        }
+        
+        level++;
+        enemiesKilledThisLevel = 0;
+        enemiesToNextLevel = 5;
+        isBossActive = false;
+        
+        const levelReward = 100;
+        minerals += levelReward;
+        mostrarToast(`🎉 ¡NIVEL ${level}! +${levelReward} minerales 🎉`);
+        
+        // IMPORTANTE: NO borramos soldiers, allyTanks, miningTrucks ni tempAllies
+        // Ellos siguen contigo
+        
+        if (level === 5) {
+            isBossActive = true;
+            enemiesToNextLevel = 1;
+            mostrarToast(`🔥 ¡BOSS DEL NIVEL 5 HA APARECIDO! 🔥`);
+            const bossType = enemyTypes[4];
+            tankEnemies.push({
+                x: 10, y: 3, dir: 'down', active: true,
+                hp: bossType.hp, maxHp: bossType.hp, type: 4, color: bossType.color,
+                points: bossType.points, mineralDrop: bossType.mineralDrop,
+                damage: bossType.damage, shootTimer: 0, moveTimer: 0
+            });
+        } else if (level === 10) {
+            isBossActive = true;
+            enemiesToNextLevel = 1;
+            mostrarToast(`💀 ¡TANQUE SUPREMO FINAL HA APARECIDO! 💀`);
+            const bossType = enemyTypes[5];
+            tankEnemies.push({
+                x: 10, y: 3, dir: 'down', active: true,
+                hp: bossType.hp, maxHp: bossType.hp, type: 5, color: bossType.color,
+                points: bossType.points, mineralDrop: bossType.mineralDrop,
+                damage: bossType.damage, shootTimer: 0, moveTimer: 0
+            });
+        }
+        
+        updateUI();
+        renderTanksShop();
+    }
+    
+    function saveProgress() {
+        const progress = { minerals, upgrades, level, score };
+        localStorage.setItem('tanks_progress', JSON.stringify(progress));
+        mostrarToast('💾 Progreso guardado!');
+    }
+    
+    function loadProgress() {
+        const saved = localStorage.getItem('tanks_progress');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                minerals = data.minerals || 500;
+                upgrades = data.upgrades || { cannon: 1, armor: 1, speed: 1, double: false, turrets: 2 };
+                level = data.level || 1;
+                score = data.score || 0;
+                enemiesKilledThisLevel = 0;
+                enemiesToNextLevel = 5;
+                updateUI();
+                renderTanksShop();
+                mostrarToast('💾 Progreso cargado!');
+            } catch(e) {}
+        }
+    }
+    
+    // ==================== GRÁFICOS ====================
+    
+    function drawSoldier(x, y) {
+        const px = x * 20;
+        const py = y * 20;
+        ctx.fillStyle = '#4a5a2a';
+        ctx.fillRect(px + 6, py + 8, 8, 10);
+        ctx.fillStyle = '#3a4a1a';
+        ctx.beginPath();
+        ctx.ellipse(px + 10, py + 7, 4, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#2a3a0a';
+        ctx.fillRect(px + 6, py + 3, 8, 5);
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(px + 14, py + 11, 8, 2);
+        ctx.fillRect(px + 20, py + 10, 2, 4);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(px + 8, py + 6, 2, 2);
+        ctx.fillRect(px + 12, py + 6, 2, 2);
+        ctx.fillStyle = '#4a5a2a';
+        ctx.fillRect(px + 4, py + 9, 3, 6);
+        ctx.fillRect(px + 13, py + 9, 3, 6);
+        ctx.fillRect(px + 6, py + 18, 3, 5);
+        ctx.fillRect(px + 11, py + 18, 3, 5);
+    }
+    
+    function drawAllyTank(x, y, dir) {
+        const px = x * 20;
+        const py = y * 20;
+        ctx.fillStyle = '#4488aa';
+        ctx.fillRect(px + 2, py + 5, 16, 10);
+        ctx.fillStyle = '#335577';
+        ctx.fillRect(px + 1, py + 6, 2, 8);
+        ctx.fillRect(px + 17, py + 6, 2, 8);
+        ctx.fillStyle = '#5599bb';
+        ctx.beginPath();
+        ctx.arc(px + 10, py + 10, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#6699aa';
+        switch(dir) {
+            case 'up': ctx.fillRect(px + 8, py + 1, 4, 6); break;
+            case 'down': ctx.fillRect(px + 8, py + 14, 4, 6); break;
+            case 'left': ctx.fillRect(px + 1, py + 8, 6, 4); break;
+            case 'right': ctx.fillRect(px + 13, py + 8, 6, 4); break;
+        }
+        ctx.fillStyle = '#ffff00';
+        ctx.font = '8px monospace';
+        ctx.fillText('★', px + 7, py + 12);
+    }
+    
+    function drawEnemyTank(x, y, dir, color, hp, maxHp, type) {
+        const px = x * 20;
+        const py = y * 20;
+        const size = type === 4 ? 32 : (type === 5 ? 44 : 18);
+        const offset = type === 4 ? -6 : (type === 5 ? -12 : 1);
+        
+        ctx.fillStyle = color;
+        ctx.fillRect(px + offset, py + offset, size, size - 4);
+        
+        if (type === 4) {
+            ctx.fillStyle = '#aa44aa';
+            ctx.fillRect(px + 4, py - 4, 24, 8);
+            ctx.fillStyle = '#ffaa00';
+            ctx.font = '12px monospace';
+            ctx.fillText('👑', px + 12, py - 2);
+            ctx.fillStyle = '#ff4444';
+            ctx.beginPath();
+            ctx.arc(px + 16, py + 14, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffff00';
+            ctx.font = '10px monospace';
+            ctx.fillText('💀', px + 12, py + 18);
+        } else if (type === 5) {
+            ctx.fillStyle = '#ff3300';
+            ctx.fillRect(px + 2, py - 8, 36, 12);
+            ctx.fillStyle = '#ffaa00';
+            ctx.font = '16px monospace';
+            ctx.fillText('👑', px + 16, py - 4);
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.arc(px + 22, py + 20, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffff00';
+            ctx.font = '14px monospace';
+            ctx.fillText('💀', px + 16, py + 24);
+        } else {
+            ctx.fillStyle = '#553333';
+            ctx.fillRect(px + 1, py + 6, 2, 8);
+            ctx.fillRect(px + 17, py + 6, 2, 8);
+            ctx.fillStyle = '#cc5555';
+            ctx.beginPath();
+            ctx.arc(px + 10, py + 10, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.fillStyle = color;
+        switch(dir) {
+            case 'up': ctx.fillRect(px + 8, py + 1, 4, 6); break;
+            case 'down': ctx.fillRect(px + 8, py + 14, 4, 6); break;
+            case 'left': ctx.fillRect(px + 1, py + 8, 6, 4); break;
+            case 'right': ctx.fillRect(px + 13, py + 8, 6, 4); break;
+        }
+        
+        if (hp < maxHp) {
+            const barWidth = type === 4 ? 28 : (type === 5 ? 40 : 16);
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(px + 2, py + 2, barWidth, 3);
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(px + 2, py + 2, barWidth * (hp / maxHp), 3);
+        }
+    }
+    
+    function drawPlayerTank(x, y, dir) {
+        const px = x * 20;
+        const py = y * 20;
+        ctx.fillStyle = '#00ff88';
+        ctx.fillRect(px + 2, py + 5, 16, 10);
+        ctx.fillStyle = '#009944';
+        ctx.fillRect(px + 1, py + 6, 2, 8);
+        ctx.fillRect(px + 17, py + 6, 2, 8);
+        ctx.fillStyle = '#00cc66';
+        ctx.beginPath();
+        ctx.arc(px + 10, py + 10, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#00ff88';
+        switch(dir) {
+            case 'up': ctx.fillRect(px + 8, py + 1, 4, 6); break;
+            case 'down': ctx.fillRect(px + 8, py + 14, 4, 6); break;
+            case 'left': ctx.fillRect(px + 1, py + 8, 6, 4); break;
+            case 'right': ctx.fillRect(px + 13, py + 8, 6, 4); break;
+        }
+        ctx.fillStyle = '#ffff00';
+        ctx.font = '8px monospace';
+        ctx.fillText('★', px + 7, py + 12);
+    }
+    
+    function drawTurret(x, y, level, health, maxHealth) {
+        const px = x * 20;
+        const py = y * 20;
+        ctx.fillStyle = '#6688aa';
+        ctx.fillRect(px + 4, py + 6, 12, 8);
+        ctx.fillStyle = '#88aacc';
+        ctx.beginPath();
+        ctx.arc(px + 10, py + 8, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#5599bb';
+        ctx.fillRect(px + 8, py + 3, 4, 5);
+        if (upgrades.turrets >= 3) {
+            ctx.fillStyle = '#ffaa44';
+            ctx.fillRect(px + 8, py + 2, 4, 3);
+        }
+        if (health < maxHealth) {
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(px + 2, py + 1, 16, 3);
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(px + 2, py + 1, 16 * (health / maxHealth), 3);
+        }
+    }
+    
+    function drawMiningTruck(x, y) {
+        const px = x * 20;
+        const py = y * 20;
+        ctx.fillStyle = '#ffaa44';
+        ctx.fillRect(px + 3, py + 6, 14, 10);
+        ctx.fillStyle = '#cc8844';
+        ctx.fillRect(px + 5, py + 3, 8, 5);
+        ctx.fillStyle = '#333333';
+        ctx.fillRect(px + 4, py + 14, 4, 4);
+        ctx.fillRect(px + 12, py + 14, 4, 4);
+        ctx.fillStyle = '#ffff00';
+        ctx.font = '8px monospace';
+        ctx.fillText('🚛', px + 6, py + 12);
+    }
+    
+    function drawCrystal(x, y) {
+        const px = x * 20;
+        const py = y * 20;
+        ctx.fillStyle = '#00ffaa';
+        ctx.beginPath();
+        ctx.moveTo(px + 10, py + 2);
+        ctx.lineTo(px + 16, py + 8);
+        ctx.lineTo(px + 10, py + 14);
+        ctx.lineTo(px + 4, py + 8);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '8px monospace';
+        ctx.fillText('💎', px + 6, py + 11);
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#00ffaa';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+    
+    function drawWall(x, y, hp) {
+        const px = x * 20;
+        const py = y * 20;
+        ctx.fillStyle = '#886644';
+        ctx.fillRect(px + 1, py + 1, 18, 18);
+        ctx.fillStyle = '#aa8855';
+        ctx.fillRect(px + 4, py + 4, 12, 12);
+        if (hp <= 2) {
+            ctx.fillStyle = '#ccaa77';
+            ctx.fillRect(px + 7, py + 7, 6, 6);
+        }
+    }
+    
+    // ==================== FUNCIONES DEL JUEGO ====================
+    
+    function initTurrets() {
+        turrets = [
+            { x: 7, y: 17, active: true, level: 1, shootTimer: 0, health: 5, maxHealth: 5 },
+            { x: 13, y: 17, active: true, level: 1, shootTimer: 0, health: 5, maxHealth: 5 }
+        ];
+    }
+    
+    function upgradeTurrets() {
+        if (minerals >= 300) {
+            minerals -= 300;
+            upgrades.turrets++;
+            turrets.forEach(t => {
+                t.level++;
+                t.maxHealth = 5 + t.level * 2;
+                t.health = t.maxHealth;
+            });
+            mostrarToast(`🗼 Torretas nivel ${upgrades.turrets}`);
+            updateUI();
+            renderTanksShop();
+            saveProgress();
+        } else {
+            mostrarToast(`❌ Necesitas 300 minerales`);
+        }
+    }
+    
+    function buySoldier() {
+        if (minerals >= 100) {
+            minerals -= 100;
+            soldiers.push({
+                x: playerTank.x,
+                y: playerTank.y,
+                active: true,
+                health: 1,
+                shootTimer: 0,
+                moveTimer: 0
+            });
+            mostrarToast(`🪖 Soldado desplegado!`);
+            updateUI();
+            renderTanksShop();
+            saveProgress();
+        } else {
+            mostrarToast(`❌ Necesitas 100 minerales`);
+        }
+    }
+    
+    function buyAllyTank() {
+        if (minerals >= 250) {
+            minerals -= 250;
+            allyTanks.push({
+                x: playerTank.x,
+                y: playerTank.y,
+                dir: 'up',
+                active: true,
+                health: 3,
+                maxHealth: 3,
+                shootTimer: 0,
+                moveTimer: 0
+            });
+            mostrarToast(`💣 Tanque aliado desplegado!`);
+            updateUI();
+            renderTanksShop();
+            saveProgress();
+        } else {
+            mostrarToast(`❌ Necesitas 250 minerales`);
+        }
+    }
+    
+    function updateAllies() {
+        for (let i = 0; i < soldiers.length; i++) {
+            const s = soldiers[i];
+            if (!s.active) continue;
+            
+            let closest = null;
+            let closestDist = 10;
+            for (let e of tankEnemies) {
+                if (!e.active) continue;
+                let dist = Math.hypot(e.x - s.x, e.y - s.y);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closest = e;
+                }
+            }
+            
+            if (closest) {
+                let dx = closest.x - s.x;
+                let dy = closest.y - s.y;
+                if (Math.abs(dx) > 0.1) s.x += Math.sign(dx) * 0.1;
+                if (Math.abs(dy) > 0.1) s.y += Math.sign(dy) * 0.1;
+            } else {
+                let dx = playerTank.x - s.x;
+                let dy = playerTank.y - s.y;
+                if (Math.abs(dx) > 0.05) s.x += Math.sign(dx) * 0.05;
+                if (Math.abs(dy) > 0.05) s.y += Math.sign(dy) * 0.05;
+            }
+            
+            s.x = Math.max(0, Math.min(19, s.x));
+            s.y = Math.max(0, Math.min(19, s.y));
+            
+            s.shootTimer++;
+            if (s.shootTimer > 35 && closest) {
+                s.shootTimer = 0;
+                let dx = closest.x - s.x;
+                let dy = closest.y - s.y;
+                let dir = 'right';
+                if (Math.abs(dx) > Math.abs(dy)) dir = dx > 0 ? 'right' : 'left';
+                else dir = dy > 0 ? 'down' : 'up';
+                tankBullets.push({ x: s.x, y: s.y, dir: dir, fromAlly: true });
+                addParticle(s.x, s.y, 'bullet');
+            }
+        }
+        
+        for (let i = 0; i < allyTanks.length; i++) {
+            const t = allyTanks[i];
+            if (!t.active) continue;
+            
+            let closest = null;
+            let closestDist = 8;
+            for (let e of tankEnemies) {
+                if (!e.active) continue;
+                let dist = Math.hypot(e.x - t.x, e.y - t.y);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closest = e;
+                }
+            }
+            
+            if (closest) {
+                let dx = closest.x - t.x;
+                let dy = closest.y - t.y;
+                if (Math.abs(dx) > 0.08) t.x += Math.sign(dx) * 0.08;
+                if (Math.abs(dy) > 0.08) t.y += Math.sign(dy) * 0.08;
+                if (Math.abs(dx) > Math.abs(dy)) t.dir = dx > 0 ? 'right' : 'left';
+                else t.dir = dy > 0 ? 'down' : 'up';
+            } else {
+                let dx = playerTank.x - t.x;
+                let dy = playerTank.y - t.y;
+                if (Math.abs(dx) > 0.05) t.x += Math.sign(dx) * 0.05;
+                if (Math.abs(dy) > 0.05) t.y += Math.sign(dy) * 0.05;
+            }
+            
+            t.x = Math.max(0, Math.min(19, t.x));
+            t.y = Math.max(0, Math.min(19, t.y));
+            
+            t.shootTimer++;
+            if (t.shootTimer > 30 && closest) {
+                t.shootTimer = 0;
+                let dx = closest.x - t.x;
+                let dy = closest.y - t.y;
+                let dir = t.dir;
+                if (Math.abs(dx) > Math.abs(dy)) dir = dx > 0 ? 'right' : 'left';
+                else dir = dy > 0 ? 'down' : 'up';
+                tankBullets.push({ x: t.x, y: t.y, dir: dir, fromAlly: true });
+                addParticle(t.x, t.y, 'bullet');
+            }
+        }
+        
+        for (let i = 0; i < tempAllies.length; i++) {
+            const a = tempAllies[i];
+            a.timer--;
+            if (a.timer <= 0) a.active = false;
+            if (tankEnemies.length > 0 && Math.random() < 0.05) {
+                let target = tankEnemies[0];
+                if (target.x > a.x) a.dir = 'right';
+                else if (target.x < a.x) a.dir = 'left';
+                else if (target.y > a.y) a.dir = 'down';
+                else a.dir = 'up';
+                let newX = a.x, newY = a.y;
+                switch (a.dir) {
+                    case 'up': newY--; break;
+                    case 'down': newY++; break;
+                    case 'left': newX--; break;
+                    case 'right': newX++; break;
+                }
+                if (newX >= 0 && newX < 20 && newY >= 0 && newY < 20) {
+                    a.x = newX;
+                    a.y = newY;
+                }
+            }
+            a.shootTimer = (a.shootTimer || 0) + 1;
+            if (a.shootTimer > 25 && tankEnemies.length > 0) {
+                a.shootTimer = 0;
+                let target = tankEnemies[0];
+                let dx = target.x - a.x;
+                let dy = target.y - a.y;
+                let dir = a.dir;
+                if (Math.abs(dx) > Math.abs(dy)) dir = dx > 0 ? 'right' : 'left';
+                else dir = dy > 0 ? 'down' : 'up';
+                tankBullets.push({ x: a.x, y: a.y, dir: dir, fromAlly: true });
+                addParticle(a.x, a.y, 'bullet');
+            }
+        }
+        
+        tempAllies = tempAllies.filter(a => a.active);
+    }
+    
+    function updateTurrets() {
+        turrets.forEach(t => {
+            if (!t.active) return;
+            t.shootTimer++;
+            let shootDelay = Math.max(20, 40 - t.level * 3);
+            if (t.shootTimer > shootDelay) {
+                t.shootTimer = 0;
+                let closest = null;
+                let closestDist = 8;
+                for (let e of tankEnemies) {
+                    if (!e.active) continue;
+                    let dist = Math.hypot(e.x - t.x, e.y - t.y);
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closest = e;
+                    }
+                }
+                if (closest) {
+                    let dx = closest.x - t.x;
+                    let dy = closest.y - t.y;
+                    let dir = 'right';
+                    if (Math.abs(dx) > Math.abs(dy)) dir = dx > 0 ? 'right' : 'left';
+                    else dir = dy > 0 ? 'down' : 'up';
+                    tankBullets.push({ x: t.x, y: t.y, dir: dir, fromTurret: true });
+                    addParticle(t.x, t.y, 'bullet');
+                }
+            }
+        });
+    }
+    
+    function renderTanksShop() {
+        document.getElementById('mineralsValue').innerText = minerals;
+        tanksShopPanel.innerHTML = `
+            <div class="tanks-shop">
+                <div class="tanks-resources">
+                    <span>💰 ${minerals}</span>
+                    <span>🏭 BASE ${baseHealth}/${baseMaxHealth}</span>
+                    <span>🛡️ ESCUDO ${baseShield}</span>
+                    <span>🗼 TORRETAS ${upgrades.turrets}</span>
+                    <span>🪖 SOLDADOS ${soldiers.length}</span>
+                    <span>💣 TANQUES ${allyTanks.length}</span>
+                    <span>🚛 CAMIONES ${miningTrucks.length}</span>
+                </div>
+                <div class="tanks-buttons">
+                    <div class="tank-shop-btn" data-upgrade="cannon">🔫 CAÑÓN (200)</div>
+                    <div class="tank-shop-btn" data-upgrade="armor">🛡️ BLINDAJE (150)</div>
+                    <div class="tank-shop-btn" data-upgrade="speed">⚡ VELOCIDAD (100)</div>
+                    <div class="tank-shop-btn" data-upgrade="double">💥 DOBLE (300)</div>
+                    <div class="tank-shop-btn" data-upgrade="turrets">🗼 MEJORAR TORRETAS (300)</div>
+                    <div class="tank-shop-btn" id="buySoldierBtn">🪖 SOLDADO (100)</div>
+                    <div class="tank-shop-btn" id="buyAllyTankBtn">💣 TANQUE ALIADO (250)</div>
+                    <div class="tank-shop-btn" id="alliesBtn">🆘 REFUERZO (200)</div>
+                    <div class="tank-shop-btn" id="repairBaseBtn">🏭 REPARAR BASE (150)</div>
+                    <div class="tank-shop-btn" id="buyTruckBtn">🚛 COMPRAR CAMIÓN (150)</div>
+                    <div class="tank-shop-btn" id="saveProgressBtn">💾 GUARDAR PROGRESO</div>
+                </div>
+                <div class="tanks-mode">💡 MODO: ${attackMode ? 'ATAQUE' : 'RECOLECTAR'} | 🪖 Ejército: ${soldiers.length + allyTanks.length + tempAllies.length}</div>
+            </div>
+        `;
+        
+        document.querySelectorAll('.tank-shop-btn[data-upgrade]').forEach(btn => {
+            btn.addEventListener('click', () => buyUpgrade(btn.dataset.upgrade));
+        });
+        document.getElementById('buySoldierBtn')?.addEventListener('click', () => buySoldier());
+        document.getElementById('buyAllyTankBtn')?.addEventListener('click', () => buyAllyTank());
+        document.getElementById('alliesBtn')?.addEventListener('click', () => callReinforcements());
+        document.getElementById('repairBaseBtn')?.addEventListener('click', () => repairBase());
+        document.getElementById('buyTruckBtn')?.addEventListener('click', () => buyMiningTruck());
+        document.getElementById('saveProgressBtn')?.addEventListener('click', () => saveProgress());
+    }
+    
+    function repairBase() {
+        if (minerals >= 150 && baseHealth < baseMaxHealth) {
+            minerals -= 150;
+            baseHealth = Math.min(baseMaxHealth, baseHealth + 3);
+            mostrarToast(`🏭 Base reparada +3 vida`);
+            updateUI();
+            renderTanksShop();
+            saveProgress();
+        } else if (baseHealth >= baseMaxHealth) {
+            mostrarToast(`❌ La base ya está al máximo`);
+        } else {
+            mostrarToast(`❌ Necesitas 150 minerales`);
+        }
+    }
+    
+    function buyMiningTruck() {
+        if (minerals >= 150) {
+            minerals -= 150;
+            miningTrucks.push({
+                x: 10 + Math.random() * 2 - 1,
+                y: 17,
+                active: true,
+                hasCrystal: false,
+                targetCrystal: null,
+                returningToBase: false
+            });
+            mostrarToast(`🚛 Nuevo camión minero desplegado`);
+            updateUI();
+            renderTanksShop();
+            saveProgress();
+        } else {
+            mostrarToast(`❌ Necesitas 150 minerales`);
+        }
+    }
+    
+    function callReinforcements() {
+        if (minerals >= 200) {
+            minerals -= 200;
+            tempAllies.push({ x: playerTank.x, y: playerTank.y, dir: 'up', active: true, timer: 300, shootTimer: 0 });
+            mostrarToast(`🆘 Refuerzo aliado desplegado (30s)`);
+            updateUI();
+            renderTanksShop();
+            saveProgress();
+        } else {
+            mostrarToast(`❌ Necesitas 200 minerales`);
+        }
+    }
+    
+    function buyUpgrade(type) {
+        if (type === 'cannon' && minerals >= 200 && upgrades.cannon < 3) {
+            minerals -= 200;
+            upgrades.cannon++;
+            mostrarToast(`🔫 Cañón nivel ${upgrades.cannon}`);
+        } else if (type === 'armor' && minerals >= 150 && upgrades.armor < 3) {
+            minerals -= 150;
+            upgrades.armor++;
+            mostrarToast(`🛡️ Blindaje nivel ${upgrades.armor}`);
+        } else if (type === 'speed' && minerals >= 100 && upgrades.speed < 3) {
+            minerals -= 100;
+            upgrades.speed++;
+            mostrarToast(`⚡ Velocidad nivel ${upgrades.speed}`);
+        } else if (type === 'double' && minerals >= 300 && !upgrades.double) {
+            minerals -= 300;
+            upgrades.double = true;
+            mostrarToast(`💥 Disparo doble activado`);
+        } else if (type === 'turrets' && minerals >= 300 && upgrades.turrets < 5) {
+            minerals -= 300;
+            upgrades.turrets++;
+            turrets.forEach(t => {
+                t.level++;
+                t.maxHealth = 5 + t.level * 2;
+                t.health = t.maxHealth;
+            });
+            mostrarToast(`🗼 Torretas nivel ${upgrades.turrets}`);
+        } else {
+            mostrarToast(`❌ No tienes suficientes minerales`);
+        }
+        updateUI();
+        renderTanksShop();
+        saveProgress();
+    }
+    
+    function toggleAttackMode() {
+        attackMode = !attackMode;
+        mostrarToast(attackMode ? '⚔️ Modo ATAQUE' : '⛏️ Modo RECOLECTAR');
+        renderTanksShop();
+    }
+    
+    function initTanks() {
+        minerals = 500;
+        baseHealth = 8;
+        baseMaxHealth = 8;
+        baseShield = 0;
+        baseShieldRegenTimer = 0;
+        attackMode = true;
+        upgrades = { cannon: 1, armor: 1, speed: 1, double: false, turrets: 2 };
+        playerTank = { x: 10, y: 15, dir: 'up' };
+        tankBullets = [];
+        tankEnemyBullets = [];
+        tankEnemies = [];
+        crystals = [];
+        miningTrucks = [];
+        soldiers = [];
+        allyTanks = [];
+        tempAllies = [];
+        tankWalls = [
+            { x: 8, y: 17, hp: 4 }, { x: 9, y: 17, hp: 4 }, { x: 10, y: 17, hp: 4 }, { x: 11, y: 17, hp: 4 }, { x: 12, y: 17, hp: 4 },
+            { x: 8, y: 18, hp: 4 }, { x: 12, y: 18, hp: 4 },
+            { x: 8, y: 19, hp: 4 }, { x: 12, y: 19, hp: 4 },
+            { x: 4, y: 4, hp: 4 }, { x: 5, y: 4, hp: 4 }, { x: 14, y: 4, hp: 4 }, { x: 15, y: 4, hp: 4 }
+        ];
+        initTurrets();
+        enemySpawnCounter = 0;
+        enemiesKilledCount = 0;
+        enemiesKilledThisLevel = 0;
+        enemiesToNextLevel = 5;
+        isBossActive = false;
+        level = 1;
+        score = 0;
+        powerUp = null;
+        updateUI();
+        renderTanksShop();
+        miningTrucks.push({ x: 10, y: 17, active: true, hasCrystal: false, targetCrystal: null, returningToBase: false });
+        loadProgress();
+        mostrarToast('💰 RED ALERT: Construye tu ejército y derrota a los enemigos!');
+    }
+    
+    function shootTankRed() {
+        let now = Date.now();
+        let delay = upgrades.double ? 300 : 400;
+        if (now - tankLastShot > delay) {
+            if (upgrades.double) {
+                tankBullets.push({ x: playerTank.x, y: playerTank.y, dir: playerTank.dir });
+                tankBullets.push({ 
+                    x: playerTank.x + (playerTank.dir === 'right' ? 1 : playerTank.dir === 'left' ? -1 : 0), 
+                    y: playerTank.y + (playerTank.dir === 'down' ? 1 : playerTank.dir === 'up' ? -1 : 0), 
+                    dir: playerTank.dir 
+                });
+            } else {
+                tankBullets.push({ x: playerTank.x, y: playerTank.y, dir: playerTank.dir });
+            }
+            tankLastShot = now;
+            addParticle(playerTank.x, playerTank.y, 'bullet');
+        }
+    }
+    
+    function spawnCrystal(x, y) {
+        crystals.push({ x: x, y: y, active: true });
+    }
+    
+    function spawnEnemyTank() {
+        if (isBossActive) return;
+        
+        let type = 1;
+        if (level >= 8) type = 3;
+        else if (level >= 5) type = Math.random() < 0.5 ? 2 : 3;
+        else if (level >= 3) type = 2;
+        let t = enemyTypes[type];
+        tankEnemies.push({
+            x: 5 + Math.random() * 10, y: 1, dir: 'down', active: true,
+            hp: t.hp, maxHp: t.hp, type: type, color: t.color,
+            points: t.points, mineralDrop: t.mineralDrop, damage: t.damage,
+            shootTimer: 0, moveTimer: 0
+        });
+    }
+    
+    function updateMiningTrucks() {
+        for (let i = 0; i < miningTrucks.length; i++) {
+            const truck = miningTrucks[i];
+            if (!truck.active) continue;
+            
+            if (truck.returningToBase) {
+                let targetX = 10;
+                let targetY = 18;
+                let dx = targetX - truck.x;
+                let dy = targetY - truck.y;
+                if (Math.abs(dx) > 0.1) truck.x += Math.sign(dx) * 0.1;
+                if (Math.abs(dy) > 0.1) truck.y += Math.sign(dy) * 0.1;
+                
+                if (Math.abs(truck.x - targetX) < 0.5 && Math.abs(truck.y - targetY) < 0.5) {
+                    truck.returningToBase = false;
+                    truck.hasCrystal = false;
+                    truck.targetCrystal = null;
+                    minerals += 25;
+                    updateUI();
+                    renderTanksShop();
+                    mostrarToast(`🚛 +25 minerales entregados`);
+                    addParticle(truck.x, truck.y, 'explosion');
+                }
+                continue;
+            }
+            
+            if (!truck.hasCrystal && crystals.length > 0) {
+                let closest = null;
+                let closestDist = Infinity;
+                for (let c of crystals) {
+                    if (!c.active) continue;
+                    let dist = Math.hypot(c.x - truck.x, c.y - truck.y);
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closest = c;
+                    }
+                }
+                if (closest) {
+                    truck.targetCrystal = closest;
+                    truck.hasCrystal = true;
+                }
+            }
+            
+            if (truck.hasCrystal && truck.targetCrystal && truck.targetCrystal.active) {
+                let dx = truck.targetCrystal.x - truck.x;
+                let dy = truck.targetCrystal.y - truck.y;
+                if (Math.abs(dx) > 0.05) truck.x += Math.sign(dx) * 0.08;
+                if (Math.abs(dy) > 0.05) truck.y += Math.sign(dy) * 0.08;
+                
+                if (Math.abs(truck.x - truck.targetCrystal.x) < 0.5 && Math.abs(truck.y - truck.targetCrystal.y) < 0.5) {
+                    truck.targetCrystal.active = false;
+                    truck.hasCrystal = false;
+                    truck.returningToBase = true;
+                    truck.targetCrystal = null;
+                    addParticle(truck.x, truck.y, 'explosion');
+                }
+            } else if (truck.hasCrystal && (!truck.targetCrystal || !truck.targetCrystal.active)) {
+                truck.hasCrystal = false;
+                truck.returningToBase = true;
+                truck.targetCrystal = null;
+            }
+            
+            truck.x = Math.max(0.5, Math.min(19.5, truck.x));
+            truck.y = Math.max(0.5, Math.min(19.5, truck.y));
+        }
+        crystals = crystals.filter(c => c.active);
+    }
+    
+    function updateTanks() {
+        if (!gameRunning) return;
+        
+        baseShieldRegenTimer++;
+        if (baseShieldRegenTimer > 450) {
+            baseShieldRegenTimer = 0;
+            if (baseShield < 3) {
+                baseShield = Math.min(3, baseShield + 1);
+                mostrarToast(`🛡️ Escudo base regenerado +1`);
+            }
+        }
+        
+        let spawnDelay = Math.max(60, 100 - level * 2);
+        if (enemySpawnCounter++ >= spawnDelay && tankEnemies.length < 8 && !isBossActive) {
+            enemySpawnCounter = 0;
+            spawnEnemyTank();
+        }
+        
+        updateTurrets();
+        updateAllies();
+        updateMiningTrucks();
+        
+        let speedMult = 1 + (upgrades.speed - 1) * 0.3;
+        tankBullets = tankBullets.filter(b => {
+            for (let i = 0; i < speedMult; i++) {
+                switch (b.dir) {
+                    case 'up': b.y--; break;
+                    case 'down': b.y++; break;
+                    case 'left': b.x--; break;
+                    case 'right': b.x++; break;
+                }
+            }
+            return b.x >= 0 && b.x < 20 && b.y >= 0 && b.y < 20;
+        });
+        
+        tankEnemyBullets = tankEnemyBullets.filter(b => {
+            switch (b.dir) {
+                case 'up': b.y--; break;
+                case 'down': b.y++; break;
+                case 'left': b.x--; break;
+                case 'right': b.x++; break;
+            }
+            return b.x >= 0 && b.x < 20 && b.y >= 0 && b.y < 20;
+        });
+        
+        let damage = upgrades.cannon;
+        tankBullets.forEach(b => {
+            tankEnemies.forEach(e => {
+                if (e.active && Math.abs(b.x - e.x) < 1 && Math.abs(b.y - e.y) < 1) {
+                    e.hp -= damage;
+                    b.active = false;
+                    if (e.hp <= 0) {
+                        e.active = false;
+                        score += e.points;
+                        minerals += e.mineralDrop;
+                        enemiesKilledCount++;
+                        enemiesKilledThisLevel++;
+                        spawnCrystal(e.x, e.y);
+                        addParticle(e.x, e.y, 'explosion');
+                        updateUI();
+                        renderTanksShop();
+                        
+                        if (e.type === 4) {
+                            mostrarToast(`💀 ¡BOSS DEL NIVEL 5 DERROTADO! +${e.points} puntos 💀`);
+                            advanceToNextLevel();
+                        } else if (e.type === 5) {
+                            mostrarToast(`🏆 ¡TANQUE SUPREMO DERROTADO! ¡VICTORIA! 🏆`);
+                            advanceToNextLevel();
+                        }
+                        
+                        if (!isBossActive && enemiesKilledThisLevel >= enemiesToNextLevel) {
+                            advanceToNextLevel();
+                        }
+                        saveProgress();
+                    }
+                }
+            });
+            tankWalls.forEach(w => {
+                if (Math.abs(b.x - w.x) < 1 && Math.abs(b.y - w.y) < 1) {
+                    w.hp--;
+                    b.active = false;
+                    addParticle(w.x, w.y, 'explosion');
+                }
+            });
+            turrets.forEach(t => {
+                if (t.active && Math.abs(b.x - t.x) < 1 && Math.abs(b.y - t.y) < 1) {
+                    t.health--;
+                    b.active = false;
+                    if (t.health <= 0) {
+                        t.active = false;
+                        addParticle(t.x, t.y, 'explosion');
+                    }
+                }
+            });
+        });
+        tankBullets = tankBullets.filter(b => b.active !== false);
+        tankWalls = tankWalls.filter(w => w.hp > 0);
+        
+        tankEnemyBullets.forEach(b => {
+            if (Math.abs(b.x - playerTank.x) < 1 && Math.abs(b.y - playerTank.y) < 1) {
+                loseLife();
+                b.active = false;
+            }
+            soldiers.forEach(s => {
+                if (s.active && Math.abs(b.x - s.x) < 1 && Math.abs(b.y - s.y) < 1) {
+                    s.active = false;
+                    b.active = false;
+                    addParticle(s.x, s.y, 'explosion');
+                }
+            });
+            allyTanks.forEach(t => {
+                if (t.active && Math.abs(b.x - t.x) < 1 && Math.abs(b.y - t.y) < 1) {
+                    t.health--;
+                    b.active = false;
+                    if (t.health <= 0) {
+                        t.active = false;
+                        addParticle(t.x, t.y, 'explosion');
+                    }
+                }
+            });
+            tankWalls.forEach(w => {
+                if (Math.abs(b.x - w.x) < 1 && Math.abs(b.y - w.y) < 1) {
+                    w.hp--;
+                    b.active = false;
+                    addParticle(w.x, w.y, 'explosion');
+                }
+            });
+            if ((b.x === 10 && b.y === 19) || (b.x === 10 && b.y === 20)) {
+                let damageAmount = b.damage || 1;
+                if (baseShield > 0) {
+                    baseShield -= damageAmount;
+                    if (baseShield < 0) baseShield = 0;
+                    addParticle(10, 19, 'explosion');
+                } else {
+                    baseHealth -= damageAmount;
+                    addParticle(10, 19, 'explosion');
+                    if (baseHealth <= 0) loseLife();
+                }
+                b.active = false;
+            }
+        });
+        tankEnemyBullets = tankEnemyBullets.filter(b => b.active !== false);
+        
+        tankEnemies.forEach(e => {
+            if (!e.active) return;
+            
+            let moveSpeed = e.type === 4 ? 25 : (e.type === 5 ? 30 : 20);
+            if (e.moveTimer++ > moveSpeed) {
+                e.moveTimer = 0;
+                let newX = e.x, newY = e.y;
+                switch (e.dir) {
+                    case 'down': newY++; break;
+                    case 'up': newY--; break;
+                    case 'left': newX--; break;
+                    case 'right': newX++; break;
+                }
+                let blocked = tankWalls.some(w => w.x === newX && w.y === newY);
+                if (!blocked && newX >= 0 && newX < 20 && newY >= 0 && newY < 20 &&
+                    !(Math.abs(newX - playerTank.x) < 1 && Math.abs(newY - playerTank.y) < 1)) {
+                    e.x = newX;
+                    e.y = newY;
+                } else {
+                    e.dir = ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)];
+                }
+            }
+            
+            let shootDelay = e.type === 4 ? 35 : (e.type === 5 ? 30 : (e.type === 1 ? 40 : e.type === 2 ? 35 : 30));
+            if (e.shootTimer++ > shootDelay) {
+                e.shootTimer = 0;
+                let targetIsPlayer = Math.random() < 0.6;
+                let targetX = targetIsPlayer ? playerTank.x : 10;
+                let targetY = targetIsPlayer ? playerTank.y : 19;
+                let dx = targetX - e.x;
+                let dy = targetY - e.y;
+                let newDir = e.dir;
+                if (Math.abs(dx) > Math.abs(dy)) newDir = dx > 0 ? 'right' : 'left';
+                else newDir = dy > 0 ? 'down' : 'up';
+                tankEnemyBullets.push({ x: e.x, y: e.y, dir: newDir, damage: e.damage });
+                addParticle(e.x, e.y, 'bullet');
+            }
+        });
+        
+        soldiers = soldiers.filter(s => s.active);
+        allyTanks = allyTanks.filter(t => t.active);
+        tankEnemies = tankEnemies.filter(e => e.active);
+        tankEnemies.forEach(e => {
+            if (Math.abs(e.x - playerTank.x) < 1 && Math.abs(e.y - playerTank.y) < 1) loseLife();
+        });
+    }
+    
+    function drawTanks() {
+        crystals.forEach(c => { if (c.active) drawCrystal(c.x, c.y); });
+        
+        miningTrucks.forEach(truck => { if (truck.active) drawMiningTruck(truck.x, truck.y); });
+        soldiers.forEach(s => { if (s.active) drawSoldier(s.x, s.y); });
+        allyTanks.forEach(t => { if (t.active) drawAllyTank(t.x, t.y, t.dir); });
+        tempAllies.forEach(a => { if (a.active) drawAllyTank(a.x, a.y, a.dir); });
+        turrets.forEach(t => { if (t.active) drawTurret(t.x, t.y, t.level, t.health, t.maxHealth); });
+        
+        tankWalls.forEach(w => drawWall(w.x, w.y, w.hp));
+        
+        for (let i = 0; i < baseHealth; i++) {
+            ctx.fillStyle = '#00ff88';
+            ctx.fillRect(10 * 20 + i * 4, 19 * 20, 3, 18);
+        }
+        if (baseShield > 0) {
+            ctx.fillStyle = '#88aaff';
+            ctx.globalAlpha = 0.5;
+            for (let i = 0; i < baseShield; i++) {
+                ctx.fillRect(10 * 20 + i * 4, 18 * 20, 3, 18);
+            }
+            ctx.globalAlpha = 1;
+        }
+        
+        tankEnemies.forEach(e => drawEnemyTank(e.x, e.y, e.dir, e.color, e.hp, e.maxHp, e.type));
+        
+        drawPlayerTank(playerTank.x, playerTank.y, playerTank.dir);
+        
+        ctx.fillStyle = '#ffff00';
+        tankBullets.forEach(b => ctx.fillRect(b.x * 20 + 8, b.y * 20 + 8, 4, 4));
+        ctx.fillStyle = '#ff6600';
+        tankEnemyBullets.forEach(b => ctx.fillRect(b.x * 20 + 8, b.y * 20 + 8, 4, 4));
+        
+        drawPowerUp();
+        drawParticles();
+    }
+    
+    function moveTank(dx, dy, dir) {
+        if (!gameRunning || isPaused) return;
+        let speed = 1 + (upgrades.speed - 1) * 0.3;
+        let newX = playerTank.x + dx * speed;
+        let newY = playerTank.y + dy * speed;
+        let blocked = tankWalls.some(w => Math.abs(w.x - newX) < 1 && Math.abs(w.y - newY) < 1);
+        playerTank.dir = dir;
+        if (!blocked && newX >= 0 && newX < 20 && newY >= 0 && newY < 20) {
+            playerTank.x = newX;
+            playerTank.y = newY;
+        }
+    }
+    
+    function shootTank() {
+        if (attackMode) shootTankRed();
+        else toggleAttackMode();
+    }
+
+    // ==================== CARRERAS ====================
+    let carX = 180;
+    let obstacles = [];
+    let racingScore = 0;
+    let racingSpeed = 3;
+
+    function initRacing() {
+        carX = 180;
+        obstacles = [];
+        racingScore = 0;
+        racingSpeed = 3;
+        score = 0; level = 1;
+        powerUp = null;
+        updateUI();
+        tanksShopPanel.innerHTML = '';
+    }
+
+    function updateRacing() {
+        if (!gameRunning) return;
+        if (Math.random() < 0.02) obstacles.push({ x: Math.random() * 320, y: 0 });
+        obstacles = obstacles.filter(obs => { obs.y += racingSpeed; return obs.y < 400; });
+        for (let obs of obstacles) {
+            if (Math.abs(obs.x - carX) < 30 && obs.y > 370) { loseLife(); return; }
+        }
+        racingScore++;
+        if (racingScore % 100 === 0) { racingSpeed += 0.5; level++; updateUI(); }
+        score = racingScore;
+        updateUI();
+    }
+
+    function drawPlayerCar(x, y) {
+        ctx.fillStyle = '#00ff88';
+        ctx.fillRect(x, y, 30, 20);
+        ctx.fillStyle = '#00cc66';
+        ctx.fillRect(x + 8, y - 8, 14, 12);
+        ctx.fillStyle = '#88ccff';
+        ctx.fillRect(x + 10, y - 6, 4, 6);
+        ctx.fillRect(x + 16, y - 6, 4, 6);
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(x + 26, y + 4, 4, 4);
+        ctx.fillRect(x + 26, y + 12, 4, 4);
+        ctx.fillStyle = '#333';
+        ctx.fillRect(x + 4, y + 16, 5, 5);
+        ctx.fillRect(x + 21, y + 16, 5, 5);
+    }
+
+    function drawEnemyCar(x, y) {
+        ctx.fillStyle = '#ff4444';
+        ctx.fillRect(x, y, 30, 20);
+        ctx.fillStyle = '#cc3333';
+        ctx.fillRect(x + 8, y + 16, 14, 12);
+        ctx.fillStyle = '#88ccff';
+        ctx.fillRect(x + 10, y + 18, 4, 6);
+        ctx.fillRect(x + 16, y + 18, 4, 6);
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(x + 0, y + 4, 4, 4);
+        ctx.fillRect(x + 0, y + 12, 4, 4);
+        ctx.fillStyle = '#333';
+        ctx.fillRect(x + 4, y + 0, 5, 5);
+        ctx.fillRect(x + 21, y + 0, 5, 5);
+    }
+
+    function drawRacing() {
+        ctx.fillStyle = '#222';
+        ctx.fillRect(0, 0, 400, 400);
+        ctx.fillStyle = '#ffff00';
+        for (let i = 0; i < 20; i++) ctx.fillRect(195, (i * 40 + Date.now() / 10) % 400, 10, 15);
+        ctx.fillStyle = '#888';
+        ctx.fillRect(50, 0, 4, 400);
+        ctx.fillRect(346, 0, 4, 400);
+        obstacles.forEach(obs => drawEnemyCar(obs.x, obs.y));
+        drawPlayerCar(carX, 370);
+        drawPowerUp();
+        drawParticles();
+    }
+
+    function moveCar(dx) {
+        carX += dx;
+        if (carX < 60) carX = 60;
+        if (carX > 310) carX = 310;
+    }
+
+    // ==================== TETRIS ====================
+    let tetrisGrid = Array(20).fill().map(() => Array(10).fill(0));
+    let currentPiece = null, nextPiece = null, tetrisScore = 0, tetrisLines = 0, lastFall = 0;
+    const tetrisPieces = [
+        { shape: [[1, 1, 1, 1]], color: '#00ff88' },
+        { shape: [[1, 1], [1, 1]], color: '#ff4444' },
+        { shape: [[0, 1, 0], [1, 1, 1]], color: '#ffaa00' },
+        { shape: [[1, 0, 0], [1, 1, 1]], color: '#aa44ff' },
+        { shape: [[0, 0, 1], [1, 1, 1]], color: '#44aaff' }
+    ];
+    function randomPiece() { return JSON.parse(JSON.stringify(tetrisPieces[Math.floor(Math.random() * tetrisPieces.length)])); }
+    function initTetris() {
+        tetrisGrid = Array(20).fill().map(() => Array(10).fill(0));
+        tetrisScore = 0; tetrisLines = 0;
+        score = 0; level = 1;
+        powerUp = null;
+        updateUI();
+        currentPiece = randomPiece();
+        currentPiece.x = 3; currentPiece.y = 0;
+        nextPiece = randomPiece();
+        lastFall = Date.now();
+        canvas.width = 200; canvas.height = 400;
+        tanksShopPanel.innerHTML = '';
+    }
+    function collide(piece, offX, offY) {
+        for (let y = 0; y < piece.shape.length; y++)
+            for (let x = 0; x < piece.shape[y].length; x++)
+                if (piece.shape[y][x] && (tetrisGrid[piece.y + y + offY]?.[piece.x + x + offX] ||
+                    piece.x + x + offX < 0 || piece.x + x + offX >= 10 || piece.y + y + offY >= 20)) return true;
+        return false;
+    }
+    function mergePiece() {
+        for (let y = 0; y < currentPiece.shape.length; y++)
+            for (let x = 0; x < currentPiece.shape[y].length; x++)
+                if (currentPiece.shape[y][x]) tetrisGrid[currentPiece.y + y][currentPiece.x + x] = currentPiece.color;
+        let linesCleared = 0;
+        for (let y = 19; y >= 0; y--) {
+            if (tetrisGrid[y].every(cell => cell !== 0)) {
+                tetrisGrid.splice(y, 1);
+                tetrisGrid.unshift(Array(10).fill(0));
+                y++;
+                linesCleared++;
+            }
+        }
+        if (linesCleared > 0) {
+            tetrisLines += linesCleared;
+            tetrisScore += [0, 40, 100, 300, 1200][linesCleared];
+            score = tetrisScore;
+            level = Math.floor(tetrisLines / 5) + 1;
+            updateUI();
+        }
+        currentPiece = nextPiece;
+        currentPiece.x = 3; currentPiece.y = 0;
+        nextPiece = randomPiece();
+        if (collide(currentPiece, 0, 0)) loseLife();
+    }
+    function updateTetris() {
+        if (!gameRunning) return;
+        let now = Date.now();
+        let speed = Math.max(100, 500 - (level - 1) * 30);
+        if (now - lastFall > speed) {
+            lastFall = now;
+            if (!collide(currentPiece, 0, 1)) currentPiece.y++;
+            else mergePiece();
+        }
+    }
+    function rotatePiece() {
+        let rotated = {
+            shape: currentPiece.shape[0].map((_, i) => currentPiece.shape.map(row => row[i]).reverse()),
+            color: currentPiece.color, x: currentPiece.x, y: currentPiece.y
+        };
+        if (!collide(rotated, 0, 0)) currentPiece.shape = rotated.shape;
+    }
+    function movePiece(dx, dy) { if (!collide(currentPiece, dx, dy)) { currentPiece.x += dx; currentPiece.y += dy; return true; } return false; }
+    function dropPiece() { while (!collide(currentPiece, 0, 1)) currentPiece.y++; mergePiece(); }
+    function drawTetris() {
+        for (let y = 0; y < 20; y++)
+            for (let x = 0; x < 10; x++) {
+                ctx.fillStyle = tetrisGrid[y][x] || '#1a1a2e';
+                ctx.fillRect(x * 20, y * 20, 18, 18);
+                if (tetrisGrid[y][x]) { ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(x * 20, y * 20, 18, 4); }
+            }
+        for (let y = 0; y < currentPiece.shape.length; y++)
+            for (let x = 0; x < currentPiece.shape[y].length; x++)
+                if (currentPiece.shape[y][x]) {
+                    ctx.fillStyle = currentPiece.color;
+                    ctx.fillRect((currentPiece.x + x) * 20, (currentPiece.y + y) * 20, 18, 18);
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.fillRect((currentPiece.x + x) * 20, (currentPiece.y + y) * 20, 18, 4);
+                }
+        drawPowerUp();
+        drawParticles();
+    }
+
+    function initGame() {
+        if (gameLoop) clearInterval(gameLoop);
+        gameRunning = false;
+        isPaused = false;
+        powerUp = null;
+        score = 0; level = 1; lives = 3;
+        updateUI();
+        if (currentGame === 'snake') initSnake();
+        if (currentGame === 'tanks') initTanks();
+        if (currentGame === 'racing') initRacing();
+        if (currentGame === 'tetris') initTetris();
+        gameRunning = true;
+        startCountdown(() => { isCountdown = false; startGameLoop(); });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (currentGame === 'snake') drawSnake();
+        else if (currentGame === 'tanks') drawTanks();
+        else if (currentGame === 'racing') drawRacing();
+        else if (currentGame === 'tetris') drawTetris();
+    }
+
+    function setGame(game) {
+        if (gameLoop) clearInterval(gameLoop);
+        currentGame = game;
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.classList.remove('active');
+            if (card.dataset.game === game) card.classList.add('active');
+        });
+        if (game === 'tetris') { canvas.width = 200; } else { canvas.width = 400; }
+        canvas.height = 400;
+        initGame();
+    }
+
+    function handleAction(action) {
+        if (!gameRunning || isPaused || isCountdown) return;
+        if (currentGame === 'snake') {
+            if (action === 'up' && snakeDirection !== 'down') snakeNextDirection = 'up';
+            if (action === 'down' && snakeDirection !== 'up') snakeNextDirection = 'down';
+            if (action === 'left' && snakeDirection !== 'right') snakeNextDirection = 'left';
+            if (action === 'right' && snakeDirection !== 'left') snakeNextDirection = 'right';
+        }
+        if (currentGame === 'tanks') {
+            if (action === 'up') moveTank(0, -1, 'up');
+            if (action === 'down') moveTank(0, 1, 'down');
+            if (action === 'left') moveTank(-1, 0, 'left');
+            if (action === 'right') moveTank(1, 0, 'right');
+            if (action === 'shoot') shootTank();
+        }
+        if (currentGame === 'racing') {
+            if (action === 'left') moveCar(-15);
+            if (action === 'right') moveCar(15);
+        }
+        if (currentGame === 'tetris') {
+            if (action === 'left') movePiece(-1, 0);
+            if (action === 'right') movePiece(1, 0);
+            if (action === 'down') movePiece(0, 1);
+            if (action === 'up') rotatePiece();
+            if (action === 'shoot') dropPiece();
+        }
+    }
+
+    // Eventos
+    document.querySelectorAll('.ctrl-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => { e.preventDefault(); handleAction(btn.dataset.action); });
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleAction(btn.dataset.action); });
+    });
+    document.getElementById('rotateBtn').addEventListener('click', () => handleAction('up'));
+    document.getElementById('shootBtn').addEventListener('click', () => handleAction('shoot'));
+    document.getElementById('resetBtn').addEventListener('click', () => { if (currentGame) initGame(); });
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+        if (!gameRunning || isCountdown) return;
+        pauseGame();
+    });
+    document.getElementById('playAgainBtn').addEventListener('click', () => {
+        document.getElementById('gameOverlay').classList.add('hide');
+        initGame();
+    });
+    document.getElementById('changeGameBtn').addEventListener('click', () => {
+        document.getElementById('gameOverlay').classList.add('hide');
+    });
+    document.querySelectorAll('.game-card').forEach(card => {
+        card.addEventListener('click', () => setGame(card.dataset.game));
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') handleAction('up');
+        if (e.key === 'ArrowDown') handleAction('down');
+        if (e.key === 'ArrowLeft') handleAction('left');
+        if (e.key === 'ArrowRight') handleAction('right');
+        if (e.key === ' ' || e.key === 'Space') { e.preventDefault(); handleAction('shoot'); }
+        if (e.key === 'p' || e.key === 'P') document.getElementById('pauseBtn').click();
+        if (e.key === 'r' || e.key === 'R') document.getElementById('resetBtn').click();
+    });
+
+    currentGame = null;
+    updateUI();
+})();
+</script>
+</body>
+</html>

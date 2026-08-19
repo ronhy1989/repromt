@@ -1,0 +1,1500 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Hábitos Evolutivos - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #10b981; }
+        .perfil-badge {
+            background: rgba(16,185,129,0.2);
+            border-radius: 30px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+        .perfil-badge:hover { background: rgba(16,185,129,0.3); }
+        
+        .niveles-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .nivel-badge {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .nivel-oro { border-left: 3px solid #f59e0b; }
+        .nivel-plata { border-left: 3px solid #94a3b8; }
+        .nivel-bronce { border-left: 3px solid #cd7f32; }
+        
+        .level-progress {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }
+        .level-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .level-title { font-size: 14px; font-weight: bold; }
+        .level-xp { font-size: 12px; color: #f59e0b; }
+        .progress-bar-container {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .progress-fill-level {
+            background: linear-gradient(90deg, #10b981, #f59e0b);
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(16,185,129,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #10b981; }
+        .stat-label { font-size: 11px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #10b981; border-bottom: 2px solid #10b981; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        .habitos-list { display: flex; flex-direction: column; gap: 12px; }
+        .habito-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 14px;
+            padding: 14px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+        }
+        .habito-card:hover { border-color: rgba(16,185,129,0.3); }
+        .habito-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .habito-nombre {
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .nivel-habito {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.3);
+        }
+        .nivel-bronce-habito { background: #cd7f32; color: #1a1a1a; }
+        .nivel-plata-habito { background: #94a3b8; color: #1a1a1a; }
+        .nivel-oro-habito { background: #f59e0b; color: #1a1a1a; }
+        .nivel-diamante-habito { background: #10b981; color: #1a1a1a; }
+        
+        .categoria-badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(16,185,129,0.2);
+            color: #10b981;
+        }
+        .racha { display: flex; align-items: center; gap: 5px; font-size: 12px; color: #f59e0b; }
+        .habito-desc { font-size: 12px; color: #a0a0b0; margin-bottom: 12px; }
+        .checkin-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .week-days { display: flex; gap: 6px; flex-wrap: wrap; }
+        .day-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: transparent;
+            color: #a0a0b0;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .day-btn.completed { background: #10b981; border-color: #10b981; color: white; }
+        .day-btn.today { border-color: #10b981; color: #10b981; }
+        .day-btn:hover { background: rgba(16,185,129,0.2); }
+        
+        .context-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .context-btn {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            color: #a0a0b0;
+            transition: all 0.2s;
+        }
+        .context-btn:hover { background: rgba(16,185,129,0.3); color: white; }
+        
+        .habito-actions { display: flex; gap: 8px; }
+        .btn-sm {
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #10b981; color: #0a0a0f; }
+        .btn-primary:hover { background: #0e9f6e; }
+        .btn-outline { background: transparent; border: 1px solid #10b981; color: #10b981; }
+        .btn-outline:hover { background: rgba(16,185,129,0.1); }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-warning { background: #f59e0b; color: #0a0a0f; }
+        
+        .recomendacion-card {
+            background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(139,92,246,0.1));
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(16,185,129,0.3);
+        }
+        .recomendacion-titulo { font-size: 14px; font-weight: 600; color: #10b981; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .recomendacion-texto { font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+        
+        /* Sugerencias al crear hábito */
+        .sugerencias-container {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(16,185,129,0.05);
+            border-radius: 8px;
+        }
+        .sugerencia-item {
+            padding: 6px 10px;
+            margin: 4px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+        .sugerencia-item:hover {
+            background: rgba(16,185,129,0.2);
+            transform: translateX(4px);
+        }
+        
+        .calendar {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+        }
+        .calendar th, .calendar td {
+            padding: 10px 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            font-size: 12px;
+        }
+        .calendar td { cursor: pointer; transition: all 0.2s; }
+        .calendar td:hover { background: rgba(16,185,129,0.2); }
+        .calendar td.completed { background: rgba(16,185,129,0.3); }
+        .calendar td.today { box-shadow: 0 0 0 2px #10b981 inset; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 16px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-size: 13px;
+        }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end; }
+        .empty-state { text-align: center; padding: 50px 20px; color: #a0a0b0; }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: #0a0a0f;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            background: rgba(0,0,0,0.5);
+            animation: fadeOut 2s forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        .micro-habito-card {
+            background: rgba(16,185,129,0.1);
+            border-left: 3px solid #10b981;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 8px;
+            font-size: 11px;
+        }
+        .reemplazo-sugerido {
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: rgba(245,158,11,0.1);
+            border-radius: 8px;
+            font-size: 11px;
+            color: #f59e0b;
+        }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #10b981; border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-repeat"></i> Hábitos Evolutivos</h1>
+            <div class="perfil-badge" onclick="mostrarModalPerfilCompleto()">
+                <i class="fas fa-user-circle"></i>
+                <span id="perfilNombre">Cargando...</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+        
+        <div class="niveles-container" id="nivelesContainer">
+            <div class="nivel-badge nivel-bronce"><i class="fas fa-medal"></i> Bronce: <span id="bronceCount">0</span></div>
+            <div class="nivel-badge nivel-plata"><i class="fas fa-medal"></i> Plata: <span id="plataCount">0</span></div>
+            <div class="nivel-badge nivel-oro"><i class="fas fa-medal"></i> Oro: <span id="oroCount">0</span></div>
+            <div class="nivel-badge"><i class="fas fa-gem"></i> Diamante: <span id="diamanteCount">0</span></div>
+        </div>
+        
+        <div class="level-progress">
+            <div class="level-header">
+                <span class="level-title" id="nivelTitulo">🌱 Nivel 1: Semilla</span>
+                <span class="level-xp" id="xpTexto">0 / 100 XP</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-fill-level" id="progressFillLevel" style="width: 0%;"></div>
+            </div>
+            <div class="next-level-info" style="display: flex; justify-content: space-between; font-size: 10px; color: #a0a0b0;">
+                <span id="siguienteNivelInfo">Próximo nivel: Brote (100 XP)</span>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('positivos')"><div class="stat-value" id="totalHabitos">0</div><div class="stat-label">Total Hábitos</div></div>
+            <div class="stat-card" onclick="cambiarTab('positivos')"><div class="stat-value" id="completadosHoy">0</div><div class="stat-label">Completados Hoy</div></div>
+            <div class="stat-card" onclick="cambiarTab('estadisticas')"><div class="stat-value" id="mejorRachaGlobal">0</div><div class="stat-label">Mejor Racha</div></div>
+            <div class="stat-card" onclick="cambiarTab('estadisticas')"><div class="stat-value" id="consistenciaGlobal">0%</div><div class="stat-label">Consistencia</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="recomendaciones"><i class="fas fa-lightbulb"></i> Recomendaciones</button>
+        <button class="tab" data-tab="positivos"><i class="fas fa-check-circle"></i> Construir (+) </button>
+        <button class="tab" data-tab="negativos"><i class="fas fa-ban"></i> Eliminar (-) </button>
+        <button class="tab" data-tab="calendario"><i class="fas fa-calendar-alt"></i> Calendario</button>
+        <button class="tab" data-tab="estadisticas"><i class="fas fa-chart-line"></i> Estadísticas</button>
+        <button class="tab" data-tab="ciencia"><i class="fas fa-brain"></i> Ciencia</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<!-- Modal Hábito CON SUGERENCIAS -->
+<div id="modalHabito" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitulo">➕ Nuevo Hábito</h3>
+        <select id="habitoTipo" class="input-field">
+            <option value="positivo">✅ Construir (hábito positivo)</option>
+            <option value="negativo">❌ Eliminar (mal hábito)</option>
+        </select>
+        <input type="text" id="habitoNombre" class="input-field" placeholder="Escribe tu hábito..." onkeyup="mostrarSugerenciasHabito()">
+        <div id="sugerenciasContainer" class="sugerencias-container" style="display: none;"></div>
+        <textarea id="habitoDesc" class="input-field" rows="2" placeholder="Descripción (opcional)"></textarea>
+        <select id="habitoCategoria" class="input-field">
+            <option value="salud">💪 Salud</option>
+            <option value="productividad">⚡ Productividad</option>
+            <option value="aprendizaje">📚 Aprendizaje</option>
+            <option value="bienestar">🧘 Bienestar</option>
+            <option value="social">👥 Social</option>
+            <option value="familia">👨‍👩‍👧 Familia</option>
+        </select>
+        <div class="modal-buttons">
+            <button id="modalCancelar" class="btn-sm btn-outline">Cancelar</button>
+            <button id="modalGuardar" class="btn-sm btn-primary">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Perfil -->
+<div id="modalPerfilCompleto" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-user-circle"></i> Tu Perfil</h3>
+        <input type="text" id="perfilNombreInput" class="input-field" placeholder="Tu nombre">
+        <input type="number" id="perfilEdad" class="input-field" placeholder="Tu edad">
+        <select id="perfilOcupacion" class="input-field">
+            <option value="estudiante">📚 Estudiante</option>
+            <option value="trabajador">💼 Trabajador</option>
+            <option value="ambos">🎓💼 Estudio y trabajo</option>
+            <option value="ama_casa">🏠 Ama de casa / Padre/Madre</option>
+            <option value="jubilado">🌅 Jubilado</option>
+            <option value="emprendedor">🚀 Emprendedor</option>
+        </select>
+        <select id="perfilObjetivo" class="input-field">
+            <option value="salud">💪 Mejorar mi salud física</option>
+            <option value="productividad">⚡ Ser más productivo</option>
+            <option value="aprendizaje">📚 Aprender nuevas habilidades</option>
+            <option value="bienestar">🧘 Reducir estrés y ansiedad</option>
+            <option value="social">👥 Mejorar relaciones sociales</option>
+            <option value="familia">👨‍👩‍👧 Equilibrio familiar</option>
+            <option value="equilibrio">⚖️ Equilibrio vida-trabajo</option>
+        </select>
+        <select id="perfilTiempo" class="input-field">
+            <option value="poco">⏰ Poco tiempo (5-15 min/día)</option>
+            <option value="medio">⏰ Tiempo moderado (15-30 min/día)</option>
+            <option value="mucho">⏰ Mucho tiempo (+30 min/día)</option>
+        </select>
+        <div class="modal-buttons">
+            <button id="perfilCancelar" class="btn-sm btn-outline">Cancelar</button>
+            <button id="perfilGuardar" class="btn-sm btn-primary">Guardar Perfil</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Bucle del Hábito -->
+<div id="modalBucle" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-redo-alt"></i> Analizando tu caída</h3>
+        <div id="bucleContenido"></div>
+        <div class="modal-buttons">
+            <button class="btn-sm btn-primary" onclick="document.getElementById('modalBucle').style.display='none'">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== SUGERENCIAS DE HÁBITOS ====================
+    const SUGERENCIAS_HABITOS = {
+        positivos: [
+            { nombre: "Meditar 10 minutos", descripcion: "Calma tu mente y reduce el estrés", categoria: "bienestar" },
+            { nombre: "Leer 20 minutos", descripcion: "Desarrollo personal y conocimiento", categoria: "aprendizaje" },
+            { nombre: "Beber 2 litros de agua", descripcion: "Mantente hidratado todo el día", categoria: "salud" },
+            { nombre: "Caminar 30 minutos", descripcion: "Actividad física diaria", categoria: "salud" },
+            { nombre: "Escribir gratitud", descripcion: "Anota 3 cosas por las que estás agradecido", categoria: "bienestar" },
+            { nombre: "Planificar el día", descripcion: "Organiza tus tareas más importantes", categoria: "productividad" },
+            { nombre: "Estudiar 1 hora", descripcion: "Dedica tiempo a tu formación", categoria: "aprendizaje" },
+            { nombre: "Llamar a un familiar", descripcion: "Conecta con tus seres queridos", categoria: "social" },
+            { nombre: "Dormir 8 horas", descripcion: "Descanso reparador", categoria: "salud" },
+            { nombre: "Hacer estiramientos", descripcion: "Activa tu cuerpo al despertar", categoria: "salud" },
+            { nombre: "Tomar nota de logros", descripcion: "Reconoce tus avances del día", categoria: "bienestar" },
+            { nombre: "Desconectar pantallas", descripcion: "30 min sin tecnología antes de dormir", categoria: "bienestar" }
+        ],
+        negativos: [
+            { nombre: "Redes sociales", descripcion: "Evitar perder tiempo en Instagram, TikTok, Facebook", categoria: "productividad" },
+            { nombre: "Comida chatarra", descripcion: "Evitar comida rápida y ultraprocesada", categoria: "salud" },
+            { nombre: "Procrastinar", descripcion: "Evitar postergar tareas importantes", categoria: "productividad" },
+            { nombre: "Acostarse tarde", descripcion: "Evitar trasnochar", categoria: "salud" },
+            { nombre: "Azúcar", descripcion: "Reducir consumo de dulces y bebidas azucaradas", categoria: "salud" },
+            { nombre: "Fumar", descripcion: "Evitar el consumo de tabaco", categoria: "salud" },
+            { nombre: "Alcohol", descripcion: "Reducir consumo de alcohol", categoria: "salud" },
+            { nombre: "Gastos impulsivos", descripcion: "Evitar compras innecesarias", categoria: "productividad" }
+        ]
+    };
+    
+    function mostrarSugerenciasHabito() {
+        let input = document.getElementById('habitoNombre');
+        let texto = input.value.toLowerCase().trim();
+        let tipo = document.getElementById('habitoTipo').value;
+        let sugerenciasContainer = document.getElementById('sugerenciasContainer');
+        
+        if (texto.length < 2) {
+            sugerenciasContainer.style.display = 'none';
+            return;
+        }
+        
+        let sugerencias = [];
+        let lista = tipo === 'positivo' ? SUGERENCIAS_HABITOS.positivos : SUGERENCIAS_HABITOS.negativos;
+        
+        for (let s of lista) {
+            if (s.nombre.toLowerCase().includes(texto) || texto.includes(s.nombre.toLowerCase().substring(0, 3))) {
+                sugerencias.push(s);
+            }
+        }
+        
+        if (sugerencias.length > 0) {
+            let html = '<div style="font-size: 11px; color: #10b981; margin-bottom: 6px;"><i class="fas fa-lightbulb"></i> Sugerencias:</div>';
+            for (let s of sugerencias.slice(0, 4)) {
+                html += `<div class="sugerencia-item" onclick="seleccionarSugerencia('${s.nombre}', '${s.descripcion}', '${s.categoria}')">
+                            <strong>${s.nombre}</strong><br>
+                            <span style="font-size: 10px; color: #a0a0b0;">${s.descripcion}</span>
+                         </div>`;
+            }
+            sugerenciasContainer.innerHTML = html;
+            sugerenciasContainer.style.display = 'block';
+        } else {
+            sugerenciasContainer.style.display = 'none';
+        }
+    }
+    
+    function seleccionarSugerencia(nombre, descripcion, categoria) {
+        document.getElementById('habitoNombre').value = nombre;
+        document.getElementById('habitoDesc').value = descripcion;
+        document.getElementById('habitoCategoria').value = categoria;
+        document.getElementById('sugerenciasContainer').style.display = 'none';
+    }
+    
+    // ==================== CONFIGURACIÓN DE NIVELES ====================
+    const NIVELES_GLOBAL = [
+        { nivel: 1, xp_necesario: 0, nombre: "🌱 Semilla", max_habitos: 3, descripcion: "Empiezas tu camino" },
+        { nivel: 2, xp_necesario: 100, nombre: "🌿 Brote", max_habitos: 4, descripcion: "Primeros pasos" },
+        { nivel: 3, xp_necesario: 300, nombre: "🌳 Planta", max_habitos: 5, descripcion: "Creciendo fuerte" },
+        { nivel: 4, xp_necesario: 600, nombre: "🌸 Flor", max_habitos: 6, descripcion: "Floreces" },
+        { nivel: 5, xp_necesario: 1000, nombre: "🍎 Fruto", max_habitos: 8, descripcion: "Das frutos" },
+        { nivel: 6, xp_necesario: 1500, nombre: "🌲 Árbol", max_habitos: 10, descripcion: "Firme y sólido" }
+    ];
+    
+    function getNivelHabito(racha) {
+        if (racha >= 100) return { nombre: "💎 Diamante", clase: "nivel-diamante-habito", icono: "fa-gem", xp_bonus: 50 };
+        if (racha >= 50) return { nombre: "🥇 Oro", clase: "nivel-oro-habito", icono: "fa-crown", xp_bonus: 30 };
+        if (racha >= 21) return { nombre: "🥈 Plata", clase: "nivel-plata-habito", icono: "fa-medal", xp_bonus: 20 };
+        if (racha >= 7) return { nombre: "🥉 Bronce", clase: "nivel-bronce-habito", icono: "fa-award", xp_bonus: 10 };
+        return { nombre: "🌱 Semilla", clase: "", icono: "fa-seedling", xp_bonus: 0 };
+    }
+    
+    // ==================== ESTADO GLOBAL ====================
+    let habitos = [];
+    let perfil = {
+        nombre: 'Usuario',
+        edad: 25,
+        ocupacion: 'trabajador',
+        objetivo: 'equilibrio',
+        tiempo: 'medio'
+    };
+    let tabActual = 'recomendaciones';
+    let mesActual = new Date().getMonth();
+    let anioActual = new Date().getFullYear();
+    let graficoHabitos = null;
+    let xpTotal = 0;
+    let nivelGlobal = 1;
+    
+    const categorias = {
+        salud: { icono: 'fa-heart', color: '#ef4444', nombre: 'Salud' },
+        productividad: { icono: 'fa-bolt', color: '#f59e0b', nombre: 'Productividad' },
+        aprendizaje: { icono: 'fa-book', color: '#3b82f6', nombre: 'Aprendizaje' },
+        bienestar: { icono: 'fa-spa', color: '#10b981', nombre: 'Bienestar' },
+        social: { icono: 'fa-users', color: '#8b5cf6', nombre: 'Social' },
+        familia: { icono: 'fa-heart', color: '#ec489a', nombre: 'Familia' }
+    };
+    
+    const diasSemanaAbr = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    
+    // ==================== FUNCIONES DE PERFIL ====================
+    function cargarPerfil() {
+        let guardado = localStorage.getItem('habitos_perfil_v2');
+        if (guardado) {
+            perfil = JSON.parse(guardado);
+        }
+        document.getElementById('perfilNombre').innerText = perfil.nombre;
+        document.getElementById('perfilNombreInput').value = perfil.nombre;
+        document.getElementById('perfilEdad').value = perfil.edad || 25;
+        document.getElementById('perfilOcupacion').value = perfil.ocupacion || 'trabajador';
+        document.getElementById('perfilObjetivo').value = perfil.objetivo || 'equilibrio';
+        document.getElementById('perfilTiempo').value = perfil.tiempo || 'medio';
+    }
+    
+    function guardarPerfilCompleto() {
+        perfil.nombre = document.getElementById('perfilNombreInput').value.trim() || 'Usuario';
+        perfil.edad = parseInt(document.getElementById('perfilEdad').value) || 25;
+        perfil.ocupacion = document.getElementById('perfilOcupacion').value;
+        perfil.objetivo = document.getElementById('perfilObjetivo').value;
+        perfil.tiempo = document.getElementById('perfilTiempo').value;
+        localStorage.setItem('habitos_perfil_v2', JSON.stringify(perfil));
+        document.getElementById('perfilNombre').innerText = perfil.nombre;
+        document.getElementById('modalPerfilCompleto').style.display = 'none';
+        if (tabActual === 'recomendaciones') renderizarRecomendaciones();
+        mostrarNotificacion('✅ Perfil actualizado');
+    }
+    
+    function mostrarModalPerfilCompleto() {
+        document.getElementById('perfilNombreInput').value = perfil.nombre;
+        document.getElementById('perfilEdad').value = perfil.edad || 25;
+        document.getElementById('perfilOcupacion').value = perfil.ocupacion || 'trabajador';
+        document.getElementById('perfilObjetivo').value = perfil.objetivo || 'equilibrio';
+        document.getElementById('perfilTiempo').value = perfil.tiempo || 'medio';
+        document.getElementById('modalPerfilCompleto').style.display = 'flex';
+        document.getElementById('perfilGuardar').onclick = guardarPerfilCompleto;
+        document.getElementById('perfilCancelar').onclick = () => document.getElementById('modalPerfilCompleto').style.display = 'none';
+    }
+    
+    // ==================== FUNCIONES DE XP Y NIVEL ====================
+    function calcularNivelPorXP(xp) {
+        let nivel = 1;
+        for (let i = NIVELES_GLOBAL.length - 1; i >= 0; i--) {
+            if (xp >= NIVELES_GLOBAL[i].xp_necesario) {
+                nivel = NIVELES_GLOBAL[i].nivel;
+                break;
+            }
+        }
+        return nivel;
+    }
+    
+    function obtenerXPNecesarioParaSiguienteNivel(xp) {
+        let siguiente = NIVELES_GLOBAL.find(n => n.xp_necesario > xp);
+        if (!siguiente) return null;
+        return siguiente.xp_necesario;
+    }
+    
+    function obtenerXPProgresoActual(xp) {
+        let nivelActualObj = NIVELES_GLOBAL.find(n => n.nivel === calcularNivelPorXP(xp));
+        if (!nivelActualObj) return 0;
+        let siguienteXP = obtenerXPNecesarioParaSiguienteNivel(xp);
+        if (!siguienteXP) return 100;
+        let xpEnNivel = xp - nivelActualObj.xp_necesario;
+        let xpNecesarioNivel = siguienteXP - nivelActualObj.xp_necesario;
+        return Math.min(100, Math.round((xpEnNivel / xpNecesarioNivel) * 100));
+    }
+    
+    function agregarXP(cantidad, motivo) {
+        xpTotal += cantidad;
+        let nuevoNivel = calcularNivelPorXP(xpTotal);
+        
+        if (nuevoNivel > nivelGlobal) {
+            nivelGlobal = nuevoNivel;
+            let nivelObj = NIVELES_GLOBAL.find(n => n.nivel === nivelGlobal);
+            mostrarNotificacion(`🎉 ¡SUBISTE A NIVEL ${nivelGlobal}! ${nivelObj.nombre} 🎉`);
+            mostrarConfeti();
+            let bonus = 50 * nivelGlobal;
+            xpTotal += bonus;
+            mostrarNotificacion(`✨ Bonus de nivel: +${bonus} XP ✨`);
+            nivelGlobal = calcularNivelPorXP(xpTotal);
+        } else {
+            mostrarNotificacion(`✨ +${cantidad} XP ${motivo ? '(' + motivo + ')' : ''}`);
+        }
+        
+        actualizarUI_NivelGlobal();
+        guardarXP();
+        actualizarStatsGlobal();
+        // Notificar al asistente después de ganar XP
+        enviarDatosAlAsistente();
+        
+        if (tabActual === 'positivos') renderizarListaPositivos();
+        else if (tabActual === 'negativos') renderizarListaNegativos();
+        else if (tabActual === 'recomendaciones') renderizarRecomendaciones();
+    }
+    
+    function actualizarUI_NivelGlobal() {
+        let nivelObj = NIVELES_GLOBAL.find(n => n.nivel === nivelGlobal);
+        let siguienteXP = obtenerXPNecesarioParaSiguienteNivel(xpTotal);
+        let progreso = obtenerXPProgresoActual(xpTotal);
+        
+        document.getElementById('nivelTitulo').innerHTML = `${nivelObj ? nivelObj.nombre : '🌱 Semilla'} (Nivel ${nivelGlobal})`;
+        document.getElementById('xpTexto').innerHTML = `${xpTotal} / ${siguienteXP || xpTotal} XP`;
+        document.getElementById('progressFillLevel').style.width = `${progreso}%`;
+        
+        if (siguienteXP) {
+            let siguienteObj = NIVELES_GLOBAL.find(n => n.xp_necesario === siguienteXP);
+            document.getElementById('siguienteNivelInfo').innerHTML = `Próximo: ${siguienteObj ? siguienteObj.nombre : 'Máximo'} (${siguienteXP} XP)`;
+        } else {
+            document.getElementById('siguienteNivelInfo').innerHTML = '✨ ¡Máximo nivel alcanzado! ✨';
+        }
+        
+        let bronce = 0, plata = 0, oro = 0, diamante = 0;
+        for (let h of habitos) {
+            let nivel = getNivelHabito(h.racha || 0);
+            if (nivel.nombre === "🥉 Bronce") bronce++;
+            else if (nivel.nombre === "🥈 Plata") plata++;
+            else if (nivel.nombre === "🥇 Oro") oro++;
+            else if (nivel.nombre === "💎 Diamante") diamante++;
+        }
+        document.getElementById('bronceCount').innerText = bronce;
+        document.getElementById('plataCount').innerText = plata;
+        document.getElementById('oroCount').innerText = oro;
+        document.getElementById('diamanteCount').innerText = diamante;
+    }
+    
+    function mostrarConfeti() {
+        let confetiDiv = document.createElement('div');
+        confetiDiv.className = 'confetti';
+        confetiDiv.innerHTML = '🎉 ✨ 🌟 🎊 🎈 🏆';
+        document.body.appendChild(confetiDiv);
+        setTimeout(() => confetiDiv.remove(), 2000);
+    }
+    
+    function guardarXP() {
+        localStorage.setItem('habitos_xp_v2', JSON.stringify({ xp: xpTotal, nivel: nivelGlobal }));
+    }
+    
+    function cargarXP() {
+        let guardado = localStorage.getItem('habitos_xp_v2');
+        if (guardado) {
+            let data = JSON.parse(guardado);
+            xpTotal = data.xp || 0;
+            nivelGlobal = calcularNivelPorXP(xpTotal);
+        }
+        actualizarUI_NivelGlobal();
+    }
+    
+    // ==================== SISTEMA DE GLOBALIZACIÓN ====================
+    function enviarDatosAlAsistente() {
+        try {
+            const hoy = new Date().toISOString().split('T')[0];
+            const habitosPositivos = habitos.filter(h => h.tipo === 'positivo');
+            const completadosHoy = habitosPositivos.filter(h => h.historial && h.historial[hoy] && h.historial[hoy].completado).length;
+            const rachaTotal = habitos.reduce((sum, h) => sum + (h.racha || 0), 0);
+            const mejorRacha = Math.max(...habitos.map(h => h.mejorRacha || 0), 0);
+            
+            const datos = {
+                total: habitos.length,
+                positivos: habitosPositivos.length,
+                negativos: habitos.filter(h => h.tipo === 'negativo').length,
+                completados_hoy: completadosHoy,
+                racha_total: rachaTotal,
+                mejor_racha: mejorRacha,
+                timestamp: Date.now()
+            };
+            
+            // Guardar en localStorage para que otras apps lo lean
+            localStorage.setItem('reprompt_habitos_data', JSON.stringify(datos));
+            
+            // Enviar al asistente mediante postMessage
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'GLOBAL_DATA_UPDATE',
+                    app: 'habitos',
+                    data: datos
+                }, '*');
+            }
+            
+            // También enviar a la misma ventana
+            window.postMessage({
+                type: 'GLOBAL_DATA_UPDATE',
+                app: 'habitos',
+                data: datos
+            }, '*');
+            
+            console.log('📤 Datos de hábitos enviados al asistente:', datos);
+        } catch(e) {
+            console.error('Error enviando datos de hábitos:', e);
+        }
+    }
+    
+    // ==================== UTILIDADES ====================
+    function obtenerFechaStr(fecha) {
+        return fecha.getFullYear() + '-' + (fecha.getMonth()+1).toString().padStart(2,'0') + '-' + fecha.getDate().toString().padStart(2,'0');
+    }
+    
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+    
+    function mostrarNotificacion(msg) {
+        let n = document.createElement('div');
+        n.className = 'notification-toast';
+        n.innerHTML = msg;
+        document.body.appendChild(n);
+        setTimeout(() => { if (n && n.remove) n.remove(); }, 2500);
+    }
+    
+    // ==================== DATOS DE HÁBITOS ====================
+    function cargarHabitos() {
+        let guardado = localStorage.getItem('habitos_v7');
+        if (guardado) {
+            habitos = JSON.parse(guardado);
+        } else {
+            // Crear 3 hábitos iniciales
+            habitos = [
+                { 
+                    id: Date.now()+1, 
+                    nombre: 'Leer 20 minutos', 
+                    descripcion: 'Lectura diaria para desarrollo personal', 
+                    tipo: 'positivo', 
+                    categoria: 'aprendizaje', 
+                    historial: {}, 
+                    racha: 0, 
+                    mejorRacha: 0, 
+                    contexto: {}, 
+                    fallos_consecutivos: 0 
+                },
+                { 
+                    id: Date.now()+2, 
+                    nombre: 'Meditar 10 min', 
+                    descripcion: 'Calmar la mente y reducir estrés', 
+                    tipo: 'positivo', 
+                    categoria: 'bienestar', 
+                    historial: {}, 
+                    racha: 0, 
+                    mejorRacha: 0, 
+                    contexto: {}, 
+                    fallos_consecutivos: 0 
+                },
+                { 
+                    id: Date.now()+3, 
+                    nombre: 'Caminar 30 minutos', 
+                    descripcion: 'Actividad física diaria', 
+                    tipo: 'positivo', 
+                    categoria: 'salud', 
+                    historial: {}, 
+                    racha: 0, 
+                    mejorRacha: 0, 
+                    contexto: {}, 
+                    fallos_consecutivos: 0 
+                }
+            ];
+            guardarHabitos();
+        }
+        // Enviar datos al cargar
+        setTimeout(() => enviarDatosAlAsistente(), 1000);
+    }
+    
+    function guardarHabitos() {
+        localStorage.setItem('habitos_v7', JSON.stringify(habitos));
+        actualizarStatsGlobal();
+        actualizarUI_NivelGlobal();
+        // Notificar al asistente después de guardar
+        enviarDatosAlAsistente();
+    }
+    
+    function actualizarRacha(habito) {
+        let racha = 0;
+        let fecha = new Date();
+        let fechaStr = obtenerFechaStr(fecha);
+        
+        if (habito.tipo === 'positivo') {
+            while (habito.historial && habito.historial[fechaStr] && habito.historial[fechaStr].completado) {
+                racha++;
+                fecha.setDate(fecha.getDate() - 1);
+                fechaStr = obtenerFechaStr(fecha);
+            }
+        } else {
+            while (habito.historial && habito.historial[fechaStr] && !habito.historial[fechaStr].caida) {
+                racha++;
+                fecha.setDate(fecha.getDate() - 1);
+                fechaStr = obtenerFechaStr(fecha);
+            }
+        }
+        habito.racha = racha;
+        if (racha > (habito.mejorRacha || 0)) habito.mejorRacha = racha;
+    }
+    
+    function marcarCompletado(habitoId, fechaStr, contexto = null) {
+        let habito = habitos.find(h => h.id === habitoId);
+        if (!habito) return;
+        
+        if (!habito.historial) habito.historial = {};
+        
+        let completadoActual = habito.historial[fechaStr] ? habito.historial[fechaStr].completado : false;
+        
+        if (completadoActual) {
+            habito.historial[fechaStr] = { completado: false, contexto: null, caida: false };
+            mostrarNotificacion('❌ Hábito desmarcado');
+        } else {
+            let xpGanada = habito.tipo === 'positivo' ? 10 : 15;
+            if (contexto) {
+                if (contexto === 'facil') xpGanada += 5;
+                else if (contexto === 'dificil') xpGanada += 10;
+                else if (contexto === 'inspirador') xpGanada += 8;
+            }
+            
+            let nivelHabito = getNivelHabito(habito.racha || 0);
+            xpGanada += nivelHabito.xp_bonus;
+            
+            if (habito.tipo === 'positivo') {
+                habito.historial[fechaStr] = { completado: true, contexto: contexto, caida: false };
+                agregarXP(xpGanada, `Completaste "${habito.nombre}"`);
+                mostrarNotificacion(`✅ ¡Bien hecho! +${xpGanada} XP`);
+                habito.fallos_consecutivos = 0;
+            } else {
+                habito.historial[fechaStr] = { completado: true, contexto: contexto, caida: false };
+                agregarXP(xpGanada, `Evitaste "${habito.nombre}"`);
+                mostrarNotificacion(`🎉 ¡Bien! Evitaste caer +${xpGanada} XP`);
+                habito.fallos_consecutivos = 0;
+            }
+        }
+        
+        actualizarRacha(habito);
+        guardarHabitos();
+        
+        if (tabActual === 'positivos') renderizarListaPositivos();
+        else if (tabActual === 'negativos') renderizarListaNegativos();
+        else if (tabActual === 'calendario') renderizarCalendario();
+        else if (tabActual === 'estadisticas') renderizarEstadisticas();
+        else if (tabActual === 'recomendaciones') renderizarRecomendaciones();
+    }
+    
+    function marcarCaida(habitoId, fechaStr) {
+        let habito = habitos.find(h => h.id === habitoId);
+        if (!habito || habito.tipo !== 'negativo') return;
+        
+        if (!habito.historial) habito.historial = {};
+        
+        habito.historial[fechaStr] = { completado: false, contexto: null, caida: true };
+        habito.fallos_consecutivos = (habito.fallos_consecutivos || 0) + 1;
+        
+        mostrarNotificacion(`⚠️ Has caído en "${habito.nombre}". ¡Mañana será mejor!`);
+        
+        let contenido = `
+            <p>Analizando tu caída con <strong>${escapeHtml(habito.nombre)}</strong>:</p>
+            <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin: 12px 0;">
+                <p><i class="fas fa-bell"></i> <strong>Señal:</strong> ¿Qué pasó justo antes?</p>
+                <p><i class="fas fa-exchange-alt"></i> <strong>Rutina:</strong> ¿Qué hiciste exactamente?</p>
+                <p><i class="fas fa-gift"></i> <strong>Recompensa:</strong> ¿Qué sentiste al hacerlo?</p>
+            </div>
+            <p>💡 Identifica la señal y cambia la rutina, no la recompensa.</p>
+        `;
+        document.getElementById('bucleContenido').innerHTML = contenido;
+        document.getElementById('modalBucle').style.display = 'flex';
+        
+        actualizarRacha(habito);
+        guardarHabitos();
+        
+        if (tabActual === 'negativos') renderizarListaNegativos();
+    }
+    
+    function actualizarStatsGlobal() {
+        let total = habitos.length;
+        let hoy = obtenerFechaStr(new Date());
+        let completadosHoy = 0;
+        for (let h of habitos) {
+            if (h.historial && h.historial[hoy] && h.historial[hoy].completado) completadosHoy++;
+        }
+        let mejorRachaGlobal = Math.max(...habitos.map(h => h.mejorRacha || 0), 0);
+        
+        let totalCompletados = 0;
+        let totalPosibles = 0;
+        for (let h of habitos) {
+            if (h.historial) {
+                let keys = Object.keys(h.historial);
+                totalCompletados += keys.filter(k => h.historial[k].completado).length;
+                totalPosibles += 30;
+            }
+        }
+        let consistencia = totalPosibles > 0 ? Math.round((totalCompletados / totalPosibles) * 100) : 0;
+        
+        document.getElementById('totalHabitos').innerText = total;
+        document.getElementById('completadosHoy').innerText = completadosHoy;
+        document.getElementById('mejorRachaGlobal').innerText = mejorRachaGlobal;
+        document.getElementById('consistenciaGlobal').innerText = consistencia + '%';
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarListaPositivos() {
+        let positivos = habitos.filter(h => h.tipo === 'positivo');
+        if (positivos.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = `<div class="empty-state">
+                <i class="fas fa-heartbeat"></i>
+                <h3>No tienes hábitos positivos</h3>
+                <p>¡Crea tu primer hábito! Te ayudará a crecer</p>
+                <button class="btn-sm btn-primary" onclick="mostrarModalNuevo()">+ Crear Hábito</button>
+            </div>`;
+            return;
+        }
+        
+        let hoy = new Date();
+        let hoyStr = obtenerFechaStr(hoy);
+        let html = '<div style="margin-bottom: 16px; text-align: right;"><button class="btn-sm btn-primary" onclick="mostrarModalNuevo()"><i class="fas fa-plus"></i> Nuevo Hábito</button></div><div class="habitos-list">';
+        
+        for (let h of positivos) {
+            let categoria = categorias[h.categoria] || categorias.bienestar;
+            let completadoHoy = h.historial && h.historial[hoyStr] && h.historial[hoyStr].completado;
+            let contextoHoy = h.historial && h.historial[hoyStr] ? h.historial[hoyStr].contexto : null;
+            let nivelHabito = getNivelHabito(h.racha || 0);
+            
+            html += `<div class="habito-card">
+                <div class="habito-header">
+                    <div class="habito-nombre">
+                        <i class="fas ${categoria.icono}" style="color:${categoria.color}"></i>
+                        ${escapeHtml(h.nombre)}
+                        <span class="categoria-badge">${categoria.nombre}</span>
+                        <span class="nivel-habito ${nivelHabito.clase}"><i class="fas ${nivelHabito.icono}"></i> ${nivelHabito.nombre}</span>
+                    </div>
+                    <div class="racha"><i class="fas fa-fire"></i> ${h.racha || 0} días</div>
+                </div>
+                ${h.descripcion ? `<div class="habito-desc">${escapeHtml(h.descripcion)}</div>` : ''}
+                <div class="checkin-row">
+                    <div class="week-days">`;
+            
+            for (let j = 0; j < 7; j++) {
+                let fecha = new Date();
+                fecha.setDate(fecha.getDate() - (6 - j));
+                let fechaStrDia = obtenerFechaStr(fecha);
+                let completado = h.historial && h.historial[fechaStrDia] && h.historial[fechaStrDia].completado;
+                let esHoy = j === 6;
+                let clase = completado ? 'completed' : (esHoy ? 'today' : '');
+                html += `<button class="day-btn ${clase}" onclick="marcarCompletado(${h.id}, '${fechaStrDia}', null)">${diasSemanaAbr[j]}</button>`;
+            }
+            
+            html += `</div>
+                    <div class="habito-actions">
+                        <button class="btn-sm btn-outline" onclick="editarHabito(${h.id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-sm btn-danger" onclick="eliminarHabito(${h.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+            
+            if (!completadoHoy) {
+                html += `<div class="context-buttons">
+                            <button class="context-btn" onclick="marcarCompletado(${h.id}, '${hoyStr}', 'facil')">😊 Fácil</button>
+                            <button class="context-btn" onclick="marcarCompletado(${h.id}, '${hoyStr}', 'normal')">👍 Normal</button>
+                            <button class="context-btn" onclick="marcarCompletado(${h.id}, '${hoyStr}', 'dificil')">💪 Difícil</button>
+                            <button class="context-btn" onclick="marcarCompletado(${h.id}, '${hoyStr}', 'inspirador')">✨ Inspirador</button>
+                        </div>`;
+            } else if (contextoHoy) {
+                let textoContexto = { facil: '😊', normal: '👍', dificil: '💪', inspirador: '✨' }[contextoHoy] || '';
+                html += `<div class="context-buttons"><span style="font-size:11px; color:#10b981;">✅ Completado ${textoContexto}</span></div>`;
+            }
+            
+            if (h.fallos_consecutivos >= 2 && !completadoHoy) {
+                html += `<div class="micro-habito-card"><i class="fas fa-seedling"></i> Versión fácil: hazlo por 2 minutos</div>`;
+            }
+            
+            html += `</div>`;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarListaNegativos() {
+        let negativos = habitos.filter(h => h.tipo === 'negativo');
+        if (negativos.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = `<div class="empty-state">
+                <i class="fas fa-ban"></i>
+                <h3>No tienes malos hábitos registrados</h3>
+                <p>Agrega uno para empezar a eliminarlo</p>
+                <button class="btn-sm btn-primary" onclick="mostrarModalNuevo()">+ Crear Mal Hábito</button>
+            </div>`;
+            return;
+        }
+        
+        let hoy = new Date();
+        let hoyStr = obtenerFechaStr(hoy);
+        let html = '<div style="margin-bottom: 16px; text-align: right;"><button class="btn-sm btn-primary" onclick="mostrarModalNuevo()"><i class="fas fa-plus"></i> Nuevo Mal Hábito</button></div><div class="habitos-list">';
+        
+        for (let h of negativos) {
+            let categoria = categorias[h.categoria] || categorias.productividad;
+            let caidoHoy = h.historial && h.historial[hoyStr] && h.historial[hoyStr].caida;
+            let nivelHabito = getNivelHabito(h.racha || 0);
+            
+            html += `<div class="habito-card">
+                <div class="habito-header">
+                    <div class="habito-nombre">
+                        <i class="fas fa-ban" style="color:#ef4444"></i>
+                        ${escapeHtml(h.nombre)}
+                        <span class="categoria-badge">❌ Eliminar</span>
+                        <span class="nivel-habito ${nivelHabito.clase}"><i class="fas ${nivelHabito.icono}"></i> ${nivelHabito.nombre}</span>
+                    </div>
+                    <div class="racha"><i class="fas fa-calendar-check"></i> ${h.racha || 0} días sin caer</div>
+                </div>
+                ${h.descripcion ? `<div class="habito-desc">${escapeHtml(h.descripcion)}</div>` : ''}
+                <div class="checkin-row">
+                    <div class="week-days">`;
+            
+            for (let j = 0; j < 7; j++) {
+                let fecha = new Date();
+                fecha.setDate(fecha.getDate() - (6 - j));
+                let fechaStrDia = obtenerFechaStr(fecha);
+                let completado = h.historial && h.historial[fechaStrDia] && h.historial[fechaStrDia].completado;
+                let esHoy = j === 6;
+                let clase = completado ? 'completed' : (esHoy ? 'today' : '');
+                html += `<button class="day-btn ${clase}" onclick="marcarCompletado(${h.id}, '${fechaStrDia}', null)">${diasSemanaAbr[j]}</button>`;
+            }
+            
+            html += `</div>
+                    <div class="habito-actions">
+                        <button class="btn-sm btn-outline" onclick="editarHabito(${h.id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-sm btn-danger" onclick="eliminarHabito(${h.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+            
+            if (!caidoHoy) {
+                html += `<div class="context-buttons">
+                            <button class="context-btn" onclick="marcarCompletado(${h.id}, '${hoyStr}', 'normal')">✅ No caí hoy</button>
+                            <button class="context-btn btn-warning" onclick="marcarCaida(${h.id}, '${hoyStr}')">⚠️ Caí hoy</button>
+                        </div>`;
+            } else {
+                html += `<div class="context-buttons"><span style="font-size:11px; color:#ef4444;">⚠️ Caíste hoy. ¡Mañana será mejor!</span></div>`;
+            }
+            
+            html += `<div class="reemplazo-sugerido"><i class="fas fa-exchange-alt"></i> En lugar de "${escapeHtml(h.nombre)}", prueba una alternativa saludable</div>`;
+            html += `</div>`;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarRecomendaciones() {
+        let nivelObj = NIVELES_GLOBAL.find(n => n.nivel === nivelGlobal);
+        let maxHabitos = nivelObj ? nivelObj.max_habitos : 3;
+        let espaciosRestantes = maxHabitos - habitos.length;
+        
+        let html = `<div class="recomendacion-card">
+            <div class="recomendacion-titulo"><i class="fas fa-robot"></i> Para ti, ${perfil.nombre}</div>
+            <div class="recomendacion-texto">
+                📊 ${perfil.edad} años | ${perfil.ocupacion === 'estudiante' ? '📚 Estudiante' : perfil.ocupacion === 'trabajador' ? '💼 Trabajador' : perfil.ocupacion === 'ambos' ? '🎓💼 Estudio y trabajo' : perfil.ocupacion === 'ama_casa' ? '🏠 Ama de casa' : '🚀 Emprendedor'}
+            </div>
+            <div class="recomendacion-texto" style="margin-top: 8px;">🎯 Nivel ${nivelGlobal}: tienes ${habitos.length} de ${maxHabitos} hábitos (${espaciosRestantes} disponibles)</div>
+        </div>`;
+        
+        // Sugerencias de hábitos que te faltan
+        let habitosFaltantes = [];
+        let tieneLectura = habitos.some(h => h.nombre.toLowerCase().includes('leer'));
+        if (!tieneLectura) habitosFaltantes.push('📚 Leer 20 minutos');
+        
+        let tieneMeditacion = habitos.some(h => h.nombre.toLowerCase().includes('meditar'));
+        if (!tieneMeditacion) habitosFaltantes.push('🧘 Meditar 10 minutos');
+        
+        let tieneEjercicio = habitos.some(h => h.nombre.toLowerCase().includes('caminar') || h.nombre.toLowerCase().includes('ejercicio'));
+        if (!tieneEjercicio) habitosFaltantes.push('🚶‍♂️ Caminar 30 minutos');
+        
+        let tieneAgua = habitos.some(h => h.nombre.toLowerCase().includes('agua'));
+        if (!tieneAgua) habitosFaltantes.push('💧 Beber 2 litros de agua');
+        
+        if (habitosFaltantes.length > 0 && espaciosRestantes > 0) {
+            html += `<div class="recomendacion-card">
+                <div class="recomendacion-titulo"><i class="fas fa-lightbulb"></i> Hábitos que te recomiendo</div>
+                <div class="recomendacion-texto">Basado en tu perfil, estos hábitos te ayudarían:</div>`;
+            for (let h of habitosFaltantes.slice(0, espaciosRestantes)) {
+                html += `<div style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            ${h}
+                            <button class="btn-sm btn-primary" style="float: right;" onclick="agregarHabitoRecomendadoDirecto('${h.replace(/[^a-zA-Záéíóúñ ]/g, '').trim()}')">Agregar</button>
+                         </div>`;
+            }
+            html += `</div>`;
+        }
+        
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function agregarHabitoRecomendadoDirecto(nombre) {
+        let nivelObj = NIVELES_GLOBAL.find(n => n.nivel === nivelGlobal);
+        let maxHabitos = nivelObj ? nivelObj.max_habitos : 3;
+        
+        if (habitos.length >= maxHabitos) {
+            mostrarNotificacion(`⚠️ Límite de hábitos: nivel ${nivelGlobal} permite ${maxHabitos} hábitos.`);
+            return;
+        }
+        
+        let categoria = 'bienestar';
+        if (nombre.includes('Leer')) categoria = 'aprendizaje';
+        else if (nombre.includes('Caminar') || nombre.includes('Agua')) categoria = 'salud';
+        else if (nombre.includes('Meditar')) categoria = 'bienestar';
+        
+        habitos.push({
+            id: Date.now(),
+            nombre: nombre,
+            descripcion: '',
+            tipo: 'positivo',
+            categoria: categoria,
+            historial: {},
+            contexto: {},
+            racha: 0,
+            mejorRacha: 0,
+            fallos_consecutivos: 0
+        });
+        guardarHabitos();
+        renderizarRecomendaciones();
+        mostrarNotificacion(`✅ Hábito "${nombre}" agregado`);
+        if (tabActual === 'positivos') renderizarListaPositivos();
+    }
+    
+    function renderizarCalendario() {
+        let meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        let primerDia = new Date(anioActual, mesActual, 1).getDay();
+        let diasMes = new Date(anioActual, mesActual + 1, 0).getDate();
+        let hoy = new Date();
+        
+        let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <button id="calPrev" class="btn-sm btn-outline"><i class="fas fa-chevron-left"></i></button>
+            <h3>${meses[mesActual]} ${anioActual}</h3>
+            <button id="calNext" class="btn-sm btn-outline"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <table class="calendar"><thead> <th>Dom</th><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th> </thead><tbody>`;
+        
+        let dia = 1;
+        for (let i = 0; i < 6; i++) {
+            html += '      <tr>';
+            for (let j = 0; j < 7; j++) {
+                if ((i === 0 && j < primerDia) || dia > diasMes) {
+                    html += '<td style="opacity:0.3;">&nbsp;</td>';
+                } else {
+                    let fechaStr = `${anioActual}-${(mesActual+1).toString().padStart(2,'0')}-${dia.toString().padStart(2,'0')}`;
+                    let completados = habitos.filter(h => h.historial && h.historial[fechaStr] && h.historial[fechaStr].completado).length;
+                    let total = habitos.length;
+                    let esHoy = (dia === hoy.getDate() && mesActual === hoy.getMonth() && anioActual === hoy.getFullYear());
+                    let clase = completados === total && total > 0 ? 'completed' : '';
+                    html += `<td class="${clase} ${esHoy ? 'today' : ''}" data-fecha="${fechaStr}">${dia}<br><span style="font-size:10px;">${completados}/${total}</span></td>`;
+                    dia++;
+                }
+            }
+            html += '</tr>';
+            if (dia > diasMes) break;
+        }
+        html += '</tbody></table>';
+        
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        
+        document.getElementById('calPrev')?.addEventListener('click', () => { mesActual--; if (mesActual < 0) { mesActual = 11; anioActual--; } renderizarCalendario(); });
+        document.getElementById('calNext')?.addEventListener('click', () => { mesActual++; if (mesActual > 11) { mesActual = 0; anioActual++; } renderizarCalendario(); });
+        
+        document.querySelectorAll('.calendar td[data-fecha]').forEach(celda => {
+            celda.addEventListener('click', () => {
+                let fechaStr = celda.getAttribute('data-fecha');
+                let detalles = habitos.map(h => ({ nombre: h.nombre, completado: h.historial?.[fechaStr]?.completado, id: h.id }));
+                let detallesHtml = `<div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:16px; margin-top:16px;">
+                    <h4>Detalle del día ${fechaStr}</h4>`;
+                for (let d of detalles) {
+                    detallesHtml += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <span>${escapeHtml(d.nombre)}</span>
+                        <button class="btn-sm ${d.completado ? 'btn-outline' : 'btn-primary'}" onclick="marcarCompletado(${d.id}, '${fechaStr}', null); renderizarCalendario();">
+                            ${d.completado ? 'Desmarcar' : 'Marcar'}
+                        </button>
+                    </div>`;
+                }
+                detallesHtml += '</div>';
+                document.getElementById('contenidoDinamico').innerHTML += detallesHtml;
+            });
+        });
+    }
+    
+    function renderizarEstadisticas() {
+        let completadosPorDia = [];
+        for (let i = 6; i >= 0; i--) {
+            let fecha = new Date();
+            fecha.setDate(fecha.getDate() - i);
+            let fechaStr = obtenerFechaStr(fecha);
+            let completados = habitos.filter(h => h.historial && h.historial[fechaStr] && h.historial[fechaStr].completado).length;
+            completadosPorDia.push(completados);
+        }
+        
+        let topHabitos = [...habitos].sort((a, b) => (b.racha || 0) - (a.racha || 0)).slice(0, 3);
+        
+        let html = `<div class="stats-grid" style="margin-bottom:20px;">
+            <div class="stat-card"><div class="stat-value">${habitos.reduce((s, h) => s + (h.racha || 0), 0)}</div><div class="stat-label">Racha total</div></div>
+            <div class="stat-card"><div class="stat-value">${habitos.filter(h => h.racha >= 7).length}</div><div class="stat-label">Hábitos +7 días</div></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:16px;">
+            <h4>📊 Últimos 7 días</h4>
+            <canvas id="graficoHabitos" style="max-height:200px; width:100%;"></canvas>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:16px; margin-top:16px;">
+            <h4>🏆 Top Hábitos</h4>`;
+        
+        for (let h of topHabitos) {
+            let nivel = getNivelHabito(h.racha || 0);
+            html += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                <span><i class="fas ${nivel.icono}" style="color:#f59e0b"></i> ${escapeHtml(h.nombre)} ${nivel.nombre}</span>
+                <span style="color:#10b981">${h.racha || 0} días</span>
+            </div>`;
+        }
+        html += '</div>';
+        
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        
+        if (graficoHabitos) graficoHabitos.destroy();
+        let ctx = document.getElementById('graficoHabitos')?.getContext('2d');
+        if (ctx) {
+            graficoHabitos = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: ['Hace 6d', 'Hace 5d', 'Hace 4d', 'Hace 3d', 'Ayer', 'Hoy'], datasets: [{ label: 'Hábitos completados', data: completadosPorDia.slice(1), backgroundColor: '#10b981', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#a0a0b0' } }, x: { ticks: { color: '#a0a0b0' } } } }
+            });
+        }
+    }
+    
+    function renderizarCiencia() {
+        let html = `
+            <div class="recomendacion-card">
+                <div class="recomendacion-titulo"><i class="fas fa-atom"></i> La Ciencia de los Hábitos</div>
+                <div class="recomendacion-texto">
+                    <strong>📚 Basado en los libros:</strong>
+                    <ul style="margin-top: 8px; margin-left: 20px;">
+                        <li>✨ <strong>Hábitos Atómicos</strong> - James Clear</li>
+                        <li>🔄 <strong>El Poder de los Hábitos</strong> - Charles Duhigg</li>
+                        <li>🌱 <strong>Pequeños Hábitos</strong> - BJ Fogg</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="recomendacion-card">
+                <div class="recomendacion-titulo"><i class="fas fa-redo-alt"></i> El Bucle del Hábito</div>
+                <div class="recomendacion-texto">
+                    <strong>1. Señal:</strong> ¿Qué desencadena el hábito?<br>
+                    <strong>2. Rutina:</strong> ¿Qué acción realizas?<br>
+                    <strong>3. Recompensa:</strong> ¿Qué beneficio obtienes?<br><br>
+                    💡 Para cambiar un mal hábito, mantén la señal y la recompensa, pero cambia la rutina.
+                </div>
+            </div>
+            <div class="recomendacion-card">
+                <div class="recomendacion-titulo"><i class="fas fa-chart-line"></i> La Regla del 1%</div>
+                <div class="recomendacion-texto">
+                    Mejorar 1% cada día te hace 37 veces mejor al año.<br><br>
+                    🎯 Cada hábito completado te da XP. ¡Cada pequeño paso cuenta!
+                </div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    // ==================== CRUD ====================
+    function mostrarModalNuevo() {
+        let nivelObj = NIVELES_GLOBAL.find(n => n.nivel === nivelGlobal);
+        let maxHabitos = nivelObj ? nivelObj.max_habitos : 3;
+        
+        if (habitos.length >= maxHabitos) {
+            mostrarNotificacion(`⚠️ Límite de hábitos: nivel ${nivelGlobal} permite ${maxHabitos} hábitos. Sube de nivel para más.`);
+            return;
+        }
+        
+        document.getElementById('modalTitulo').innerText = '➕ Nuevo Hábito';
+        document.getElementById('habitoNombre').value = '';
+        document.getElementById('habitoDesc').value = '';
+        document.getElementById('habitoCategoria').value = 'bienestar';
+        document.getElementById('habitoTipo').value = 'positivo';
+        document.getElementById('sugerenciasContainer').style.display = 'none';
+        document.getElementById('modalHabito').style.display = 'flex';
+        document.getElementById('modalGuardar').onclick = guardarNuevoHabito;
+        document.getElementById('modalCancelar').onclick = () => document.getElementById('modalHabito').style.display = 'none';
+    }
+    
+    function guardarNuevoHabito() {
+        let nombre = document.getElementById('habitoNombre').value.trim();
+        if (!nombre) { mostrarNotificacion('❌ Nombre requerido'); return; }
+        let tipo = document.getElementById('habitoTipo').value;
+        habitos.push({
+            id: Date.now(),
+            nombre: nombre,
+            descripcion: document.getElementById('habitoDesc').value,
+            tipo: tipo,
+            categoria: document.getElementById('habitoCategoria').value,
+            historial: {},
+            contexto: {},
+            racha: 0,
+            mejorRacha: 0,
+            fallos_consecutivos: 0
+        });
+        guardarHabitos();
+        document.getElementById('modalHabito').style.display = 'none';
+        if (tabActual === 'positivos') renderizarListaPositivos();
+        else if (tabActual === 'negativos') renderizarListaNegativos();
+        else if (tabActual === 'recomendaciones') renderizarRecomendaciones();
+        mostrarNotificacion('✅ Hábito creado');
+    }
+    
+    function editarHabito(id) {
+        let habito = habitos.find(h => h.id === id);
+        if (!habito) return;
+        document.getElementById('modalTitulo').innerText = '✏️ Editar Hábito';
+        document.getElementById('habitoNombre').value = habito.nombre;
+        document.getElementById('habitoDesc').value = habito.descripcion || '';
+        document.getElementById('habitoCategoria').value = habito.categoria;
+        document.getElementById('habitoTipo').value = habito.tipo;
+        document.getElementById('modalHabito').style.display = 'flex';
+        document.getElementById('modalGuardar').onclick = () => {
+            habito.nombre = document.getElementById('habitoNombre').value.trim();
+            habito.descripcion = document.getElementById('habitoDesc').value;
+            habito.categoria = document.getElementById('habitoCategoria').value;
+            habito.tipo = document.getElementById('habitoTipo').value;
+            guardarHabitos();
+            document.getElementById('modalHabito').style.display = 'none';
+            if (tabActual === 'positivos') renderizarListaPositivos();
+            else if (tabActual === 'negativos') renderizarListaNegativos();
+            else if (tabActual === 'recomendaciones') renderizarRecomendaciones();
+            mostrarNotificacion('✅ Hábito actualizado');
+        };
+    }
+    
+    function eliminarHabito(id) {
+        if (!confirm('¿Eliminar este hábito? Se perderá todo el historial')) return;
+        habitos = habitos.filter(h => h.id !== id);
+        guardarHabitos();
+        if (tabActual === 'positivos') renderizarListaPositivos();
+        else if (tabActual === 'negativos') renderizarListaNegativos();
+        else if (tabActual === 'recomendaciones') renderizarRecomendaciones();
+        mostrarNotificacion('🗑️ Hábito eliminado');
+    }
+    
+    // ==================== PESTAÑAS ====================
+    function cambiarTab(tab) {
+        tabActual = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        let activeTab = document.querySelector(`.tab[data-tab="${tab}"]`);
+        if (activeTab) activeTab.classList.add('active');
+        if (tab === 'recomendaciones') renderizarRecomendaciones();
+        else if (tab === 'positivos') renderizarListaPositivos();
+        else if (tab === 'negativos') renderizarListaNegativos();
+        else if (tab === 'calendario') renderizarCalendario();
+        else if (tab === 'estadisticas') renderizarEstadisticas();
+        else if (tab === 'ciencia') renderizarCiencia();
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarPerfil();
+        cargarHabitos();
+        cargarXP();
+        actualizarStatsGlobal();
+        renderizarRecomendaciones();
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => cambiarTab(tab.getAttribute('data-tab')));
+        });
+        
+        // Enviar datos al asistente periódicamente (cada 30 segundos)
+        setInterval(() => {
+            enviarDatosAlAsistente();
+        }, 30000);
+        
+        window.mostrarModalNuevo = mostrarModalNuevo;
+        window.mostrarModalPerfilCompleto = mostrarModalPerfilCompleto;
+        window.marcarCompletado = marcarCompletado;
+        window.marcarCaida = marcarCaida;
+        window.editarHabito = editarHabito;
+        window.eliminarHabito = eliminarHabito;
+        window.agregarHabitoRecomendadoDirecto = agregarHabitoRecomendadoDirecto;
+        window.cambiarTab = cambiarTab;
+        window.enviarDatosAlAsistente = enviarDatosAlAsistente;
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,793 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Crisis - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #ef4444; }
+        .sos-badge {
+            background: #ef4444;
+            border-radius: 30px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(239,68,68,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #ef4444; }
+        .stat-label { font-size: 10px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #ef4444; border-bottom: 2px solid #ef4444; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        /* Botón SOS */
+        .sos-button {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            width: 100%;
+            padding: 30px;
+            border-radius: 30px;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            animation: sosPulse 1.5s infinite;
+        }
+        @keyframes sosPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(239,68,68,0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+        }
+        .sos-button:hover { transform: scale(1.02); background: #dc2626; }
+        
+        .contactos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .contacto-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .contacto-card:hover { background: rgba(239,68,68,0.2); transform: translateY(-2px); }
+        .contacto-numero { font-size: 18px; font-weight: bold; color: #ef4444; }
+        
+        .tecnica-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .tecnica-card:hover { border-color: #ef4444; background: rgba(239,68,68,0.1); }
+        .tecnica-titulo { font-size: 18px; font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .tecnica-desc { font-size: 13px; color: #a0a0b0; }
+        
+        .timer-container {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+        .timer-display {
+            font-size: 64px;
+            font-family: monospace;
+            font-weight: bold;
+            color: #ef4444;
+        }
+        
+        .frase-card {
+            background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(139,92,246,0.1));
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 18px;
+            line-height: 1.5;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .diario-entrada {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+        .diario-fecha { color: #ef4444; font-size: 11px; margin-bottom: 8px; }
+        .diario-texto { font-size: 13px; }
+        
+        .plan-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 24px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(239,68,68,0.3);
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: white;
+            margin: 8px 0;
+        }
+        .btn-primary {
+            background: #ef4444;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .empty-state { text-align: center; padding: 60px 20px; color: #a0a0b0; }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-life-ring"></i> Crisis - Apoyo Emocional</h1>
+            <div class="sos-badge" onclick="sosInmediato()">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>SOS 24/7</span>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('diario')"><div class="stat-value" id="totalCrisis">0</div><div class="stat-label">Crisis superadas</div></div>
+            <div class="stat-card" onclick="cambiarTab('diario')"><div class="stat-value" id="rachaCalma">0</div><div class="stat-label">Días de calma</div></div>
+            <div class="stat-card" onclick="cambiarTab('tecnicas')"><div class="stat-value" id="tecnicasUsadas">0</div><div class="stat-label">Técnicas usadas</div></div>
+            <div class="stat-card" onclick="cambiarTab('recursos')"><div class="stat-value" id="frasesGuardadas">0</div><div class="stat-label">Frases anclaje</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="sos"><i class="fas fa-exclamation-triangle"></i> SOS</button>
+        <button class="tab" data-tab="tecnicas"><i class="fas fa-lungs"></i> Técnicas</button>
+        <button class="tab" data-tab="diario"><i class="fas fa-book"></i> Diario de crisis</button>
+        <button class="tab" data-tab="recursos"><i class="fas fa-heart"></i> Recursos</button>
+        <button class="tab" data-tab="plan"><i class="fas fa-clipboard-list"></i> Mi plan</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<!-- Modal Técnica -->
+<div id="modalTecnica" class="modal">
+    <div class="modal-content">
+        <div id="tecnicaContent"></div>
+        <button class="btn-primary" onclick="cerrarModal()" style="margin-top:16px;">Cerrar</button>
+    </div>
+</div>
+
+<!-- Modal Diario -->
+<div id="modalDiario" class="modal">
+    <div class="modal-content">
+        <h3>📝 Registrar crisis</h3>
+        <textarea id="diarioTexto" class="input-field" rows="4" placeholder="Describe qué pasó, cómo te sentías..."></textarea>
+        <select id="diarioIntensidad" class="input-field">
+            <option value="1">😔 Leve (1)</option>
+            <option value="2">😟 Moderada (2)</option>
+            <option value="3">😫 Intensa (3)</option>
+            <option value="4">😰 Muy intensa (4)</option>
+            <option value="5">💔 Crisis severa (5)</option>
+        </select>
+        <input type="text" id="diarioDesencadenante" class="input-field" placeholder="¿Qué lo desencadenó? (opcional)">
+        <div class="modal-buttons" style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn-primary" onclick="guardarCrisis()" style="background:#ef4444;">Guardar crisis</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== CONFIGURACIÓN ====================
+    let usuario = {
+        crisis: [], // { fecha, texto, intensidad, desencadenante, tecnicaUsada }
+        rachaCalma: 0,
+        ultimoDiaCalma: null,
+        tecnicasUsadas: 0,
+        frasesGuardadas: [],
+        planPersonal: { pasos: [], contactos: [], tecnicasPreferidas: [] }
+    };
+    
+    let tecnicaActiva = null;
+    let timerInterval = null;
+    let timerSegundos = 0;
+    
+    // Contactos de emergencia por país
+    const CONTACTOS_EMERGENCIA = [
+        { nombre: "Teléfono de la Esperanza (España)", numero: "717 003 717", pais: "ES", descripcion: "Apoyo emocional 24h" },
+        { nombre: "Línea de la Vida (México)", numero: "800 911 2000", pais: "MX", descripcion: "Apoyo psicológico" },
+        { nombre: "911 (Emergencias)", numero: "911", pais: "Todos", descripcion: "Emergencias generales" },
+        { nombre: "024 (España)", numero: "024", pais: "ES", descripcion: "Línea de prevención del suicidio" },
+        { nombre: "988 (EE.UU)", numero: "988", pais: "US", descripcion: "Crisis lifeline" },
+        { nombre: "Chat de crisis (WhatsApp)", numero: "WhatsApp", pais: "Global", descripcion: "Envía 'HOLA' a +52 55 4115 6309" }
+    ];
+    
+    // Técnicas de regulación emocional
+    const TECNICAS = [
+        { 
+            id: 1, nombre: "🌬️ Respiración 4-7-8", descripcion: "Calma el sistema nervioso en minutos",
+            instrucciones: "1. Inhala por la nariz durante 4 segundos\n2. Mantén la respiración durante 7 segundos\n3. Exhala lentamente por la boca durante 8 segundos\n4. Repite 4 veces",
+            duracion: 76, icono: "fa-lungs"
+        },
+        { 
+            id: 2, nombre: "👐 Grounding 5-4-3-2-1", descripcion: "Ancla tu mente al presente",
+            instrucciones: "🔍 5 cosas que puedes VER\n✋ 4 cosas que puedes TOCAR\n👂 3 cosas que puedes ESCUCHAR\n👃 2 cosas que puedes OLER\n👅 1 cosa que puedes SABOREAR",
+            duracion: 60, icono: "fa-hand-peace"
+        },
+        { 
+            id: 3, nombre: "🧊 Técnica del hielo", descripcion: "Activa el reflejo de buceo",
+            instrucciones: "Sumerge tu rostro en agua fría o aplica hielo en tus muñecas durante 30 segundos. Esto activa el sistema nervioso parasimpático y reduce la ansiedad rápidamente.",
+            duracion: 30, icono: "fa-ice-cream"
+        },
+        { 
+            id: 4, nombre: "📦 Respiración de caja", descripcion: "Equilibra el sistema nervioso",
+            instrucciones: "Inhala 4s → Mantén 4s → Exhala 4s → Mantén 4s. Repite 5 veces.",
+            duracion: 80, icono: "fa-cube"
+        },
+        { 
+            id: 5, nombre: "🧘 Visualización de lugar seguro", descripcion: "Imagina un lugar tranquilo",
+            instrucciones: "Cierra los ojos. Imagina un lugar donde te sientas completamente seguro. Puede ser una playa, un bosque o tu habitación. Observa los detalles: colores, sonidos, olores. Permanece allí por unos minutos.",
+            duracion: 120, icono: "fa-mountain"
+        },
+        { 
+            id: 6, nombre: "✍️ Escritura terapéutica", descripcion: "Libera emociones",
+            instrucciones: "Escribe todo lo que sientes sin filtros. No importa la gramática ni la coherencia. Solo deja que las palabras fluyan. Después de 5 minutos, puedes romper el papel si lo deseas.",
+            duracion: 300, icono: "fa-pen"
+        }
+    ];
+    
+    // Frases de anclaje (basadas en libros de autoayuda)
+    const FRASES_ANCLAJE = [
+        "🌊 Esto también pasará. Como una ola en el mar, esta emoción se disolverá.",
+        "💪 No eres tus pensamientos. Observa la tormenta desde la orilla, no en medio de ella.",
+        "🌟 Has superado momentos difíciles antes. Tienes la fuerza para superar este también.",
+        "🧘 Respira. Estás a salvo en este momento. Solo concéntrate en esta respiración.",
+        "❤️ Mereces paz. Mereces calma. Esto no te define.",
+        "🌱 El crecimiento a veces duele. Esta incomodidad es parte de tu transformación.",
+        "🕊️ Suelta lo que no puedes controlar. Sujeta lo que sí: tu respiración, este momento.",
+        "✨ No necesitas resolverlo todo ahora. Solo este paso, solo este aliento.",
+        "🌙 La noche siempre da paso al amanecer. Esto también pasará.",
+        "💎 Eres más fuerte de lo que crees. Las crisis revelan tu verdadera fortaleza."
+    ];
+    
+    // ==================== DATOS PERSISTENTES ====================
+    function cargarDatos() {
+        let guardado = localStorage.getItem('reprompt_crisis_v1');
+        if (guardado) {
+            usuario = JSON.parse(guardado);
+        }
+        actualizarStats();
+        enviarDatosGlobales();
+    }
+    
+    function guardarDatos() {
+        localStorage.setItem('reprompt_crisis_v1', JSON.stringify(usuario));
+        actualizarStats();
+        enviarDatosGlobales();
+    }
+    
+    function actualizarStats() {
+        document.getElementById('totalCrisis').innerText = usuario.crisis.length;
+        document.getElementById('rachaCalma').innerText = usuario.rachaCalma;
+        document.getElementById('tecnicasUsadas').innerText = usuario.tecnicasUsadas;
+        document.getElementById('frasesGuardadas').innerText = usuario.frasesGuardadas.length;
+    }
+    
+    function actualizarRachaCalma() {
+        let hoy = new Date().toISOString().split('T')[0];
+        if (usuario.ultimoDiaCalma === hoy) return;
+        
+        let ayer = new Date();
+        ayer.setDate(ayer.getDate() - 1);
+        let ayerStr = ayer.toISOString().split('T')[0];
+        
+        if (usuario.ultimoDiaCalma === ayerStr) {
+            usuario.rachaCalma++;
+        } else {
+            usuario.rachaCalma = 0;
+        }
+        usuario.ultimoDiaCalma = hoy;
+        guardarDatos();
+    }
+    
+    // ==================== FUNCIONES PRINCIPALES ====================
+    function sosInmediato() {
+        mostrarNotificacion("🚨 Líneas de ayuda disponibles");
+        mostrarModalContactos();
+    }
+    
+    function mostrarModalContactos() {
+        let html = `<h3><i class="fas fa-phone-alt"></i> Líneas de ayuda 24/7</h3>`;
+        for (let c of CONTACTOS_EMERGENCIA) {
+            html += `
+                <div class="contacto-card" onclick="window.open('tel:${c.numero.replace(/\s/g, '')}')">
+                    <div class="contacto-numero">${c.numero}</div>
+                    <div style="font-size:12px;">${c.nombre}</div>
+                    <div style="font-size:10px; color:#a0a0b0;">${c.descripcion}</div>
+                </div>
+            `;
+        }
+        html += `<button class="btn-secondary" onclick="cerrarModal()" style="margin-top:16px;">Cerrar</button>`;
+        document.getElementById('tecnicaContent').innerHTML = html;
+        document.getElementById('modalTecnica').style.display = 'flex';
+    }
+    
+    function iniciarTecnica(tecnica) {
+        tecnicaActiva = tecnica;
+        usuario.tecnicasUsadas++;
+        guardarDatos();
+        
+        let html = `
+            <h3><i class="fas ${tecnica.icono}"></i> ${tecnica.nombre}</h3>
+            <p style="margin: 12px 0; white-space: pre-line;">${tecnica.instrucciones}</p>
+            <div class="timer-container">
+                <div class="timer-display" id="timerDisplay">00:00</div>
+                <div class="progress-bar" style="background:rgba(255,255,255,0.1); border-radius:10px; height:6px; margin-top:12px;">
+                    <div id="timerProgress" style="width:0%; height:100%; background:#ef4444; border-radius:10px;"></div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="btn-secondary" onclick="detenerTecnica()">Detener</button>
+                <button class="btn-primary" onclick="finalizarTecnica()" style="background:#10b981;">Completé</button>
+            </div>
+        `;
+        document.getElementById('tecnicaContent').innerHTML = html;
+        iniciarTimer(tecnica.duracion);
+    }
+    
+    function iniciarTimer(segundos) {
+        if (timerInterval) clearInterval(timerInterval);
+        let inicio = Date.now();
+        let duracion = segundos;
+        
+        timerInterval = setInterval(() => {
+            let transcurrido = Math.floor((Date.now() - inicio) / 1000);
+            let restante = Math.max(0, duracion - transcurrido);
+            let minutos = Math.floor(restante / 60);
+            let segs = restante % 60;
+            document.getElementById('timerDisplay').innerText = `${minutos.toString().padStart(2,'0')}:${segs.toString().padStart(2,'0')}`;
+            let progreso = ((duracion - restante) / duracion) * 100;
+            document.getElementById('timerProgress').style.width = `${progreso}%`;
+            
+            if (restante <= 0) {
+                clearInterval(timerInterval);
+                finalizarTecnica();
+            }
+        }, 100);
+    }
+    
+    function detenerTecnica() {
+        if (timerInterval) clearInterval(timerInterval);
+        cerrarModal();
+    }
+    
+    function finalizarTecnica() {
+        if (timerInterval) clearInterval(timerInterval);
+        mostrarNotificacion("✅ Técnica completada. ¡Bien hecho!");
+        cerrarModal();
+    }
+    
+    function guardarCrisis() {
+        let texto = document.getElementById('diarioTexto').value.trim();
+        if (!texto) {
+            mostrarNotificacion("Por favor, describe cómo te sentías");
+            return;
+        }
+        
+        usuario.crisis.unshift({
+            id: Date.now(),
+            fecha: new Date().toISOString(),
+            texto: texto,
+            intensidad: parseInt(document.getElementById('diarioIntensidad').value),
+            desencadenante: document.getElementById('diarioDesencadenante').value
+        });
+        
+        usuario.rachaCalma = 0;
+        usuario.ultimoDiaCalma = null;
+        
+        guardarDatos();
+        cerrarModal();
+        mostrarNotificacion("✅ Crisis registrada. Has dado un gran paso al reconocerlo.");
+        if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'diario') renderizarDiario();
+        
+        // Limpiar campos
+        document.getElementById('diarioTexto').value = '';
+        document.getElementById('diarioDesencadenante').value = '';
+    }
+    
+    function guardarFrase(frase) {
+        if (!usuario.frasesGuardadas.includes(frase)) {
+            usuario.frasesGuardadas.push(frase);
+            guardarDatos();
+            mostrarNotificacion("⭐ Frase guardada en favoritos");
+        }
+    }
+    
+    function eliminarFrase(frase) {
+        usuario.frasesGuardadas = usuario.frasesGuardadas.filter(f => f !== frase);
+        guardarDatos();
+        renderizarRecursos();
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarSOS() {
+        let html = `
+            <button class="sos-button" onclick="sosInmediato()">
+                <i class="fas fa-exclamation-triangle"></i> SOS AYUDA INMEDIATA
+                <i class="fas fa-phone-alt"></i>
+            </button>
+            
+            <div class="tecnica-card" style="background:linear-gradient(135deg, rgba(239,68,68,0.2), rgba(139,92,246,0.1));">
+                <div class="tecnica-titulo"><i class="fas fa-clock"></i> ¿Estás en crisis ahora mismo?</div>
+                <div class="tecnica-desc">Prueba una técnica rápida de regulación. Toma 2-5 minutos.</div>
+                <div style="display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;">
+                    <button class="btn-secondary" onclick="iniciarTecnica(TECNICAS[0])">🌬️ Respiración 4-7-8</button>
+                    <button class="btn-secondary" onclick="iniciarTecnica(TECNICAS[1])">👐 Grounding 5-4-3-2-1</button>
+                    <button class="btn-secondary" onclick="iniciarTecnica(TECNICAS[2])">🧊 Hielo</button>
+                </div>
+            </div>
+            
+            <h3 style="margin: 16px 0 12px;"><i class="fas fa-phone"></i> Líneas de ayuda</h3>
+            <div class="contactos-grid">
+                ${CONTACTOS_EMERGENCIA.slice(0, 4).map(c => `
+                    <div class="contacto-card" onclick="window.open('tel:${c.numero.replace(/\s/g, '')}')">
+                        <div class="contacto-numero">${c.numero}</div>
+                        <div style="font-size:11px;">${c.nombre}</div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="frase-card">
+                <i class="fas fa-quote-left" style="color:#ef4444; margin-right:8px;"></i>
+                ${FRASES_ANCLAJE[Math.floor(Math.random() * FRASES_ANCLAJE.length)]}
+                <div style="margin-top:12px;">
+                    <button class="btn-secondary" onclick="guardarFrase('${FRASES_ANCLAJE[Math.floor(Math.random() * FRASES_ANCLAJE.length)].replace(/'/g, "\\'")}')" style="font-size:11px;">⭐ Guardar frase</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarTecnicas() {
+        let html = '<div class="recursos-grid">';
+        for (let t of TECNICAS) {
+            html += `
+                <div class="tecnica-card" onclick="iniciarTecnica(TECNICAS.find(tec => tec.id === ${t.id}))">
+                    <div class="tecnica-titulo"><i class="fas ${t.icono}"></i> ${t.nombre}</div>
+                    <div class="tecnica-desc">${t.descripcion}</div>
+                    <div style="margin-top:12px; color:#ef4444; font-size:11px;">⏱️ ${Math.floor(t.duracion/60)} min ${t.duracion%60} seg</div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarDiario() {
+        if (usuario.crisis.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-book-open" style="font-size:48px;"></i>
+                    <h3>No hay registros de crisis</h3>
+                    <p>Registrar tus momentos difíciles te ayuda a entender patrones y desencadenantes.</p>
+                    <button class="btn-primary" onclick="document.getElementById('modalDiario').style.display='flex'" style="background:#ef4444;">+ Registrar crisis</button>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `<button class="btn-primary" onclick="document.getElementById('modalDiario').style.display='flex'" style="background:#ef4444; margin-bottom:16px;">+ Registrar crisis</button>`;
+        for (let c of usuario.crisis) {
+            let fecha = new Date(c.fecha);
+            let intensidadTexto = c.intensidad === 1 ? '😔 Leve' : c.intensidad === 2 ? '😟 Moderada' : c.intensidad === 3 ? '😫 Intensa' : c.intensidad === 4 ? '😰 Muy intensa' : '💔 Crisis severa';
+            html += `
+                <div class="diario-entrada">
+                    <div class="diario-fecha"><i class="far fa-calendar-alt"></i> ${fecha.toLocaleDateString()} ${fecha.toLocaleTimeString()}</div>
+                    <div class="diario-texto"><strong>${intensidadTexto}</strong> - ${escapeHtml(c.texto)}</div>
+                    ${c.desencadenante ? `<div class="diario-texto" style="color:#ef4444; margin-top:8px;">⚡ Desencadenante: ${escapeHtml(c.desencadenante)}</div>` : ''}
+                </div>
+            `;
+        }
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarRecursos() {
+        let frasesMostrar = FRASES_ANCLAJE;
+        let favoritas = usuario.frasesGuardadas;
+        
+        let html = `<div class="recomendacion-card">
+                        <div class="recomendacion-titulo"><i class="fas fa-heart"></i> Frases de anclaje</div>
+                        <div class="recomendacion-texto">Lee estas frases cuando sientas que lo necesitas. Guárdalas en favoritos.</div>
+                    </div>`;
+        
+        for (let f of frasesMostrar) {
+            let esFavorita = favoritas.includes(f);
+            html += `
+                <div class="frase-card">
+                    <i class="fas fa-quote-left" style="color:#ef4444;"></i> ${f}
+                    <div style="margin-top:12px;">
+                        ${!esFavorita ? `<button class="btn-secondary" onclick="guardarFrase('${f.replace(/'/g, "\\'")}')" style="font-size:11px;">⭐ Guardar</button>` : `<button class="btn-secondary" onclick="eliminarFrase('${f.replace(/'/g, "\\'")}')" style="font-size:11px; background:#ef4444;">🗑️ Eliminar</button>`}
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (favoritas.length > 0) {
+            html += `<h3 style="margin: 20px 0 12px;"><i class="fas fa-star"></i> Mis frases favoritas</h3>`;
+            for (let f of favoritas) {
+                html += `
+                    <div class="frase-card" style="background:rgba(239,68,68,0.1);">
+                        <i class="fas fa-quote-left"></i> ${f}
+                        <div style="margin-top:8px;">
+                            <button class="btn-secondary" onclick="eliminarFrase('${f.replace(/'/g, "\\'")}')" style="font-size:10px;">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarPlan() {
+        let html = `
+            <div class="plan-card">
+                <h3><i class="fas fa-clipboard-list"></i> Mi plan de acción</h3>
+                <p style="color:#a0a0b0; margin:8px 0;">Cuando sientas que una crisis se acerca, sigue estos pasos:</p>
+                <ol style="margin-left: 20px; margin-top: 12px;">
+                    <li>🧘 <strong>Pausa</strong> - Detente y respira 3 veces profundamente</li>
+                    <li>🌊 <strong>Identifica</strong> - Nombra lo que sientes ("esto es ansiedad")</li>
+                    <li>👐 <strong>Grounding</strong> - Practica 5-4-3-2-1</li>
+                    <li>📞 <strong>Contacta</strong> - Llama a un ser querido o línea de ayuda</li>
+                    <li>✍️ <strong>Escribe</strong> - Registra lo que pasó en el diario</li>
+                </ol>
+            </div>
+            
+            <div class="plan-card">
+                <h3><i class="fas fa-phone"></i> Mis contactos de confianza</h3>
+                <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+                    <button class="btn-secondary" onclick="agregarContactoPersonal()"><i class="fas fa-plus"></i> Agregar contacto</button>
+                </div>
+                <div id="contactosPersonales"></div>
+            </div>
+            
+            <div class="plan-card">
+                <h3><i class="fas fa-heart"></i> Mis técnicas favoritas</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+                    ${TECNICAS.slice(0,3).map(t => `<button class="btn-secondary" onclick="iniciarTecnica(TECNICAS.find(tec => tec.id === ${t.id}))">${t.nombre}</button>`).join('')}
+                </div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function agregarContactoPersonal() {
+        let nombre = prompt("Nombre del contacto:");
+        let telefono = prompt("Teléfono:");
+        if (nombre && telefono) {
+            if (!usuario.planPersonal.contactos) usuario.planPersonal.contactos = [];
+            usuario.planPersonal.contactos.push({ nombre, telefono });
+            guardarDatos();
+            renderizarPlan();
+        }
+    }
+    
+    // ==================== GLOBALIZACIÓN ====================
+    function enviarDatosGlobales() {
+        let datos = {
+            crisis_totales: usuario.crisis.length,
+            racha_calma: usuario.rachaCalma,
+            tecnicas_usadas: usuario.tecnicasUsadas,
+            ultima_crisis: usuario.crisis[0]?.fecha || null,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('reprompt_crisis_data', JSON.stringify(datos));
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'GLOBAL_DATA_UPDATE', app: 'crisis', data: datos }, '*');
+        }
+    }
+    
+    // ==================== UTILIDADES ====================
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    function mostrarNotificacion(msg) { let n = document.createElement('div'); n.className = 'notification-toast'; n.innerHTML = msg; document.body.appendChild(n); setTimeout(() => n.remove(), 2500); }
+    function cerrarModal() { document.getElementById('modalTecnica').style.display = 'none'; document.getElementById('modalDiario').style.display = 'none'; if (timerInterval) clearInterval(timerInterval); }
+    
+    function cambiarTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        
+        if (tab === 'sos') renderizarSOS();
+        else if (tab === 'tecnicas') renderizarTecnicas();
+        else if (tab === 'diario') renderizarDiario();
+        else if (tab === 'recursos') renderizarRecursos();
+        else if (tab === 'plan') renderizarPlan();
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+        renderizarSOS();
+        actualizarRachaCalma();
+        
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => cambiarTab(tab.getAttribute('data-tab')));
+        });
+        
+        window.cambiarTab = cambiarTab;
+        window.sosInmediato = sosInmediato;
+        window.iniciarTecnica = iniciarTecnica;
+        window.detenerTecnica = detenerTecnica;
+        window.finalizarTecnica = finalizarTecnica;
+        window.guardarCrisis = guardarCrisis;
+        window.guardarFrase = guardarFrase;
+        window.eliminarFrase = eliminarFrase;
+        window.agregarContactoPersonal = agregarContactoPersonal;
+        window.cerrarModal = cerrarModal;
+        window.TECNICAS = TECNICAS;
+        
+        setInterval(() => enviarDatosGlobales(), 30000);
+        
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'APP_ACTIVE', app: 'crisis' }, '*');
+        }
+    });
+</script>
+</body>
+</html>

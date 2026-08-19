@@ -1,0 +1,704 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ejercicios - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #10b981; }
+        .stats-summary {
+            display: flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 15px;
+            border-radius: 30px;
+        }
+        .summary-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .summary-item i { color: #10b981; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(16,185,129,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #10b981; }
+        .stat-label { font-size: 11px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #10b981; border-bottom: 2px solid #10b981; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        /* Perfil Card */
+        .profile-card {
+            background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(245,158,11,0.1));
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(16,185,129,0.3);
+        }
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        .profile-field {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 10px;
+        }
+        .profile-label { font-size: 10px; color: #a0a0b0; margin-bottom: 4px; }
+        .profile-value { font-size: 16px; font-weight: bold; color: #10b981; }
+        .btn-edit {
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-primary {
+            background: #10b981;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { background: #0e9f6e; transform: translateY(-2px); }
+        
+        .daily-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .daily-exercise {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 12px;
+            text-align: center;
+        }
+        .exercise-name { font-size: 20px; font-weight: bold; margin: 10px 0; }
+        .detail-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+            margin: 5px;
+        }
+        
+        .calories-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .calories-value { font-size: 48px; font-weight: bold; color: #f59e0b; }
+        
+        .routines-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .routine-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .routine-card:hover { transform: translateY(-3px); border-color: #10b981; background: rgba(16,185,129,0.1); }
+        .routine-name { font-size: 16px; font-weight: bold; margin-bottom: 8px; }
+        .routine-difficulty {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .difficulty-beginner { background: #10b981; }
+        .difficulty-intermediate { background: #f59e0b; }
+        .difficulty-advanced { background: #ef4444; }
+        
+        .historico-list { display: flex; flex-direction: column; gap: 10px; }
+        .historial-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 16px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .empty-state { text-align: center; padding: 40px; color: #a0a0b0; }
+        canvas { max-height: 200px; width: 100%; }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #10b981; border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-heartbeat"></i> Ejercicios</h1>
+            <div class="stats-summary">
+                <div class="summary-item"><i class="fas fa-calendar-week"></i> <span id="promedioSemana">0</span> kcal</div>
+                <div class="summary-item"><i class="fas fa-chart-line"></i> <span id="tendencia">-</span></div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('perfil')"><div class="stat-value" id="rachaEjercicio">0</div><div class="stat-label">Racha 🔥</div></div>
+            <div class="stat-card" onclick="cambiarTab('perfil')"><div class="stat-value" id="totalCalorias">0</div><div class="stat-label">Total kcal</div></div>
+            <div class="stat-card" onclick="cambiarTab('rutinas')"><div class="stat-value" id="mejorSemana">0</div><div class="stat-label">Mejor semana</div></div>
+            <div class="stat-card" onclick="cambiarTab('estadisticas')"><div class="stat-value" id="consistenciaEjercicio">0%</div><div class="stat-label">Consistencia</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="perfil"><i class="fas fa-user"></i> Perfil</button>
+        <button class="tab" data-tab="rutinas"><i class="fas fa-dumbbell"></i> Rutinas</button>
+        <button class="tab" data-tab="historial"><i class="fas fa-history"></i> Historial</button>
+        <button class="tab" data-tab="estadisticas"><i class="fas fa-chart-line"></i> Estadísticas</button>
+        <button class="tab" data-tab="tips"><i class="fas fa-lightbulb"></i> Tips</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<div id="modalRutina" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitulo">🏋️ Rutina</h3>
+        <div id="modalBody"></div>
+        <button class="btn-primary" id="completarRutinaBtn" style="margin-top: 16px; width: 100%;">✓ Completar rutina</button>
+        <button class="btn-edit" style="margin-top: 12px; width: 100%;" onclick="cerrarModalRutina()">Cerrar</button>
+    </div>
+</div>
+
+<script>
+    // ==================== CONSTANTES ====================
+    const STORAGE_KEY = 'ejercicios_v2';
+    const PERFIL_KEY = 'ejercicios_perfil_v2';
+    
+    // Base de ejercicios
+    const EJERCICIOS = {
+        principiante: [
+            { nombre: "Caminata ligera", duracion: 15, met: 3.5, instrucciones: "Camina a ritmo cómodo, mantén postura erguida" },
+            { nombre: "Estiramientos suaves", duracion: 10, met: 2.5, instrucciones: "Estira brazos, piernas y espalda suavemente" },
+            { nombre: "Movilidad articular", duracion: 8, met: 3, instrucciones: "Rotaciones de cuello, hombros, cadera y tobillos" },
+            { nombre: "Sentadillas con silla", duracion: 10, met: 4, instrucciones: "Usa una silla para apoyo, baja controlado" },
+            { nombre: "Puente de glúteos", duracion: 8, met: 3.5, instrucciones: "Acostado boca arriba, eleva cadera" },
+            { nombre: "Marcha en el lugar", duracion: 8, met: 4, instrucciones: "Eleva rodillas alternadamente" }
+        ],
+        intermedio: [
+            { nombre: "Sentadillas completas", duracion: 12, met: 6, instrucciones: "Mantén espalda recta, baja hasta 90°" },
+            { nombre: "Flexiones de brazos", duracion: 10, met: 7, instrucciones: "Manos al ancho de hombros, cuerpo recto" },
+            { nombre: "Zancadas alternas", duracion: 10, met: 6.5, instrucciones: "Paso largo, rodilla trasera cerca del suelo" },
+            { nombre: "Saltos tijera", duracion: 8, met: 7.5, instrucciones: "Abre y cierra piernas con ritmo" },
+            { nombre: "Mountain climbers", duracion: 8, met: 8, instrucciones: "Alterna rodillas al pecho en plancha" },
+            { nombre: "Plancha", duracion: 5, met: 5, instrucciones: "Mantén cuerpo recto, contrae abdomen" }
+        ],
+        avanzado: [
+            { nombre: "Burpees completos", duracion: 10, met: 12, instrucciones: "Con salto y flexión completos" },
+            { nombre: "Sentadillas con salto", duracion: 10, met: 9, instrucciones: "Explosivo al subir, controlado al bajar" },
+            { nombre: "Flexiones diamante", duracion: 8, met: 8.5, instrucciones: "Manos en forma de diamante" },
+            { nombre: "HIIT 20/10", duracion: 15, met: 13, instrucciones: "20s máximo esfuerzo, 10s descanso" },
+            { nombre: "Saltos al cajón", duracion: 8, met: 11, instrucciones: "Usa superficie estable y segura" }
+        ]
+    };
+    
+    // Rutinas predefinidas
+    const RUTINAS = {
+        principiante: [
+            { id: "movilidad", nombre: "Movilidad y estiramientos", ejercicios: ["Movilidad articular", "Estiramientos suaves"], duracion: 18 },
+            { id: "fuerza_suave", nombre: "Fuerza suave", ejercicios: ["Sentadillas con silla", "Puente de glúteos"], duracion: 18 },
+            { id: "cardio_suave", nombre: "Cardio suave", ejercicios: ["Marcha en el lugar", "Caminata ligera"], duracion: 23 }
+        ],
+        intermedio: [
+            { id: "full_body", nombre: "Cuerpo completo", ejercicios: ["Sentadillas completas", "Flexiones de brazos", "Zancadas alternas"], duracion: 32 },
+            { id: "cardio_quema", nombre: "Cardio quema grasa", ejercicios: ["Saltos tijera", "Mountain climbers"], duracion: 16 },
+            { id: "core_fuerza", nombre: "Core y fuerza", ejercicios: ["Plancha", "Flexiones de brazos", "Sentadillas completas"], duracion: 27 }
+        ],
+        avanzado: [
+            { id: "hiit_extremo", nombre: "HIIT Extremo", ejercicios: ["Burpees completos", "Sentadillas con salto", "HIIT 20/10"], duracion: 33 },
+            { id: "fuerza_avanzada", nombre: "Fuerza Avanzada", ejercicios: ["Flexiones diamante", "Sentadillas con salto", "Burpees completos"], duracion: 28 },
+            { id: "cardio_pro", nombre: "Cardio Pro", ejercicios: ["Burpees completos", "Saltos al cajón", "HIIT 20/10"], duracion: 33 }
+        ]
+    };
+    
+    let perfil = { edad: null, peso: null, experiencia: "principiante", objetivo: "salud" };
+    let historial = [];
+    let tabActual = "perfil";
+    let graficoSemanal = null;
+    let rutinaSeleccionada = null;
+    
+    // ==================== UTILIDADES ====================
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+    function mostrarNotificacion(msg) {
+        let n = document.createElement('div'); n.className = 'notification-toast'; n.innerHTML = msg;
+        document.body.appendChild(n); setTimeout(() => n.remove(), 2500);
+    }
+    function obtenerFechaStr(f) { return f.toISOString().split('T')[0]; }
+    
+    function calcularCalorias(met, duracionMin, peso) {
+        if (!peso) return Math.round(met * duracionMin * 0.7);
+        return Math.round(met * peso * (duracionMin / 60) * 1.05);
+    }
+    
+    function calcularCaloriasRutina(rutina) {
+        let total = 0;
+        for (let ej of rutina.ejercicios) {
+            let ejercicio = null;
+            for (let nivel in EJERCICIOS) {
+                let found = EJERCICIOS[nivel].find(e => e.nombre === ej);
+                if (found) { ejercicio = found; break; }
+            }
+            if (ejercicio) total += calcularCalorias(ejercicio.met, ejercicio.duracion || 8, perfil.peso);
+        }
+        return total;
+    }
+    
+    // ==================== DATOS ====================
+    function cargarDatos() {
+        let guardado = localStorage.getItem(PERFIL_KEY);
+        if (guardado) perfil = JSON.parse(guardado);
+        if (!perfil.experiencia) perfil.experiencia = "principiante";
+        if (!perfil.objetivo) perfil.objetivo = "salud";
+        
+        guardado = localStorage.getItem(STORAGE_KEY);
+        if (guardado) historial = JSON.parse(guardado);
+        else historial = [];
+        
+        actualizarStats();
+        enviarDatosAsistente();
+    }
+    
+    function guardarDatos() {
+        localStorage.setItem(PERFIL_KEY, JSON.stringify(perfil));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(historial));
+        actualizarStats();
+        enviarDatosAsistente();
+    }
+    
+    function actualizarStats() {
+        let totalCalorias = historial.reduce((s, h) => s + (h.calorias || 0), 0);
+        let racha = calcularRacha();
+        let hoy = new Date();
+        let semana = historial.filter(h => {
+            let diff = (hoy - new Date(h.fecha)) / (1000*60*60*24);
+            return diff <= 7 && diff >= 0;
+        });
+        let caloriasSemana = semana.reduce((s, h) => s + (h.calorias || 0), 0);
+        let mejorSemana = Math.max(...obtenerCaloriasPorSemana());
+        
+        let semanasCompletas = Math.floor(historial.length / 7);
+        let completados = historial.filter(h => h.completado).length;
+        let consistencia = semanasCompletas > 0 ? Math.round((completados / (semanasCompletas * 7)) * 100) : 0;
+        
+        document.getElementById('rachaEjercicio').innerText = racha;
+        document.getElementById('totalCalorias').innerText = totalCalorias;
+        document.getElementById('mejorSemana').innerText = mejorSemana;
+        document.getElementById('consistenciaEjercicio').innerText = consistencia + '%';
+        document.getElementById('promedioSemana').innerText = Math.round(caloriasSemana / 7);
+        
+        let semanaAnterior = historial.filter(h => {
+            let diff = (hoy - new Date(h.fecha)) / (1000*60*60*24);
+            return diff <= 14 && diff > 7;
+        });
+        let calAnterior = semanaAnterior.reduce((s, h) => s + (h.calorias || 0), 0) / 7;
+        let tendencia = caloriasSemana / 7 - calAnterior;
+        let tendenciaTexto = !isNaN(tendencia) ? (tendencia > 0 ? `+${Math.round(tendencia)} ↑` : tendencia < 0 ? `${Math.round(tendencia)} ↓` : '=') : '-';
+        document.getElementById('tendencia').innerHTML = tendenciaTexto;
+    }
+    
+    function calcularRacha() {
+        if (historial.length === 0) return 0;
+        let racha = 0;
+        let fecha = new Date();
+        for (let i = 0; i < 30; i++) {
+            let fechaStr = obtenerFechaStr(fecha);
+            let dia = historial.find(h => h.fecha === fechaStr);
+            if (dia && dia.completado) racha++;
+            else break;
+            fecha.setDate(fecha.getDate() - 1);
+        }
+        return racha;
+    }
+    
+    function obtenerCaloriasPorSemana() {
+        let semanas = [];
+        let hoy = new Date();
+        for (let s = 0; s < 12; s++) {
+            let inicio = new Date(hoy);
+            inicio.setDate(hoy.getDate() - (s * 7) - 6);
+            let fin = new Date(hoy);
+            fin.setDate(hoy.getDate() - (s * 7));
+            let total = 0;
+            for (let h of historial) {
+                let fecha = new Date(h.fecha);
+                if (fecha >= inicio && fecha <= fin) total += h.calorias || 0;
+            }
+            semanas.push(total);
+        }
+        return semanas;
+    }
+    
+    function enviarDatosAsistente() {
+        try {
+            let totalCalorias = historial.reduce((s, h) => s + (h.calorias || 0), 0);
+            let racha = calcularRacha();
+            let datos = { total_calorias: totalCalorias, racha: racha, nivel: perfil.experiencia, ultima_actualizacion: Date.now() };
+            localStorage.setItem('reprompt_ejercicios_data', JSON.stringify(datos));
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'GLOBAL_DATA_UPDATE', app: 'ejercicios', data: datos }, '*');
+            }
+        } catch(e) {}
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarPerfil() {
+        let html = `
+            <div class="profile-card">
+                <div class="profile-grid" id="profileView">
+                    <div class="profile-field"><div class="profile-label">Edad</div><div class="profile-value" id="displayEdad">${perfil.edad || '—'}</div></div>
+                    <div class="profile-field"><div class="profile-label">Peso (kg)</div><div class="profile-value" id="displayPeso">${perfil.peso || '—'}</div></div>
+                    <div class="profile-field"><div class="profile-label">Nivel</div><div class="profile-value" id="displayExperiencia">${perfil.experiencia === 'principiante' ? 'Principiante' : perfil.experiencia === 'intermedio' ? 'Intermedio' : 'Avanzado'}</div></div>
+                    <div class="profile-field"><div class="profile-label">Objetivo</div><div class="profile-value" id="displayObjetivo">${perfil.objetivo === 'salud' ? 'Salud' : perfil.objetivo === 'bajar_peso' ? 'Bajar peso' : perfil.objetivo === 'tonificar' ? 'Tonificar' : 'Resistencia'}</div></div>
+                </div>
+                <div id="profileEdit" style="display:none">
+                    <input type="number" id="editEdad" class="input-field" placeholder="Edad" value="${perfil.edad || ''}" style="width:100%; margin-bottom:10px; padding:10px; background:#1a1a2e; border-radius:8px;">
+                    <input type="number" id="editPeso" class="input-field" step="0.1" placeholder="Peso (kg)" value="${perfil.peso || ''}" style="width:100%; margin-bottom:10px; padding:10px; background:#1a1a2e; border-radius:8px;">
+                    <select id="editExperiencia" style="width:100%; margin-bottom:10px; padding:10px; background:#1a1a2e; border-radius:8px;">
+                        <option value="principiante" ${perfil.experiencia === 'principiante' ? 'selected' : ''}>Principiante</option>
+                        <option value="intermedio" ${perfil.experiencia === 'intermedio' ? 'selected' : ''}>Intermedio</option>
+                        <option value="avanzado" ${perfil.experiencia === 'avanzado' ? 'selected' : ''}>Avanzado</option>
+                    </select>
+                    <select id="editObjetivo" style="width:100%; margin-bottom:10px; padding:10px; background:#1a1a2e; border-radius:8px;">
+                        <option value="salud" ${perfil.objetivo === 'salud' ? 'selected' : ''}>Salud y bienestar</option>
+                        <option value="bajar_peso" ${perfil.objetivo === 'bajar_peso' ? 'selected' : ''}>Bajar de peso</option>
+                        <option value="tonificar" ${perfil.objetivo === 'tonificar' ? 'selected' : ''}>Tonificar músculos</option>
+                        <option value="resistencia" ${perfil.objetivo === 'resistencia' ? 'selected' : ''}>Mejorar resistencia</option>
+                    </select>
+                    <button class="btn-primary" onclick="guardarPerfil()" style="width:100%">Guardar</button>
+                    <button class="btn-edit" onclick="cancelarEditar()" style="width:100%; margin-top:8px;">Cancelar</button>
+                </div>
+                <button class="btn-edit" id="editProfileBtn" onclick="editarPerfil()" style="margin-top:12px"><i class="fas fa-edit"></i> Editar perfil</button>
+            </div>
+            
+            <div class="daily-card">
+                <div class="section-title"><i class="fas fa-star"></i> Recomendación del día</div>
+                <div id="dailyExercise"></div>
+            </div>
+            
+            <div class="calories-card">
+                <i class="fas fa-fire" style="font-size:24px;color:#f59e0b"></i>
+                <div class="calories-value" id="caloriasHoy">${calcularCaloriasHoy()}</div>
+                <div style="font-size:12px">calorías quemadas hoy</div>
+                <div style="font-size:11px; margin-top:8px">Meta: ${calcularMetaDiaria()} kcal • ${Math.min(100, Math.round(calcularCaloriasHoy() / calcularMetaDiaria() * 100))}%</div>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        
+        let rec = obtenerRecomendacionDiaria();
+        let recHtml = '';
+        if (rec) {
+            recHtml = `<div class="daily-exercise"><i class="fas fa-brain" style="font-size:24px"></i><div class="exercise-name">${rec.nombre}</div><div><span class="detail-badge">⏱️ ${rec.duracion} min</span><span class="detail-badge">🔥 ~${rec.calorias} kcal</span></div><div style="font-size:12px; margin-top:8px">${rec.consejo || ''}</div></div>`;
+        } else {
+            recHtml = '<div class="empty-state" style="padding:20px">Completa tu perfil para recibir recomendaciones</div>';
+        }
+        document.getElementById('dailyExercise').innerHTML = recHtml;
+    }
+    
+    function calcularCaloriasHoy() {
+        let hoy = obtenerFechaStr(new Date());
+        return historial.filter(h => h.fecha === hoy).reduce((s, h) => s + (h.calorias || 0), 0);
+    }
+    
+    function calcularMetaDiaria() {
+        if (!perfil.peso) return 200;
+        let meta = perfil.objetivo === 'bajar_peso' ? 400 : perfil.objetivo === 'tonificar' ? 350 : 250;
+        if (perfil.experiencia === 'intermedio') meta += 50;
+        if (perfil.experiencia === 'avanzado') meta += 100;
+        if (perfil.edad > 50) meta -= 50;
+        return Math.min(600, Math.max(150, meta));
+    }
+    
+    function obtenerRecomendacionDiaria() {
+        if (!perfil.experiencia) return null;
+        let nivel = perfil.experiencia;
+        let objetivo = perfil.objetivo;
+        let edad = perfil.edad;
+        if (edad && edad >= 55) return { nombre: "Movilidad segura", duracion: 15, calorias: 50, consejo: "Prioriza movilidad y bajo impacto" };
+        if (objetivo === "bajar_peso") {
+            if (nivel === "principiante") return { nombre: "Cardio suave", duracion: 20, calorias: 90, consejo: "Combina con déficit calórico moderado" };
+            if (nivel === "intermedio") return { nombre: "HIIT moderado", duracion: 25, calorias: 180, consejo: "Excelente para quemar grasa" };
+            return { nombre: "HIIT avanzado", duracion: 25, calorias: 280, consejo: "Alto rendimiento, calienta bien" };
+        }
+        if (objetivo === "tonificar") return { nombre: "Fuerza y tonificación", duracion: 25, calorias: nivel === "principiante" ? 80 : nivel === "intermedio" ? 150 : 220, consejo: "Enfócate en técnica y progresión" };
+        return { nombre: "Salud cardiovascular", duracion: 20, calorias: nivel === "principiante" ? 60 : nivel === "intermedio" ? 100 : 160, consejo: "Mantén tu corazón saludable" };
+    }
+    
+    function renderizarRutinas() {
+        let rutinasNivel = RUTINAS[perfil.experiencia] || RUTINAS.principiante;
+        let html = '<div class="routines-grid">';
+        for (let r of rutinasNivel) {
+            let calorias = calcularCaloriasRutina(r);
+            let difClass = r.id.includes('principiante') ? 'difficulty-beginner' : (r.id.includes('intermedio') ? 'difficulty-intermediate' : 'difficulty-advanced');
+            html += `<div class="routine-card" onclick="verRutina('${r.id}')"><div class="routine-name">${r.nombre}</div><div><span class="routine-difficulty ${difClass}">${perfil.experiencia === 'principiante' ? 'Principiante' : perfil.experiencia === 'intermedio' ? 'Intermedio' : 'Avanzado'}</span></div><div style="margin-top:8px"><i class="fas fa-clock"></i> ${r.duracion} min • 🔥 ~${calorias} kcal</div><div style="font-size:11px; color:#a0a0b0; margin-top:4px">${r.ejercicios.length} ejercicios</div></div>`;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function verRutina(id) {
+        let rutinasNivel = RUTINAS[perfil.experiencia] || RUTINAS.principiante;
+        let rutina = rutinasNivel.find(r => r.id === id);
+        if (!rutina) return;
+        rutinaSeleccionada = rutina;
+        let calorias = calcularCaloriasRutina(rutina);
+        let ejerciciosHtml = '';
+        for (let ej of rutina.ejercicios) {
+            let ejercicio = null;
+            for (let nivel in EJERCICIOS) {
+                let found = EJERCICIOS[nivel].find(e => e.nombre === ej);
+                if (found) { ejercicio = found; break; }
+            }
+            ejerciciosHtml += `<div style="margin-bottom:12px; padding:10px; background:rgba(255,255,255,0.05); border-radius:10px"><strong>${ejercicio ? '🏃' : '💪'} ${ej}</strong><div style="font-size:11px; color:#a0a0b0; margin-top:4px">📝 ${ejercicio ? ejercicio.instrucciones : 'Mantén buena técnica'}</div></div>`;
+        }
+        document.getElementById('modalTitulo').innerHTML = `🏋️ ${rutina.nombre}`;
+        document.getElementById('modalBody').innerHTML = `<div style="margin-bottom:12px"><span class="detail-badge">⏱️ ${rutina.duracion} min</span><span class="detail-badge">🔥 ${calorias} kcal</span></div>${ejerciciosHtml}`;
+        document.getElementById('completarRutinaBtn').onclick = () => completarRutina();
+        document.getElementById('modalRutina').style.display = 'flex';
+    }
+    
+    function completarRutina() {
+        if (!rutinaSeleccionada) return;
+        let calorias = calcularCaloriasRutina(rutinaSeleccionada);
+        let hoy = obtenerFechaStr(new Date());
+        historial.push({ id: Date.now(), fecha: hoy, nombre: rutinaSeleccionada.nombre, calorias: calorias, duracion: rutinaSeleccionada.duracion, completado: true });
+        guardarDatos();
+        mostrarNotificacion(`✅ ${rutinaSeleccionada.nombre} completada! +${calorias} kcal`);
+        cerrarModalRutina();
+        if (tabActual === 'perfil') renderizarPerfil();
+        else if (tabActual === 'historial') renderizarHistorial();
+        else if (tabActual === 'estadisticas') renderizarEstadisticas();
+        rutinaSeleccionada = null;
+    }
+    
+    function renderizarHistorial() {
+        let ordenados = [...historial].reverse().slice(0, 20);
+        if (ordenados.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><br>No hay actividades registradas</div>';
+            return;
+        }
+        let html = '<div class="historico-list">';
+        for (let h of ordenados) {
+            let fecha = new Date(h.fecha);
+            html += `<div class="historial-item"><div><span style="font-size:20px">🏋️</span> <strong>${h.nombre}</strong><br><span style="font-size:11px; color:#a0a0b0">${fecha.toLocaleDateString()} • ${h.duracion} min</span></div><div style="color:#f59e0b">🔥 ${h.calorias} kcal</div></div>`;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarEstadisticas() {
+        let semanas = obtenerCaloriasPorSemana();
+        let labels = ['Esta', '-1', '-2', '-3', '-4', '-5'];
+        let datos = semanas.slice(0, 6);
+        let totalEjercicios = historial.length;
+        let promedioCalorias = historial.length ? Math.round(historial.reduce((s, h) => s + h.calorias, 0) / historial.length) : 0;
+        let html = `
+            <div class="stats-grid" style="margin-bottom:16px"><div class="stat-card"><div class="stat-value">${totalEjercicios}</div><div class="stat-label">Total sesiones</div></div>
+            <div class="stat-card"><div class="stat-value">${promedioCalorias}</div><div class="stat-label">Promedio kcal</div></div>
+            <div class="stat-card"><div class="stat-value">${calcularRacha()}</div><div class="stat-label">Racha 🔥</div></div>
+            <div class="stat-card"><div class="stat-value">${perfil.experiencia === 'principiante' ? '🌱' : perfil.experiencia === 'intermedio' ? '🌿' : '🌲'}</div><div class="stat-label">Nivel</div></div></div>
+            <div class="stats-card" style="background:rgba(255,255,255,0.03); border-radius:16px; padding:16px"><h4>📊 Calorías por semana</h4><canvas id="graficoSemanal"></canvas></div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+        let ctx = document.getElementById('graficoSemanal')?.getContext('2d');
+        if (ctx) {
+            if (graficoSemanal) graficoSemanal.destroy();
+            graficoSemanal = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Calorías', data: datos, backgroundColor: '#10b981', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#a0a0b0' } }, x: { ticks: { color: '#a0a0b0' } } } } });
+        }
+    }
+    
+    function renderizarTips() {
+        let tips = [
+            "💧 Hidrátate antes, durante y después del ejercicio.",
+            "🔥 Calienta 5-10 min antes de cada rutina para evitar lesiones.",
+            "🧘 Estira al finalizar para mejorar recuperación.",
+            "📈 La constancia es más importante que la intensidad.",
+            "😴 El sueño es fundamental para la recuperación muscular.",
+            "🥗 Combina ejercicio con buena alimentación para mejores resultados.",
+            "🎯 Establece metas realistas y celebra cada logro."
+        ];
+        let html = `<div class="daily-card"><div class="section-title"><i class="fas fa-lightbulb"></i> Tips de expertos</div>${tips.map(t => `<div class="insight-text" style="margin-bottom:10px; padding:12px; background:rgba(16,185,129,0.1); border-radius:12px">${t}</div>`).join('')}</div>`;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    // ==================== ACCIONES ====================
+    function editarPerfil() {
+        document.getElementById('profileView').style.display = 'none';
+        document.getElementById('profileEdit').style.display = 'block';
+        document.getElementById('editProfileBtn').style.display = 'none';
+    }
+    function cancelarEditar() {
+        document.getElementById('profileView').style.display = 'grid';
+        document.getElementById('profileEdit').style.display = 'none';
+        document.getElementById('editProfileBtn').style.display = 'block';
+    }
+    function guardarPerfil() {
+        let edad = parseInt(document.getElementById('editEdad').value);
+        let peso = parseFloat(document.getElementById('editPeso').value);
+        let experiencia = document.getElementById('editExperiencia').value;
+        let objetivo = document.getElementById('editObjetivo').value;
+        if (isNaN(edad) || edad < 5 || edad > 120) { mostrarNotificacion('⚠️ Edad válida requerida'); return; }
+        if (isNaN(peso) || peso < 20 || peso > 300) { mostrarNotificacion('⚠️ Peso válido requerido'); return; }
+        perfil.edad = edad; perfil.peso = peso; perfil.experiencia = experiencia; perfil.objetivo = objetivo;
+        guardarDatos();
+        cancelarEditar();
+        if (tabActual === 'perfil') renderizarPerfil();
+        mostrarNotificacion('✅ Perfil actualizado');
+    }
+    function cerrarModalRutina() { document.getElementById('modalRutina').style.display = 'none'; rutinaSeleccionada = null; }
+    
+    function cambiarTab(tab) {
+        tabActual = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        if (tab === 'perfil') renderizarPerfil();
+        else if (tab === 'rutinas') renderizarRutinas();
+        else if (tab === 'historial') renderizarHistorial();
+        else if (tab === 'estadisticas') renderizarEstadisticas();
+        else if (tab === 'tips') renderizarTips();
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+        renderizarPerfil();
+        document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => cambiarTab(t.getAttribute('data-tab'))));
+        setInterval(() => enviarDatosAsistente(), 30000);
+        window.editarPerfil = editarPerfil; window.cancelarEditar = cancelarEditar; window.guardarPerfil = guardarPerfil;
+        window.verRutina = verRutina; window.completarRutina = completarRutina; window.cerrarModalRutina = cerrarModalRutina;
+        window.cambiarTab = cambiarTab;
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Metas y Proyectos - Reprompt OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .metas-app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #f59e0b; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat-value { font-size: 24px; font-weight: bold; color: #f59e0b; }
+        .stat-label { font-size: 11px; color: #a0a0b0; margin-top: 4px; }
+        .pomodoro-bar {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pomodoro-timer { font-size: 26px; font-weight: bold; font-family: monospace; color: #f59e0b; }
+        .pomodoro-controls { display: flex; gap: 8px; }
+        .pomodoro-status { font-size: 11px; color: #a0a0b0; }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .tab {
+            padding: 8px 18px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #f59e0b; border-bottom: 2px solid #f59e0b; }
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .project-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 14px;
+            padding: 14px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+        }
+        .project-card:hover { border-color: rgba(245,158,11,0.3); }
+        .priority-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .priority-alta { background: #ef4444; color: white; }
+        .priority-media { background: #f59e0b; color: #0a0a0f; }
+        .priority-baja { background: #10b981; color: white; }
+        .project-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .project-desc { font-size: 11px; color: #a0a0b0; margin-bottom: 10px; line-height: 1.4; }
+        .progress-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin: 8px 0 4px 0; }
+        .progress-fill { height: 100%; background: #f59e0b; border-radius: 3px; transition: width 0.3s; }
+        .progress-text { font-size: 10px; text-align: right; color: #a0a0b0; }
+        .tareas-section { margin: 12px 0; }
+        .tareas-header { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #f59e0b; }
+        .tarea-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 11px; }
+        .tarea-checkbox { accent-color: #f59e0b; width: 14px; height: 14px; cursor: pointer; }
+        .tarea-completada { text-decoration: line-through; opacity: 0.6; }
+        .add-tarea { display: flex; gap: 8px; margin: 10px 0 8px 0; }
+        .add-tarea input {
+            flex: 1;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-size: 11px;
+        }
+        .add-tarea input:focus { outline: none; border-color: #f59e0b; }
+        .buttons { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .btn-sm {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #f59e0b; color: #0a0a0f; }
+        .btn-primary:hover { background: #e08e0a; }
+        .btn-outline { background: transparent; border: 1px solid #f59e0b; color: #f59e0b; }
+        .btn-outline:hover { background: rgba(245,158,11,0.1); }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .filter-buttons { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        
+        /* Calendario con días coloreados */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .calendar {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            font-size: 13px;
+        }
+        .calendar th, .calendar td {
+            padding: 12px 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            vertical-align: middle;
+            transition: all 0.2s;
+        }
+        .calendar th { font-weight: 600; color: #f59e0b; background: rgba(0,0,0,0.3); }
+        .calendar td {
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            font-weight: 500;
+        }
+        .calendar td:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+        .calendar td.today {
+            box-shadow: 0 0 0 2px #f59e0b inset;
+            font-weight: bold;
+        }
+        
+        /* Colores de fondo para días con eventos */
+        .calendar td.bg-reunion { background: rgba(59, 130, 246, 0.4); }
+        .calendar td.bg-tarea { background: rgba(16, 185, 129, 0.4); }
+        .calendar td.bg-recordatorio { background: rgba(245, 158, 11, 0.4); }
+        .calendar td.bg-meta { background: rgba(139, 92, 246, 0.4); }
+        .calendar td.bg-otro { background: rgba(107, 114, 128, 0.4); }
+        .calendar td.bg-multiple { background: linear-gradient(135deg, rgba(59,130,246,0.4) 0%, rgba(245,158,11,0.4) 100%); }
+        
+        /* Agenda del día */
+        .agenda-section {
+            margin-top: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .agenda-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .agenda-date {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #f59e0b;
+        }
+        .event-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .event-item:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+        .event-color-bar {
+            width: 6px;
+            height: 50px;
+            border-radius: 4px;
+        }
+        .event-content { flex: 1; }
+        .event-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+        .event-time { font-size: 11px; color: #a0a0b0; display: inline-block; margin-right: 12px; }
+        .event-desc { font-size: 11px; color: #a0a0b0; margin-top: 4px; }
+        .event-actions { display: flex; gap: 8px; }
+        
+        /* Modal eventos */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 16px;
+            padding: 24px;
+            width: 450px;
+            max-width: 90%;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-content h3 { margin-bottom: 16px; font-size: 1.2rem; }
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-size: 13px;
+        }
+        .input-field:focus { outline: none; border-color: #f59e0b; }
+        textarea.input-field { resize: vertical; font-family: inherit; }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #a0a0b0; }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f59e0b;
+            color: #0a0a0f;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 3px; }
+        @media (max-width: 750px) { .projects-grid { grid-template-columns: 1fr; } }
+        
+        .event-count-badge {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            background: #f59e0b;
+            color: #0a0a0f;
+            font-size: 9px;
+            font-weight: bold;
+            border-radius: 10px;
+            padding: 0px 4px;
+            min-width: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="metas-app">
+    <div class="app-header">
+        <h1><i class="fas fa-bullseye"></i> Metas y Proyectos</h1>
+    </div>
+    <div style="padding: 0 20px;">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="totalProyectos">0</div><div class="stat-label">Total Proyectos</div></div>
+            <div class="stat-card"><div class="stat-value" id="proyectosActivos">0</div><div class="stat-label">Activos</div></div>
+            <div class="stat-card"><div class="stat-value" id="tareasPendientes">0</div><div class="stat-label">Pendientes</div></div>
+            <div class="stat-card"><div class="stat-value" id="progresoGeneral">0%</div><div class="stat-label">Progreso</div></div>
+        </div>
+        <div class="pomodoro-bar">
+            <div><i class="fas fa-clock"></i> <span style="font-weight: 500;">Técnica Pomodoro</span></div>
+            <div class="pomodoro-timer" id="pomodoroTimer">25:00</div>
+            <div class="pomodoro-controls">
+                <button id="pomodoroIniciar" class="btn-sm btn-success"><i class="fas fa-play"></i> Iniciar</button>
+                <button id="pomodoroPausar" class="btn-sm btn-outline"><i class="fas fa-pause"></i> Pausar</button>
+                <button id="pomodoroReset" class="btn-sm btn-danger"><i class="fas fa-redo"></i> Reiniciar</button>
+            </div>
+            <div class="pomodoro-status" id="pomodoroStatus">✅ Listo para comenzar</div>
+        </div>
+    </div>
+    <div class="tabs">
+        <button class="tab active" data-tab="proyectos"><i class="fas fa-tasks"></i> Proyectos</button>
+        <button class="tab" data-tab="calendario"><i class="fas fa-calendar-alt"></i> Calendario</button>
+        <button class="tab" data-tab="reportes"><i class="fas fa-chart-line"></i> Reportes</button>
+        <button class="tab" data-tab="planificador"><i class="fas fa-magic"></i> Plan IA</button>
+    </div>
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<!-- Modal Proyecto -->
+<div id="modalProyecto" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitulo">📌 Nuevo Proyecto</h3>
+        <input type="text" id="proyNombre" class="input-field" placeholder="Nombre del proyecto">
+        <textarea id="proyDesc" class="input-field" rows="2" placeholder="Descripción (opcional)"></textarea>
+        <select id="proyPrioridad" class="input-field">
+            <option value="baja">🟢 Baja Prioridad</option>
+            <option value="media">🟡 Media Prioridad</option>
+            <option value="alta">🔴 Alta Prioridad</option>
+        </select>
+        <div class="modal-buttons">
+            <button id="modalCancelar" class="btn-sm btn-outline">Cancelar</button>
+            <button id="modalGuardar" class="btn-sm btn-primary">Guardar Proyecto</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Evento -->
+<div id="modalEvento" class="modal">
+    <div class="modal-content">
+        <h3 id="eventoModalTitulo">📅 Nuevo Evento</h3>
+        <input type="text" id="eventoTitulo" class="input-field" placeholder="Título del evento">
+        <select id="eventoTipo" class="input-field">
+            <option value="reunion">📅 Reunión</option>
+            <option value="tarea">✅ Tarea</option>
+            <option value="recordatorio">⏰ Recordatorio</option>
+            <option value="meta">🎯 Meta</option>
+            <option value="otro">📌 Otro</option>
+        </select>
+        <input type="time" id="eventoHora" class="input-field" placeholder="Hora (opcional)">
+        <textarea id="eventoDesc" class="input-field" rows="2" placeholder="Descripción (opcional)"></textarea>
+        <div class="modal-buttons">
+            <button id="eventoCancelar" class="btn-sm btn-outline">Cancelar</button>
+            <button id="eventoGuardar" class="btn-sm btn-primary">Guardar Evento</button>
+            <button id="eventoEliminar" class="btn-sm btn-danger" style="display: none;">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Plan IA -->
+<div id="modalPlanIA" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-robot"></i> Planificador Inteligente</h3>
+        <p style="font-size: 12px; color: #a0a0b0; margin-bottom: 12px;">Describe tu meta y te generaré un plan de trabajo personalizado</p>
+        <input type="text" id="planMetaNombre" class="input-field" placeholder="¿Qué meta quieres lograr?">
+        <textarea id="planMetaDetalle" class="input-field" rows="2" placeholder="Detalles adicionales (opcional)"></textarea>
+        <select id="planPrioridad" class="input-field">
+            <option value="baja">🟢 Baja Prioridad</option>
+            <option value="media">🟡 Media Prioridad</option>
+            <option value="alta">🔴 Alta Prioridad</option>
+        </select>
+        <div class="modal-buttons">
+            <button id="modalPlanCancelar" class="btn-sm btn-outline">Cancelar</button>
+            <button id="modalPlanGenerar" class="btn-sm btn-primary"><i class="fas fa-magic"></i> Generar Plan</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== ESTADO ====================
+    let proyectos = [];
+    let eventos = [];
+    let mesActual = new Date().getMonth();
+    let anioActual = new Date().getFullYear();
+    let tabActual = 'proyectos';
+    let filtroActual = 'todos';
+    let pomodoroActivo = false;
+    let pomodoroTiempo = 25 * 60;
+    let pomodoroIntervalo = null;
+    let fechaSeleccionada = null;
+
+    const tipoColores = {
+        reunion: '#3b82f6',
+        tarea: '#10b981',
+        recordatorio: '#f59e0b',
+        meta: '#8b5cf6',
+        otro: '#6b7280'
+    };
+    
+    const tipoIconos = {
+        reunion: 'fa-users',
+        tarea: 'fa-check-circle',
+        recordatorio: 'fa-bell',
+        meta: 'fa-bullseye',
+        otro: 'fa-tag'
+    };
+
+    const tipoNombres = {
+        reunion: 'Reunión',
+        tarea: 'Tarea',
+        recordatorio: 'Recordatorio',
+        meta: 'Meta',
+        otro: 'Otro'
+    };
+
+    // ==================== INICIALIZACIÓN ====================
+    function init() {
+        cargarDatos();
+        cargarEventos();
+        actualizarStats();
+        renderizarProyectos();
+        asignarEventos();
+    }
+
+    function cargarDatos() {
+        let guardado = localStorage.getItem('metas_proyectos_v6');
+        if (guardado) {
+            proyectos = JSON.parse(guardado);
+        } else {
+            proyectos = [
+                { id: Date.now()+1, nombre: 'Sitio Web Corporativo', descripcion: 'Desarrollo de sitio web moderno', prioridad: 'alta', completado: false, progreso: 30, tareas: [
+                    { id: Date.now()+101, texto: 'Diseño de wireframes', completada: true },
+                    { id: Date.now()+102, texto: 'Desarrollo frontend', completada: false }
+                ]},
+                { id: Date.now()+2, nombre: 'App Móvil Productividad', descripcion: 'App para gestión de tareas', prioridad: 'media', completado: false, progreso: 10, tareas: [
+                    { id: Date.now()+103, texto: 'Investigación de mercado', completada: true },
+                    { id: Date.now()+104, texto: 'Diseño UI/UX', completada: false }
+                ]}
+            ];
+            guardarDatos();
+        }
+    }
+
+    function cargarEventos() {
+        let guardado = localStorage.getItem('metas_eventos_v2');
+        if (guardado) {
+            eventos = JSON.parse(guardado);
+        } else {
+            let hoy = new Date();
+            eventos = [
+                { id: Date.now()+1, titulo: 'Reunión de equipo', tipo: 'reunion', hora: '10:00', descripcion: 'Revisar avances del proyecto', fecha: hoy.getFullYear() + '-' + (hoy.getMonth()+1).toString().padStart(2,'0') + '-' + hoy.getDate().toString().padStart(2,'0') },
+                { id: Date.now()+2, titulo: 'Entregar reporte', tipo: 'tarea', hora: '15:00', descripcion: 'Enviar reporte semanal', fecha: hoy.getFullYear() + '-' + (hoy.getMonth()+1).toString().padStart(2,'0') + '-' + (hoy.getDate()+2).toString().padStart(2,'0') }
+            ];
+            guardarEventos();
+        }
+    }
+
+    function guardarEventos() {
+        localStorage.setItem('metas_eventos_v2', JSON.stringify(eventos));
+    }
+
+    function guardarDatos() {
+        localStorage.setItem('metas_proyectos_v6', JSON.stringify(proyectos));
+        actualizarStats();
+    }
+
+    function actualizarProgreso(p) {
+        if (p.tareas && p.tareas.length > 0) {
+            let completadas = p.tareas.filter(t => t.completada).length;
+            p.progreso = Math.round((completadas / p.tareas.length) * 100);
+        } else {
+            p.progreso = p.completado ? 100 : 0;
+        }
+    }
+
+    function actualizarStats() {
+        let total = proyectos.length;
+        let activos = proyectos.filter(p => !p.completado).length;
+        let pendientes = 0;
+        proyectos.forEach(p => {
+            if (p.tareas) pendientes += p.tareas.filter(t => !t.completada).length;
+        });
+        let suma = proyectos.reduce((s, p) => s + (p.progreso || 0), 0);
+        let progreso = total > 0 ? Math.round(suma / total) : 0;
+        document.getElementById('totalProyectos').innerText = total;
+        document.getElementById('proyectosActivos').innerText = activos;
+        document.getElementById('tareasPendientes').innerText = pendientes;
+        document.getElementById('progresoGeneral').innerText = progreso + '%';
+    }
+
+    // ==================== AGENDA / EVENTOS ====================
+    function obtenerEventosDelDia(fechaStr) {
+        return eventos.filter(e => e.fecha === fechaStr);
+    }
+
+    function obtenerColorPorTipo(tipo) {
+        return tipoColores[tipo] || '#6b7280';
+    }
+
+    function obtenerClaseFondoPorEventos(eventosDia) {
+        if (!eventosDia || eventosDia.length === 0) return '';
+        if (eventosDia.length === 1) {
+            return 'bg-' + eventosDia[0].tipo;
+        }
+        return 'bg-multiple';
+    }
+
+    function mostrarModalEvento(fechaStr, eventoId) {
+        fechaSeleccionada = fechaStr;
+        let evento = eventoId ? eventos.find(e => e.id === eventoId) : null;
+        
+        document.getElementById('eventoModalTitulo').innerText = evento ? '✏️ Editar Evento' : '📅 Nuevo Evento';
+        document.getElementById('eventoTitulo').value = evento ? evento.titulo : '';
+        document.getElementById('eventoTipo').value = evento ? evento.tipo : 'otro';
+        document.getElementById('eventoHora').value = evento ? (evento.hora || '') : '';
+        document.getElementById('eventoDesc').value = evento ? (evento.descripcion || '') : '';
+        
+        let eliminarBtn = document.getElementById('eventoEliminar');
+        if (evento) {
+            eliminarBtn.style.display = 'inline-block';
+            eliminarBtn.onclick = function() { eliminarEvento(evento.id, fechaStr); };
+        } else {
+            eliminarBtn.style.display = 'none';
+        }
+        
+        document.getElementById('modalEvento').style.display = 'flex';
+        
+        document.getElementById('eventoGuardar').onclick = function() {
+            let titulo = document.getElementById('eventoTitulo').value.trim();
+            if (!titulo) {
+                mostrarNotificacion('❌ El título es obligatorio');
+                return;
+            }
+            
+            let nuevoEvento = {
+                id: evento ? evento.id : Date.now(),
+                titulo: titulo,
+                tipo: document.getElementById('eventoTipo').value,
+                hora: document.getElementById('eventoHora').value || null,
+                descripcion: document.getElementById('eventoDesc').value || null,
+                fecha: fechaStr
+            };
+            
+            if (evento) {
+                let index = eventos.findIndex(e => e.id === evento.id);
+                if (index !== -1) eventos[index] = nuevoEvento;
+            } else {
+                eventos.push(nuevoEvento);
+            }
+            
+            guardarEventos();
+            document.getElementById('modalEvento').style.display = 'none';
+            renderizarCalendario();
+            mostrarNotificacion(evento ? '✅ Evento actualizado' : '✅ Evento agregado');
+        };
+        
+        document.getElementById('eventoCancelar').onclick = function() {
+            document.getElementById('modalEvento').style.display = 'none';
+        };
+    }
+
+    function eliminarEvento(eventoId, fechaStr) {
+        if (confirm('¿Eliminar este evento?')) {
+            eventos = eventos.filter(e => e.id !== eventoId);
+            guardarEventos();
+            document.getElementById('modalEvento').style.display = 'none';
+            renderizarCalendario();
+            mostrarNotificacion('🗑️ Evento eliminado');
+        }
+    }
+
+    // ==================== RENDERIZAR CALENDARIO ====================
+    function renderizarCalendario() {
+        let meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        let primerDia = new Date(anioActual, mesActual, 1).getDay();
+        let diasMes = new Date(anioActual, mesActual + 1, 0).getDate();
+        let hoy = new Date();
+        
+        let eventosPorDia = {};
+        eventos.forEach(e => {
+            if (e.fecha) {
+                let fechaParts = e.fecha.split('-');
+                let año = parseInt(fechaParts[0]);
+                let mes = parseInt(fechaParts[1]) - 1;
+                let dia = parseInt(fechaParts[2]);
+                if (año === anioActual && mes === mesActual) {
+                    if (!eventosPorDia[dia]) eventosPorDia[dia] = [];
+                    eventosPorDia[dia].push(e);
+                }
+            }
+        });
+        
+        let html = '<div class="calendar-header">' +
+            '<button id="calPrev" class="btn-sm btn-outline"><i class="fas fa-chevron-left"></i> Anterior</button>' +
+            '<h3 style="margin:0; font-size: 1.1rem;">' + meses[mesActual] + ' ' + anioActual + '</h3>' +
+            '<button id="calNext" class="btn-sm btn-outline">Siguiente <i class="fas fa-chevron-right"></i></button>' +
+            '</div><table class="calendar"><thead> <th>Dom</th><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th> </thead><tbody>';
+        
+        let dia = 1;
+        for (let i = 0; i < 6; i++) {
+            html += '  <tr>';
+            for (let j = 0; j < 7; j++) {
+                if ((i === 0 && j < primerDia) || dia > diasMes) {
+                    html += '<td style="opacity:0.3;">&nbsp;</td>';
+                } else {
+                    let esHoy = (dia === hoy.getDate() && mesActual === hoy.getMonth() && anioActual === hoy.getFullYear());
+                    let eventosDia = eventosPorDia[dia] || [];
+                    let bgClass = obtenerClaseFondoPorEventos(eventosDia);
+                    let todayClass = esHoy ? 'today' : '';
+                    let countBadge = eventosDia.length > 0 ? '<span class="event-count-badge">' + eventosDia.length + '</span>' : '';
+                    
+                    html += '<td class="' + bgClass + ' ' + todayClass + '" data-dia="' + dia + '" style="position: relative; cursor: pointer;">' + dia + countBadge + '</td>';
+                    dia++;
+                }
+            }
+            html += '</tr>';
+            if (dia > diasMes) break;
+        }
+        html += '</tbody></table>';
+        
+        let fechaHoyStr = anioActual + '-' + (mesActual+1).toString().padStart(2,'0') + '-' + hoy.getDate().toString().padStart(2,'0');
+        let eventosHoy = obtenerEventosDelDia(fechaHoyStr);
+        
+        html += '<div class="agenda-section" id="agendaSection">' +
+            '<div class="agenda-header">' +
+                '<div class="agenda-date"><i class="fas fa-calendar-day"></i> ' + hoy.getDate() + ' de ' + meses[mesActual] + ' ' + anioActual + '</div>' +
+                '<button class="btn-sm btn-primary" onclick="agregarEventoFecha(\'' + fechaHoyStr + '\')"><i class="fas fa-plus"></i> Agregar Evento</button>' +
+            '</div>' +
+            '<div id="agendaEventos"></div>' +
+        '</div>';
+        
+        let container = document.getElementById('contenidoDinamico');
+        if (container) {
+            container.innerHTML = html;
+            
+            let agendaContainer = document.getElementById('agendaEventos');
+            if (agendaContainer) {
+                if (eventosHoy.length === 0) {
+                    agendaContainer.innerHTML = '<div class="empty-state" style="padding: 20px;"><i class="fas fa-calendar-check"></i><p>No hay eventos para hoy</p><button class="btn-sm btn-primary" onclick="agregarEventoFecha(\'' + fechaHoyStr + '\')">Agregar evento</button></div>';
+                } else {
+                    let eventosHtml = '';
+                    eventosHoy.forEach(e => {
+                        eventosHtml += '<div class="event-item" onclick="editarEvento(\'' + e.fecha + '\', ' + e.id + ')">' +
+                            '<div class="event-color-bar" style="background: ' + obtenerColorPorTipo(e.tipo) + '"></div>' +
+                            '<div class="event-content">' +
+                                '<div class="event-title"><i class="fas ' + tipoIconos[e.tipo] + '"></i> ' + escapeHtml(e.titulo) + '</div>' +
+                                '<div>' +
+                                    (e.hora ? '<span class="event-time"><i class="fas fa-clock"></i> ' + e.hora + '</span>' : '') +
+                                    '<span class="event-time"><i class="fas fa-tag"></i> ' + tipoNombres[e.tipo] + '</span>' +
+                                '</div>' +
+                                (e.descripcion ? '<div class="event-desc">' + escapeHtml(e.descripcion) + '</div>' : '') +
+                            '</div>' +
+                            '<div class="event-actions">' +
+                                '<button class="btn-sm btn-outline" onclick="event.stopPropagation(); editarEvento(\'' + e.fecha + '\', ' + e.id + ')"><i class="fas fa-edit"></i></button>' +
+                                '<button class="btn-sm btn-danger" onclick="event.stopPropagation(); eliminarEventoDirecto(' + e.id + ', \'' + e.fecha + '\')"><i class="fas fa-trash"></i></button>' +
+                            '</div>' +
+                        '</div>';
+                    });
+                    agendaContainer.innerHTML = eventosHtml;
+                }
+            }
+            
+            asignarEventosCalendario();
+        }
+    }
+    
+    function agregarEventoFecha(fechaStr) {
+        mostrarModalEvento(fechaStr, null);
+    }
+    
+    function editarEvento(fechaStr, eventoId) {
+        mostrarModalEvento(fechaStr, eventoId);
+    }
+    
+    function eliminarEventoDirecto(eventoId, fechaStr) {
+        if (confirm('¿Eliminar este evento?')) {
+            eventos = eventos.filter(e => e.id !== eventoId);
+            guardarEventos();
+            renderizarCalendario();
+            mostrarNotificacion('🗑️ Evento eliminado');
+        }
+    }
+    
+    function verEventosDia(dia) {
+        let fechaStr = anioActual + '-' + (mesActual+1).toString().padStart(2,'0') + '-' + dia.toString().padStart(2,'0');
+        let eventosDia = obtenerEventosDelDia(fechaStr);
+        let meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        
+        let agendaContainer = document.getElementById('agendaEventos');
+        let agendaDate = document.querySelector('.agenda-date');
+        
+        if (agendaDate) {
+            agendaDate.innerHTML = '<i class="fas fa-calendar-day"></i> ' + dia + ' de ' + meses[mesActual] + ' ' + anioActual;
+        }
+        
+        if (agendaContainer) {
+            if (eventosDia.length === 0) {
+                agendaContainer.innerHTML = '<div class="empty-state" style="padding: 20px;"><i class="fas fa-calendar-plus"></i><p>No hay eventos para el ' + dia + ' de ' + meses[mesActual] + '</p><button class="btn-sm btn-primary" onclick="agregarEventoFecha(\'' + fechaStr + '\')">Agregar evento</button></div>';
+            } else {
+                let eventosHtml = '';
+                eventosDia.forEach(e => {
+                    eventosHtml += '<div class="event-item" onclick="editarEvento(\'' + e.fecha + '\', ' + e.id + ')">' +
+                        '<div class="event-color-bar" style="background: ' + obtenerColorPorTipo(e.tipo) + '"></div>' +
+                        '<div class="event-content">' +
+                            '<div class="event-title"><i class="fas ' + tipoIconos[e.tipo] + '"></i> ' + escapeHtml(e.titulo) + '</div>' +
+                            '<div>' +
+                                (e.hora ? '<span class="event-time"><i class="fas fa-clock"></i> ' + e.hora + '</span>' : '') +
+                                '<span class="event-time"><i class="fas fa-tag"></i> ' + tipoNombres[e.tipo] + '</span>' +
+                            '</div>' +
+                            (e.descripcion ? '<div class="event-desc">' + escapeHtml(e.descripcion) + '</div>' : '') +
+                        '</div>' +
+                        '<div class="event-actions">' +
+                            '<button class="btn-sm btn-outline" onclick="event.stopPropagation(); editarEvento(\'' + e.fecha + '\', ' + e.id + ')"><i class="fas fa-edit"></i></button>' +
+                            '<button class="btn-sm btn-danger" onclick="event.stopPropagation(); eliminarEventoDirecto(' + e.id + ', \'' + e.fecha + '\')"><i class="fas fa-trash"></i></button>' +
+                        '</div>' +
+                    '</div>';
+                });
+                agendaContainer.innerHTML = eventosHtml;
+            }
+        }
+        
+        let agendaSection = document.querySelector('.agenda-section');
+        if (agendaSection) agendaSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    function asignarEventosCalendario() {
+        let prevBtn = document.getElementById('calPrev');
+        let nextBtn = document.getElementById('calNext');
+        
+        if (prevBtn) {
+            prevBtn.onclick = function() {
+                mesActual--;
+                if (mesActual < 0) {
+                    mesActual = 11;
+                    anioActual--;
+                }
+                renderizarCalendario();
+            };
+        }
+        
+        if (nextBtn) {
+            nextBtn.onclick = function() {
+                mesActual++;
+                if (mesActual > 11) {
+                    mesActual = 0;
+                    anioActual++;
+                }
+                renderizarCalendario();
+            };
+        }
+        
+        let celdas = document.querySelectorAll('.calendar td[data-dia]');
+        for (let i = 0; i < celdas.length; i++) {
+            celdas[i].onclick = function() {
+                verEventosDia(parseInt(this.getAttribute('data-dia')));
+            };
+        }
+    }
+
+    // ==================== FUNCIONES DE PROYECTOS ====================
+    function generarPlanAutomatico(nombreMeta, detalle, prioridad) {
+        let tareasGeneradas = [
+            { id: Date.now()+1, texto: '📌 Definir objetivos específicos', completada: false },
+            { id: Date.now()+2, texto: '📋 Planificar recursos', completada: false },
+            { id: Date.now()+3, texto: '⚡ Ejecutar plan de acción', completada: false },
+            { id: Date.now()+4, texto: '📊 Medir progreso', completada: false },
+            { id: Date.now()+5, texto: '🎯 Evaluar resultados', completada: false }
+        ];
+        return { id: Date.now(), nombre: nombreMeta, descripcion: detalle || 'Plan IA', prioridad: prioridad, completado: false, progreso: 0, tareas: tareasGeneradas };
+    }
+
+    function mostrarModalPlanIA() {
+        document.getElementById('planMetaNombre').value = '';
+        document.getElementById('planMetaDetalle').value = '';
+        document.getElementById('planPrioridad').value = 'media';
+        document.getElementById('modalPlanIA').style.display = 'flex';
+        document.getElementById('modalPlanGenerar').onclick = function() {
+            let nombre = document.getElementById('planMetaNombre').value.trim();
+            if (!nombre) { mostrarNotificacion('❌ Escribe tu meta'); return; }
+            proyectos.push(generarPlanAutomatico(nombre, document.getElementById('planMetaDetalle').value, document.getElementById('planPrioridad').value));
+            guardarDatos();
+            document.getElementById('modalPlanIA').style.display = 'none';
+            actualizarStats();
+            renderizarProyectos();
+            mostrarNotificacion('🎯 Plan generado con 5 tareas');
+        };
+        document.getElementById('modalPlanCancelar').onclick = function() { document.getElementById('modalPlanIA').style.display = 'none'; };
+    }
+
+    // ==================== RENDERIZADO DE PESTAÑAS ====================
+    function renderizarProyectos() {
+        let filtrados = proyectos;
+        if (filtroActual === 'activos') filtrados = proyectos.filter(p => !p.completado);
+        if (filtroActual === 'completados') filtrados = proyectos.filter(p => p.completado);
+        let container = document.getElementById('contenidoDinamico');
+        if (!container) return;
+        if (filtrados.length === 0) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><h3>No hay proyectos</h3><button class="btn-sm btn-primary" onclick="mostrarModalPlanIA()">Crear con IA</button></div>';
+            return;
+        }
+        let html = '<div class="filter-buttons"><button class="btn-sm btn-outline filtro-btn" data-filtro="todos">Todos</button><button class="btn-sm btn-outline filtro-btn" data-filtro="activos">Activos</button><button class="btn-sm btn-outline filtro-btn" data-filtro="completados">Completados</button><button class="btn-sm btn-primary" onclick="mostrarModalPlanIA()" style="margin-left:auto;">Plan IA</button><button class="btn-sm btn-outline" onclick="mostrarModalNuevo()">+ Nuevo</button></div><div class="projects-grid">';
+        for (let p of filtrados) {
+            let tareasHtml = '';
+            if (p.tareas && p.tareas.length > 0) {
+                for (let t of p.tareas.slice(0, 3)) {
+                    tareasHtml += '<div class="tarea-item"><input type="checkbox" class="tarea-checkbox" data-proyecto="' + p.id + '" data-tarea="' + t.id + '" ' + (t.completada ? 'checked' : '') + '><span class="' + (t.completada ? 'tarea-completada' : '') + '">' + escapeHtml(t.texto) + '</span></div>';
+                }
+                if (p.tareas.length > 3) tareasHtml += '<div style="font-size:10px;color:#a0a0b0;">+' + (p.tareas.length-3) + ' más</div>';
+            }
+            let prioridadTexto = p.prioridad === 'alta' ? '🔴 ALTA' : (p.prioridad === 'media' ? '🟡 MEDIA' : '🟢 BAJA');
+            html += '<div class="project-card"><div><span class="priority-badge priority-' + p.prioridad + '">' + prioridadTexto + '</span></div><div class="project-title">' + escapeHtml(p.nombre) + '</div><div class="project-desc">' + escapeHtml(p.descripcion || 'Sin descripción') + '</div><div class="progress-bar"><div class="progress-fill" style="width:' + (p.progreso||0) + '%;"></div></div><div class="progress-text">' + (p.progreso||0) + '%</div><div class="tareas-section"><div class="tareas-header">Tareas (' + (p.tareas?.length||0) + ')</div>' + tareasHtml + '<div class="add-tarea"><input type="text" id="nuevaTarea-' + p.id + '" placeholder="Nueva tarea..."><button class="btn-sm btn-primary agregar-tarea" data-proyecto="' + p.id + '">+</button></div></div><div class="buttons"><button class="btn-sm btn-outline editar-proyecto" data-id="' + p.id + '">Editar</button><button class="btn-sm ' + (p.completado ? 'btn-success' : 'btn-outline') + ' toggle-proyecto" data-id="' + p.id + '">' + (p.completado ? 'Reactivar' : 'Completar') + '</button><button class="btn-sm btn-danger eliminar-proyecto" data-id="' + p.id + '">Eliminar</button></div></div>';
+        }
+        html += '</div>';
+        container.innerHTML = html;
+        asignarEventosProyectos();
+    }
+
+    function renderizarReportes() {
+        let completados = proyectos.filter(p => p.completado).length;
+        let tareasCompletadas = 0, totalTareas = 0;
+        proyectos.forEach(p => { if(p.tareas) p.tareas.forEach(t => { totalTareas++; if(t.completada) tareasCompletadas++; }); });
+        let productividad = totalTareas > 0 ? Math.round((tareasCompletadas / totalTareas) * 100) : 0;
+        let html = '<div style="display:flex;justify-content:space-between;margin-bottom:20px;"><h3>Reportes</h3><button id="btnExportar" class="btn-sm btn-primary" onclick="exportarReporteSimple()"><i class="fas fa-download"></i> Exportar</button></div><div class="stats-grid"><div class="stat-card"><div class="stat-value">' + completados + '</div><div class="stat-label">Completados</div></div><div class="stat-card"><div class="stat-value">' + tareasCompletadas + '</div><div class="stat-label">Tareas OK</div></div><div class="stat-card"><div class="stat-value">' + productividad + '%</div><div class="stat-label">Productividad</div></div></div><div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;"><h4>Detalle</h4>';
+        for (let p of proyectos) {
+            html += '<div style="margin-bottom:12px;"><strong>' + escapeHtml(p.nombre) + '</strong> - ' + (p.progreso||0) + '%<div class="progress-bar"><div class="progress-fill" style="width:' + (p.progreso||0) + '%;"></div></div></div>';
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+
+    function renderizarPlanificador() {
+        document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-robot" style="font-size:48px;color:#f59e0b;"></i><h3>Planificador IA</h3><p>Describe tu meta y te generaré un plan</p><button class="btn-primary btn-sm" onclick="mostrarModalPlanIA()">Generar Plan</button></div>';
+    }
+
+    function exportarReporteSimple() {
+        let now = new Date();
+        let contenido = "REPORTE DE PROYECTOS\n\n";
+        contenido += "Fecha: " + now.toLocaleDateString() + "\n";
+        contenido += "Total Proyectos: " + proyectos.length + "\n\n";
+        for (let p of proyectos) {
+            let comp = p.tareas ? p.tareas.filter(t=>t.completada).length : 0;
+            let total = p.tareas ? p.tareas.length : 0;
+            contenido += p.nombre + " - " + (p.progreso||0) + "% (" + comp + "/" + total + " tareas)\n";
+        }
+        let blob = new Blob([contenido], {type:'text/plain'});
+        let a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'reporte_' + now.toISOString().split('T')[0] + '.txt';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        mostrarNotificacion('📄 Reporte exportado');
+    }
+
+    function cambiarTab(tab) {
+        tabActual = tab;
+        let tabs = document.querySelectorAll('.tab');
+        for (let i = 0; i < tabs.length; i++) {
+            tabs[i].classList.remove('active');
+        }
+        let activeTab = document.querySelector('.tab[data-tab="' + tab + '"]');
+        if (activeTab) activeTab.classList.add('active');
+        if (tab === 'proyectos') renderizarProyectos();
+        else if (tab === 'calendario') renderizarCalendario();
+        else if (tab === 'reportes') renderizarReportes();
+        else if (tab === 'planificador') renderizarPlanificador();
+    }
+
+    // ==================== EVENTOS GENERALES ====================
+    function asignarEventos() {
+        let tabs = document.querySelectorAll('.tab');
+        for (let i = 0; i < tabs.length; i++) {
+            tabs[i].onclick = function() { cambiarTab(this.getAttribute('data-tab')); };
+        }
+        document.getElementById('pomodoroIniciar').onclick = iniciarPomodoro;
+        document.getElementById('pomodoroPausar').onclick = pausarPomodoro;
+        document.getElementById('pomodoroReset').onclick = resetPomodoro;
+    }
+
+    function asignarEventosProyectos() {
+        let filtros = document.querySelectorAll('.filtro-btn');
+        for (let i = 0; i < filtros.length; i++) {
+            filtros[i].onclick = function() { filtroActual = this.getAttribute('data-filtro'); renderizarProyectos(); };
+        }
+        let checkboxes = document.querySelectorAll('.tarea-checkbox');
+        for (let i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].onchange = function() { toggleTarea(parseInt(this.getAttribute('data-proyecto')), parseInt(this.getAttribute('data-tarea'))); };
+        }
+        let agregarBtns = document.querySelectorAll('.agregar-tarea');
+        for (let i = 0; i < agregarBtns.length; i++) {
+            agregarBtns[i].onclick = function() { agregarTarea(parseInt(this.getAttribute('data-proyecto'))); };
+        }
+        let editarBtns = document.querySelectorAll('.editar-proyecto');
+        for (let i = 0; i < editarBtns.length; i++) {
+            editarBtns[i].onclick = function() { editarProyecto(parseInt(this.getAttribute('data-id'))); };
+        }
+        let toggleBtns = document.querySelectorAll('.toggle-proyecto');
+        for (let i = 0; i < toggleBtns.length; i++) {
+            toggleBtns[i].onclick = function() { toggleProyecto(parseInt(this.getAttribute('data-id'))); };
+        }
+        let eliminarBtns = document.querySelectorAll('.eliminar-proyecto');
+        for (let i = 0; i < eliminarBtns.length; i++) {
+            eliminarBtns[i].onclick = function() { eliminarProyecto(parseInt(this.getAttribute('data-id'))); };
+        }
+    }
+
+    function mostrarModalNuevo() {
+        document.getElementById('modalTitulo').innerText = 'Nuevo Proyecto';
+        document.getElementById('proyNombre').value = '';
+        document.getElementById('proyDesc').value = '';
+        document.getElementById('proyPrioridad').value = 'media';
+        document.getElementById('modalProyecto').style.display = 'flex';
+        document.getElementById('modalGuardar').onclick = guardarNuevoProyecto;
+        document.getElementById('modalCancelar').onclick = function() { document.getElementById('modalProyecto').style.display = 'none'; };
+    }
+
+    function guardarNuevoProyecto() {
+        let nombre = document.getElementById('proyNombre').value.trim();
+        if (!nombre) { mostrarNotificacion('❌ Nombre requerido'); return; }
+        proyectos.push({ id: Date.now(), nombre: nombre, descripcion: document.getElementById('proyDesc').value, prioridad: document.getElementById('proyPrioridad').value, completado: false, progreso: 0, tareas: [] });
+        guardarDatos();
+        document.getElementById('modalProyecto').style.display = 'none';
+        renderizarProyectos();
+        mostrarNotificacion('✅ Proyecto creado');
+    }
+
+    function editarProyecto(id) {
+        let p = proyectos.find(p => p.id === id);
+        if (!p) return;
+        document.getElementById('modalTitulo').innerText = 'Editar Proyecto';
+        document.getElementById('proyNombre').value = p.nombre;
+        document.getElementById('proyDesc').value = p.descripcion || '';
+        document.getElementById('proyPrioridad').value = p.prioridad;
+        document.getElementById('modalProyecto').style.display = 'flex';
+        document.getElementById('modalGuardar').onclick = function() {
+            p.nombre = document.getElementById('proyNombre').value;
+            p.descripcion = document.getElementById('proyDesc').value;
+            p.prioridad = document.getElementById('proyPrioridad').value;
+            guardarDatos();
+            document.getElementById('modalProyecto').style.display = 'none';
+            renderizarProyectos();
+            mostrarNotificacion('✅ Proyecto actualizado');
+        };
+    }
+
+    function toggleProyecto(id) {
+        let p = proyectos.find(p => p.id === id);
+        if (p) {
+            p.completado = !p.completado;
+            if (p.completado) { p.progreso = 100; if(p.tareas) p.tareas.forEach(t=>t.completada=true); }
+            else actualizarProgreso(p);
+            guardarDatos();
+            renderizarProyectos();
+            mostrarNotificacion(p.completado ? '🎉 Completado!' : '🔄 Reactivado');
+        }
+    }
+
+    function eliminarProyecto(id) {
+        if (!confirm('¿Eliminar?')) return;
+        proyectos = proyectos.filter(p => p.id !== id);
+        guardarDatos();
+        renderizarProyectos();
+        mostrarNotificacion('🗑️ Eliminado');
+    }
+
+    function agregarTarea(proyectoId) {
+        let input = document.getElementById('nuevaTarea-' + proyectoId);
+        let texto = input ? input.value.trim() : '';
+        if (!texto) return;
+        let p = proyectos.find(p => p.id === proyectoId);
+        if (p) {
+            if (!p.tareas) p.tareas = [];
+            p.tareas.push({ id: Date.now(), texto: texto, completada: false });
+            actualizarProgreso(p);
+            guardarDatos();
+            input.value = '';
+            renderizarProyectos();
+            mostrarNotificacion('➕ Tarea agregada');
+        }
+    }
+
+    function toggleTarea(proyectoId, tareaId) {
+        let p = proyectos.find(p => p.id === proyectoId);
+        if (p && p.tareas) {
+            let t = p.tareas.find(t => t.id === tareaId);
+            if (t) {
+                t.completada = !t.completada;
+                actualizarProgreso(p);
+                guardarDatos();
+                renderizarProyectos();
+            }
+        }
+    }
+
+    // ==================== POMODORO ====================
+    function iniciarPomodoro() {
+        if (pomodoroActivo) return;
+        pomodoroActivo = true;
+        pomodoroIntervalo = setInterval(function() {
+            if (pomodoroTiempo > 0) {
+                pomodoroTiempo--;
+                let m = Math.floor(pomodoroTiempo / 60);
+                let s = pomodoroTiempo % 60;
+                document.getElementById('pomodoroTimer').innerText = (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+                if (pomodoroTiempo === 0) {
+                    clearInterval(pomodoroIntervalo);
+                    pomodoroActivo = false;
+                    document.getElementById('pomodoroStatus').innerHTML = '🎉 Completado!';
+                    mostrarNotificacion('🎉 Pomodoro completado!');
+                }
+            }
+        }, 1000);
+        document.getElementById('pomodoroStatus').innerHTML = '🍅 Trabajando...';
+    }
+
+    function pausarPomodoro() {
+        if (!pomodoroActivo) return;
+        clearInterval(pomodoroIntervalo);
+        pomodoroActivo = false;
+        document.getElementById('pomodoroStatus').innerHTML = '⏸️ Pausado';
+    }
+
+    function resetPomodoro() {
+        clearInterval(pomodoroIntervalo);
+        pomodoroActivo = false;
+        pomodoroTiempo = 25 * 60;
+        document.getElementById('pomodoroTimer').innerText = '25:00';
+        document.getElementById('pomodoroStatus').innerHTML = '✅ Listo';
+    }
+
+    // ==================== UTILIDADES ====================
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+    
+    function mostrarNotificacion(msg) {
+        let n = document.createElement('div');
+        n.className = 'notification-toast';
+        n.innerHTML = msg;
+        document.body.appendChild(n);
+        setTimeout(function() { if (n && n.remove) n.remove(); }, 3000);
+    }
+
+    // Exponer funciones globales
+    window.mostrarModalPlanIA = mostrarModalPlanIA;
+    window.mostrarModalNuevo = mostrarModalNuevo;
+    window.agregarEventoFecha = agregarEventoFecha;
+    window.editarEvento = editarEvento;
+    window.eliminarEventoDirecto = eliminarEventoDirecto;
+    window.exportarReporteSimple = exportarReporteSimple;
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

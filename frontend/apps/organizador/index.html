@@ -1,0 +1,1153 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Calendario Organizador - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* App Container */
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .app-header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-header h1 i {
+            color: #3b82f6;
+        }
+
+        .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 12px;
+            border-radius: 30px;
+        }
+
+        .date-nav button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        .date-nav button:hover {
+            background: rgba(59,130,246,0.3);
+        }
+
+        .date-nav span {
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .view-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .view-btn {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: #a0a0b0;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .view-btn:hover:not(.active) {
+            background: rgba(59,130,246,0.3);
+            color: white;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .stat-chip {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-chip i {
+            color: #3b82f6;
+            font-size: 10px;
+        }
+
+        /* Main Content */
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            min-height: 0;
+        }
+
+        /* Weekly View */
+        .weekly-view {
+            display: flex;
+            gap: 1px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        .time-column {
+            width: 60px;
+            background: rgba(10,10,15,0.9);
+            flex-shrink: 0;
+        }
+
+        .time-slot {
+            height: 60px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 10px;
+            color: #a0a0b0;
+            text-align: center;
+            padding-top: 4px;
+        }
+
+        .day-column {
+            flex: 1;
+            background: rgba(10,10,15,0.5);
+        }
+
+        .day-header {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3);
+        }
+
+        .day-name {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .day-date {
+            font-size: 10px;
+            color: #a0a0b0;
+        }
+
+        .day-header.today {
+            background: rgba(59,130,246,0.2);
+            border-bottom-color: #3b82f6;
+        }
+
+        .day-header.today .day-name {
+            color: #3b82f6;
+        }
+
+        .day-cells {
+            position: relative;
+            min-height: 600px;
+        }
+
+        .hour-cell {
+            height: 60px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+        }
+
+        .event {
+            position: absolute;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            overflow: hidden;
+            z-index: 10;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .event:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+        }
+
+        .event-title {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .event-time {
+            font-size: 8px;
+            opacity: 0.8;
+        }
+
+        .event.habit { background: linear-gradient(135deg, #10b981, #059669); }
+        .event.meta { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .event.sueno { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .event.ejercicio { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .event.custom { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+        /* Monthly View */
+        .monthly-view {
+            display: none;
+        }
+
+        .monthly-view.active {
+            display: block;
+        }
+
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .month-day {
+            background: rgba(10,10,15,0.5);
+            min-height: 100px;
+            padding: 8px;
+        }
+
+        .month-day-header {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .month-day.today {
+            background: rgba(59,130,246,0.1);
+            border: 1px solid #3b82f6;
+        }
+
+        .month-events {
+            font-size: 9px;
+        }
+
+        .month-event {
+            background: rgba(59,130,246,0.3);
+            border-radius: 4px;
+            padding: 2px 4px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Agenda View */
+        .agenda-view {
+            display: none;
+        }
+
+        .agenda-view.active {
+            display: block;
+        }
+
+        .agenda-day {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .agenda-day-header {
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-weight: 600;
+        }
+
+        .agenda-event {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .agenda-event:hover {
+            background: rgba(59,130,246,0.1);
+        }
+
+        .agenda-time {
+            min-width: 80px;
+            font-size: 12px;
+            color: #3b82f6;
+        }
+
+        .agenda-title {
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .agenda-type {
+            font-size: 10px;
+            color: #a0a0b0;
+        }
+
+        /* AI Suggestion Panel */
+        .ai-panel {
+            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1));
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(59,130,246,0.3);
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .ai-header i {
+            color: #3b82f6;
+            font-size: 20px;
+        }
+
+        .ai-suggestion {
+            font-size: 13px;
+            color: #c0c0d0;
+            line-height: 1.5;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 24px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(59,130,246,0.3);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+        }
+
+        .modal-content input,
+        .modal-content select,
+        .modal-content textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Scrollbar */
+        .app-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .app-content::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+
+        .app-content::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 3px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #a0a0b0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #3b82f6;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-calendar-alt"></i> Calendario Organizador</h1>
+            <div class="date-nav">
+                <button onclick="calendar.prevWeek()"><i class="fas fa-chevron-left"></i></button>
+                <span id="currentDateRange"></span>
+                <button onclick="calendar.nextWeek()"><i class="fas fa-chevron-right"></i></button>
+                <button onclick="calendar.today()" class="btn-secondary" style="margin-left: 8px;">Hoy</button>
+            </div>
+            <div class="view-buttons">
+                <button class="view-btn active" data-view="week" onclick="calendar.setView('week')"><i class="fas fa-calendar-week"></i> Semana</button>
+                <button class="view-btn" data-view="month" onclick="calendar.setView('month')"><i class="fas fa-calendar-alt"></i> Mes</button>
+                <button class="view-btn" data-view="agenda" onclick="calendar.setView('agenda')"><i class="fas fa-list"></i> Agenda</button>
+                <button class="btn-primary" onclick="calendar.showAddEventModal()" style="margin-left: 8px;"><i class="fas fa-plus"></i> Evento</button>
+            </div>
+        </div>
+        <div class="stats-bar" id="statsBar"></div>
+    </div>
+
+    <div class="app-content" id="calendarContent">
+        <div class="ai-panel" id="aiPanel">
+            <div class="ai-header">
+                <i class="fas fa-robot"></i>
+                <strong>Asistente IA</strong>
+            </div>
+            <div class="ai-suggestion" id="aiSuggestion">
+                Analizando tu horario para sugerir la mejor organización...
+            </div>
+        </div>
+        <div id="viewContainer"></div>
+    </div>
+</div>
+
+<!-- Modal para agregar evento -->
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <h3><i class="fas fa-plus"></i> Nuevo Evento</h3>
+        <input type="text" id="eventTitle" placeholder="Título del evento">
+        <select id="eventType">
+            <option value="custom">📌 Personalizado</option>
+            <option value="habit">🔄 Hábito</option>
+            <option value="meta">🎯 Meta</option>
+            <option value="ejercicio">🏃 Ejercicio</option>
+            <option value="sueno">😴 Sueño</option>
+        </select>
+        <input type="datetime-local" id="eventStart">
+        <input type="datetime-local" id="eventEnd">
+        <textarea id="eventDesc" placeholder="Descripción (opcional)" rows="3"></textarea>
+        <div class="modal-buttons">
+            <button class="btn-secondary" onclick="calendar.hideModal()">Cancelar</button>
+            <button class="btn-primary" onclick="calendar.addEvent()">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== CALENDARIO ORGANIZADOR ====================
+    const calendar = {
+        currentDate: new Date(),
+        view: 'week',
+        events: [],
+        integratedData: {
+            habitos: [],
+            metas: [],
+            ejercicios: [],
+            sueno: []
+        },
+
+        // Inicializar
+        init: function() {
+            this.loadEvents();
+            this.setupGlobalListener();
+            this.loadIntegratedData();
+            this.render();
+            this.startAutoRefresh();
+        },
+
+        // Escuchar datos globales
+        setupGlobalListener: function() {
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'GLOBAL_DATA_UPDATE') {
+                    console.log(`📅 Calendario recibió datos de ${event.data.app}`);
+                    this.processGlobalData(event.data.app, event.data.data);
+                }
+            });
+
+            // También escuchar eventos personalizados
+            window.addEventListener('external:data-update', (e) => {
+                if (e.detail) {
+                    this.processGlobalData(e.detail.source, e.detail.data);
+                }
+            });
+
+            // Cargar datos desde localStorage
+            setTimeout(() => {
+                this.loadFromLocalStorage();
+            }, 500);
+        },
+
+        processGlobalData: function(app, data) {
+            switch(app) {
+                case 'habitos':
+                    this.integratedData.habitos = Array.isArray(data) ? data : (data.items || []);
+                    this.generateEventsFromHabitos();
+                    break;
+                case 'metas':
+                    this.integratedData.metas = Array.isArray(data) ? data : (data.metas || data.items || []);
+                    this.generateEventsFromMetas();
+                    break;
+                case 'ejercicios':
+                    this.integratedData.ejercicios = Array.isArray(data) ? data : (data.items || []);
+                    this.generateEventsFromEjercicios();
+                    break;
+                case 'sueno':
+                    this.integratedData.sueno = Array.isArray(data) ? data : (data.items || []);
+                    this.generateEventsFromSueno();
+                    break;
+            }
+            this.saveEvents();
+            this.render();
+            this.generateAISuggestions();
+        },
+
+        loadFromLocalStorage: function() {
+            const appsData = [
+                { key: 'habitos_v7', app: 'habitos' },
+                { key: 'metas_proyectos_v6', app: 'metas' },
+                { key: 'reprompt_ejercicios_data', app: 'ejercicios' },
+                { key: 'reprompt_sueno_data', app: 'sueno' }
+            ];
+
+            for (let {key, app} of appsData) {
+                let data = localStorage.getItem(key);
+                if (data) {
+                    try {
+                        this.processGlobalData(app, JSON.parse(data));
+                    } catch(e) {}
+                }
+            }
+        },
+
+        generateEventsFromHabitos: function() {
+            // Los hábitos se convierten en eventos recurrentes diarios
+            for (let habito of this.integratedData.habitos) {
+                if (habito.nombre && habito.horario) {
+                    const existingIndex = this.events.findIndex(e => e.source === 'habito' && e.sourceId === habito.id);
+                    const eventData = {
+                        id: `habito_${habito.id || Date.now()}_${Math.random()}`,
+                        title: `🔄 ${habito.nombre}`,
+                        type: 'habit',
+                        source: 'habito',
+                        sourceId: habito.id,
+                        start: this.createRecurringDate(habito.horario),
+                        end: this.createRecurringDate(habito.horario, 30),
+                        recurring: true,
+                        recurringTime: habito.horario
+                    };
+                    if (existingIndex === -1) {
+                        this.events.push(eventData);
+                    } else {
+                        this.events[existingIndex] = { ...this.events[existingIndex], ...eventData };
+                    }
+                }
+            }
+        },
+
+        generateEventsFromMetas: function() {
+            for (let meta of this.integratedData.metas) {
+                if (meta.nombre && meta.fechaLimite) {
+                    const existingIndex = this.events.findIndex(e => e.source === 'meta' && e.sourceId === meta.id);
+                    const eventData = {
+                        id: `meta_${meta.id || Date.now()}_${Math.random()}`,
+                        title: `🎯 ${meta.nombre}`,
+                        type: 'meta',
+                        source: 'meta',
+                        sourceId: meta.id,
+                        start: new Date(meta.fechaLimite),
+                        end: new Date(new Date(meta.fechaLimite).getTime() + 60 * 60 * 1000),
+                        progreso: meta.progreso || 0
+                    };
+                    if (existingIndex === -1) {
+                        this.events.push(eventData);
+                    } else {
+                        this.events[existingIndex] = { ...this.events[existingIndex], ...eventData };
+                    }
+                }
+            }
+        },
+
+        generateEventsFromEjercicios: function() {
+            for (let ejercicio of this.integratedData.ejercicios) {
+                if (ejercicio.nombre && ejercicio.fecha) {
+                    const eventData = {
+                        id: `ejercicio_${ejercicio.id || Date.now()}_${Math.random()}`,
+                        title: `🏃 ${ejercicio.nombre}`,
+                        type: 'ejercicio',
+                        source: 'ejercicio',
+                        sourceId: ejercicio.id,
+                        start: new Date(ejercicio.fecha),
+                        end: new Date(new Date(ejercicio.fecha).getTime() + (ejercicio.duracion || 30) * 60 * 1000),
+                        calorias: ejercicio.calorias || 0
+                    };
+                    this.events.push(eventData);
+                }
+            }
+        },
+
+        generateEventsFromSueno: function() {
+            for (let sueno of this.integratedData.sueno) {
+                if (sueno.fecha && sueno.horas) {
+                    const eventData = {
+                        id: `sueno_${sueno.id || Date.now()}_${Math.random()}`,
+                        title: `😴 Sueño: ${sueno.horas} horas`,
+                        type: 'sueno',
+                        source: 'sueno',
+                        sourceId: sueno.id,
+                        start: new Date(sueno.fecha),
+                        end: new Date(new Date(sueno.fecha).getTime() + sueno.horas * 60 * 60 * 1000),
+                        calidad: sueno.calidad || 0
+                    };
+                    this.events.push(eventData);
+                }
+            }
+        },
+
+        createRecurringDate: function(timeStr, durationMinutes = 30) {
+            const today = new Date();
+            const [hours, minutes] = timeStr.split(':');
+            today.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            return today;
+        },
+
+        loadEvents: function() {
+            const saved = localStorage.getItem('reprompt_calendar_events');
+            if (saved) {
+                try {
+                    this.events = JSON.parse(saved);
+                    // Restaurar fechas
+                    this.events = this.events.map(e => ({
+                        ...e,
+                        start: new Date(e.start),
+                        end: new Date(e.end)
+                    }));
+                } catch(e) {}
+            }
+        },
+
+        saveEvents: function() {
+            localStorage.setItem('reprompt_calendar_events', JSON.stringify(this.events));
+            this.updateStats();
+        },
+
+        loadIntegratedData: function() {
+            this.generateEventsFromHabitos();
+            this.generateEventsFromMetas();
+            this.generateEventsFromEjercicios();
+            this.generateEventsFromSueno();
+            this.saveEvents();
+        },
+
+        addEvent: function() {
+            const title = document.getElementById('eventTitle').value;
+            const type = document.getElementById('eventType').value;
+            const startStr = document.getElementById('eventStart').value;
+            const endStr = document.getElementById('eventEnd').value;
+            const desc = document.getElementById('eventDesc').value;
+
+            if (!title || !startStr) {
+                this.showToast('⚠️ Completa los campos requeridos');
+                return;
+            }
+
+            const event = {
+                id: `custom_${Date.now()}_${Math.random()}`,
+                title: title,
+                type: type,
+                source: 'custom',
+                start: new Date(startStr),
+                end: endStr ? new Date(endStr) : new Date(new Date(startStr).getTime() + 60 * 60 * 1000),
+                desc: desc
+            };
+
+            this.events.push(event);
+            this.saveEvents();
+            this.render();
+            this.hideModal();
+            this.showToast('✅ Evento agregado');
+            
+            // Limpiar formulario
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventDesc').value = '';
+        },
+
+        deleteEvent: function(eventId) {
+            if (confirm('¿Eliminar este evento?')) {
+                this.events = this.events.filter(e => e.id !== eventId);
+                this.saveEvents();
+                this.render();
+                this.showToast('🗑️ Evento eliminado');
+            }
+        },
+
+        updateStats: function() {
+            const statsBar = document.getElementById('statsBar');
+            const today = new Date().toDateString();
+            const todayEvents = this.events.filter(e => new Date(e.start).toDateString() === today);
+            const pendingMetas = this.events.filter(e => e.type === 'meta' && new Date(e.start) > new Date());
+            const completedHabitos = this.events.filter(e => e.type === 'habit' && new Date(e.start).toDateString() === today);
+            
+            statsBar.innerHTML = `
+                <div class="stat-chip"><i class="fas fa-calendar-day"></i> Hoy: ${todayEvents.length} eventos</div>
+                <div class="stat-chip"><i class="fas fa-bullseye"></i> Metas pendientes: ${pendingMetas.length}</div>
+                <div class="stat-chip"><i class="fas fa-repeat"></i> Hábitos hoy: ${completedHabitos.length}</div>
+                <div class="stat-chip"><i class="fas fa-database"></i> Total eventos: ${this.events.length}</div>
+            `;
+        },
+
+        generateAISuggestions: function() {
+            const today = new Date();
+            const todayEvents = this.events.filter(e => new Date(e.start).toDateString() === today.toDateString());
+            const pendingTasks = this.events.filter(e => new Date(e.start) > new Date() && e.type !== 'sueno');
+            
+            let suggestion = '';
+            
+            if (todayEvents.length === 0) {
+                suggestion = '📋 Tu día está libre. ¿Qué tal si agregas algunos hábitos o metas para hoy?';
+            } else if (pendingTasks.length > 5) {
+                suggestion = `⚡ Tienes ${pendingTasks.length} tareas pendientes. Te sugiero usar la técnica Pomodoro: 25 min focus, 5 min descanso.`;
+            } else if (todayEvents.some(e => e.type === 'meta')) {
+                suggestion = '🎯 Hoy tienes metas importantes. Prioriza las que tengan fecha límite más cercana.';
+            } else {
+                suggestion = '🌟 Vas bien encaminado. Recuerda mantener un equilibrio entre trabajo, ejercicio y descanso.';
+            }
+            
+            // Sugerencia de horario óptimo
+            const morningTasks = this.events.filter(e => new Date(e.start).getHours() < 12);
+            if (morningTasks.length === 0 && todayEvents.length > 0) {
+                suggestion += ' 🌅 Considera mover tus tareas importantes a la mañana, cuando tu energía es mayor.';
+            }
+            
+            document.getElementById('aiSuggestion').innerHTML = suggestion;
+        },
+
+        setView: function(view) {
+            this.view = view;
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                if (btn.getAttribute('data-view') === view) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            this.render();
+        },
+
+        prevWeek: function() {
+            if (this.view === 'month') {
+                this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+            } else {
+                this.currentDate.setDate(this.currentDate.getDate() - 7);
+            }
+            this.render();
+        },
+
+        nextWeek: function() {
+            if (this.view === 'month') {
+                this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+            } else {
+                this.currentDate.setDate(this.currentDate.getDate() + 7);
+            }
+            this.render();
+        },
+
+        today: function() {
+            this.currentDate = new Date();
+            this.render();
+        },
+
+        getWeekRange: function() {
+            const start = new Date(this.currentDate);
+            start.setDate(start.getDate() - start.getDay());
+            const end = new Date(start);
+            end.setDate(end.getDate() + 6);
+            return { start, end };
+        },
+
+        render: function() {
+            if (this.view === 'week') {
+                this.renderWeekView();
+            } else if (this.view === 'month') {
+                this.renderMonthView();
+            } else {
+                this.renderAgendaView();
+            }
+            this.updateDateRange();
+            this.updateStats();
+            this.generateAISuggestions();
+        },
+
+        renderWeekView: function() {
+            const { start } = this.getWeekRange();
+            const days = [];
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(start);
+                day.setDate(start.getDate() + i);
+                days.push(day);
+            }
+            
+            const hours = Array.from({ length: 24 }, (_, i) => i);
+            const today = new Date().toDateString();
+            
+            let html = `<div class="weekly-view">
+                <div class="time-column">
+                    ${hours.map(h => `<div class="time-slot">${h.toString().padStart(2, '0')}:00</div>`).join('')}
+                </div>`;
+            
+            for (let i = 0; i < days.length; i++) {
+                const day = days[i];
+                const isToday = day.toDateString() === today;
+                const dayEvents = this.events.filter(e => new Date(e.start).toDateString() === day.toDateString());
+                
+                html += `<div class="day-column">
+                    <div class="day-header ${isToday ? 'today' : ''}">
+                        <div class="day-name">${this.getDayName(day)}</div>
+                        <div class="day-date">${day.getDate()}</div>
+                    </div>
+                    <div class="day-cells" style="position: relative; height: ${hours.length * 60}px;">`;
+                
+                // Renderizar eventos
+                for (let event of dayEvents) {
+                    const eventHour = new Date(event.start).getHours();
+                    const eventMinute = new Date(event.start).getMinutes();
+                    const duration = (new Date(event.end) - new Date(event.start)) / (1000 * 60);
+                    const top = eventHour * 60 + eventMinute;
+                    const height = Math.min(duration, 120);
+                    
+                    let typeClass = '';
+                    if (event.type === 'habit') typeClass = 'habit';
+                    else if (event.type === 'meta') typeClass = 'meta';
+                    else if (event.type === 'ejercicio') typeClass = 'ejercicio';
+                    else if (event.type === 'sueno') typeClass = 'sueno';
+                    
+                    html += `<div class="event ${typeClass}" style="top: ${top}px; height: ${height}px; left: 4px; right: 4px;" 
+                                onclick="calendar.showEventDetails('${event.id}')">
+                        <div class="event-title">${this.escapeHtml(event.title)}</div>
+                        <div class="event-time">${this.formatTime(event.start)} - ${this.formatTime(event.end)}</div>
+                    </div>`;
+                }
+                
+                html += `</div></div>`;
+            }
+            
+            html += `</div>`;
+            document.getElementById('viewContainer').innerHTML = html;
+        },
+
+        renderMonthView: function() {
+            const year = this.currentDate.getFullYear();
+            const month = this.currentDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startOffset = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+            
+            let html = `<div class="monthly-view active"><div class="month-grid">`;
+            
+            // Días de la semana
+            const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            for (let wd of weekdays) {
+                html += `<div class="month-day-header" style="padding: 8px; text-align: center; font-size: 12px; background: rgba(0,0,0,0.3);">${wd}</div>`;
+            }
+            
+            // Celdas vacías antes del día 1
+            for (let i = 0; i < startOffset; i++) {
+                html += `<div class="month-day"></div>`;
+            }
+            
+            const today = new Date();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const date = new Date(year, month, d);
+                const isToday = date.toDateString() === today.toDateString();
+                const dayEvents = this.events.filter(e => new Date(e.start).toDateString() === date.toDateString());
+                
+                html += `<div class="month-day ${isToday ? 'today' : ''}">
+                    <div class="month-day-header">
+                        <span>${d}</span>
+                        ${dayEvents.length > 0 ? `<span class="stat-chip" style="font-size: 9px;">${dayEvents.length}</span>` : ''}
+                    </div>
+                    <div class="month-events">
+                        ${dayEvents.slice(0, 3).map(e => `<div class="month-event" onclick="calendar.showEventDetails('${e.id}')">${this.escapeHtml(e.title)}</div>`).join('')}
+                        ${dayEvents.length > 3 ? `<div class="month-event" style="background: none;">+${dayEvents.length - 3} más</div>` : ''}
+                    </div>
+                </div>`;
+            }
+            
+            html += `</div></div>`;
+            document.getElementById('viewContainer').innerHTML = html;
+        },
+
+        renderAgendaView: function() {
+            const sortedEvents = [...this.events].sort((a, b) => new Date(a.start) - new Date(b.start));
+            const grouped = {};
+            
+            for (let event of sortedEvents) {
+                const dateKey = new Date(event.start).toDateString();
+                if (!grouped[dateKey]) grouped[dateKey] = [];
+                grouped[dateKey].push(event);
+            }
+            
+            let html = `<div class="agenda-view active">`;
+            for (let [dateKey, events] of Object.entries(grouped)) {
+                html += `<div class="agenda-day">
+                    <div class="agenda-day-header">
+                        ${this.formatDateFull(new Date(dateKey))}
+                        <span style="font-size: 11px; color: #a0a0b0; margin-left: 10px;">${events.length} eventos</span>
+                    </div>`;
+                
+                for (let event of events) {
+                    let typeIcon = '';
+                    if (event.type === 'habit') typeIcon = '🔄';
+                    else if (event.type === 'meta') typeIcon = '🎯';
+                    else if (event.type === 'ejercicio') typeIcon = '🏃';
+                    else if (event.type === 'sueno') typeIcon = '😴';
+                    else typeIcon = '📌';
+                    
+                    html += `<div class="agenda-event" onclick="calendar.showEventDetails('${event.id}')">
+                        <div class="agenda-time">${this.formatTime(event.start)} - ${this.formatTime(event.end)}</div>
+                        <div class="agenda-title">${typeIcon} ${this.escapeHtml(event.title)}</div>
+                        <div class="agenda-type">${event.type}</div>
+                    </div>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            if (sortedEvents.length === 0) {
+                html += `<div class="empty-state"><i class="fas fa-calendar-plus"></i><br>No hay eventos. Crea tu primer evento usando el botón "+"</div>`;
+            }
+            
+            html += `</div>`;
+            document.getElementById('viewContainer').innerHTML = html;
+        },
+
+        showEventDetails: function(eventId) {
+            const event = this.events.find(e => e.id === eventId);
+            if (!event) return;
+            
+            let details = `${event.title}\n`;
+            details += `📅 ${this.formatDateTime(event.start)} - ${this.formatDateTime(event.end)}\n`;
+            details += `🏷️ Tipo: ${event.type}\n`;
+            if (event.desc) details += `📝 ${event.desc}`;
+            
+            if (confirm(`${details}\n\n¿Eliminar este evento?`)) {
+                this.deleteEvent(eventId);
+            } else {
+                this.showToast(`📌 ${event.title}`);
+            }
+        },
+
+        showAddEventModal: function() {
+            // Set default times
+            const now = new Date();
+            const startDefault = new Date(now);
+            startDefault.setHours(now.getHours() + 1, 0, 0, 0);
+            const endDefault = new Date(startDefault);
+            endDefault.setHours(startDefault.getHours() + 1);
+            
+            document.getElementById('eventStart').value = startDefault.toISOString().slice(0, 16);
+            document.getElementById('eventEnd').value = endDefault.toISOString().slice(0, 16);
+            document.getElementById('eventModal').classList.add('active');
+        },
+
+        hideModal: function() {
+            document.getElementById('eventModal').classList.remove('active');
+        },
+
+        updateDateRange: function() {
+            const rangeSpan = document.getElementById('currentDateRange');
+            if (this.view === 'month') {
+                rangeSpan.textContent = this.currentDate.toLocaleString('es', { month: 'long', year: 'numeric' });
+            } else {
+                const { start, end } = this.getWeekRange();
+                rangeSpan.textContent = `${start.getDate()} ${this.getMonthName(start)} - ${end.getDate()} ${this.getMonthName(end)}, ${end.getFullYear()}`;
+            }
+        },
+
+        getDayName: function(date) {
+            return date.toLocaleString('es', { weekday: 'short' });
+        },
+
+        getMonthName: function(date) {
+            return date.toLocaleString('es', { month: 'short' });
+        },
+
+        formatTime: function(date) {
+            return date.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+        },
+
+        formatDateTime: function(date) {
+            return date.toLocaleString('es', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        },
+
+        formatDateFull: function(date) {
+            return date.toLocaleString('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        },
+
+        escapeHtml: function(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+        },
+
+        showToast: function(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        },
+
+        startAutoRefresh: function() {
+            // Refrescar cada 30 segundos para mantener datos actualizados
+            setInterval(() => {
+                this.loadIntegratedData();
+                this.render();
+            }, 30000);
+        }
+    };
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', () => {
+        calendar.init();
+        
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                calendar.hideModal();
+            }
+        });
+        
+        // Cerrar modal haciendo clic fuera
+        document.getElementById('eventModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('eventModal')) {
+                calendar.hideModal();
+            }
+        });
+    });
+</script>
+</body>
+</html>

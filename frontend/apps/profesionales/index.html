@@ -1,0 +1,802 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Profesionales - REPROMPT OS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .app-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10,10,15,0.95);
+            flex-shrink: 0;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .app-header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .app-header h1 i { color: #8b5cf6; }
+        .stats-summary {
+            display: flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px 15px;
+            border-radius: 30px;
+        }
+        .summary-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .summary-item i { color: #8b5cf6; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { background: rgba(139,92,246,0.1); transform: translateY(-2px); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #8b5cf6; }
+        .stat-label { font-size: 10px; color: #a0a0b0; margin-top: 4px; }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 0 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #a0a0b0;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #8b5cf6; border-bottom: 2px solid #8b5cf6; }
+        
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 16px 20px;
+            min-height: 0;
+        }
+        
+        /* Filtros */
+        .filtros {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+        }
+        .filtro-select {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 8px 16px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .busqueda {
+            flex: 1;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            color: white;
+            font-size: 12px;
+        }
+        
+        /* Grid profesionales */
+        .profesionales-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .profesional-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .profesional-card:hover { transform: translateY(-3px); border-color: #8b5cf6; background: rgba(139,92,246,0.1); }
+        .profesional-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .profesional-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #8b5cf6, #ec489a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        .profesional-info h3 { font-size: 16px; margin-bottom: 4px; }
+        .profesional-especialidad { font-size: 11px; color: #8b5cf6; }
+        .profesional-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 8px 0;
+            color: #f59e0b;
+            font-size: 12px;
+        }
+        .profesional-desc { font-size: 12px; color: #a0a0b0; line-height: 1.4; margin: 12px 0; }
+        .profesional-precio { font-size: 18px; font-weight: bold; color: #8b5cf6; margin: 8px 0; }
+        .btn-agendar {
+            background: #8b5cf6;
+            border: none;
+            padding: 10px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+        }
+        .btn-agendar:hover { background: #7c3aed; }
+        
+        /* Modal detalle */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a24;
+            border-radius: 24px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid rgba(139,92,246,0.3);
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: white;
+            margin: 8px 0;
+        }
+        .btn-primary {
+            background: #8b5cf6;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .resena-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .cita-card {
+            background: rgba(139,92,246,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-left: 3px solid #8b5cf6;
+        }
+        
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #8b5cf6;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .empty-state { text-align: center; padding: 60px 20px; color: #a0a0b0; }
+        .app-content::-webkit-scrollbar { width: 6px; }
+        .app-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .app-content::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <div class="header-top">
+            <h1><i class="fas fa-user-md"></i> Profesionales</h1>
+            <div class="stats-summary">
+                <div class="summary-item"><i class="fas fa-calendar-check"></i> <span id="citasPendientes">0</span></div>
+                <div class="summary-item"><i class="fas fa-star"></i> <span id="valoracionMedia">4.8</span></div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="cambiarTab('profesionales')"><div class="stat-value" id="totalProfesionales">0</div><div class="stat-label">Profesionales</div></div>
+            <div class="stat-card" onclick="cambiarTab('citas')"><div class="stat-value" id="citasTotales">0</div><div class="stat-label">Citas realizadas</div></div>
+            <div class="stat-card" onclick="cambiarTab('citas')"><div class="stat-value" id="proximasCitas">0</div><div class="stat-label">Próximas citas</div></div>
+            <div class="stat-card" onclick="cambiarTab('favoritos')"><div class="stat-value" id="favoritosCount">0</div><div class="stat-label">Favoritos</div></div>
+        </div>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" data-tab="profesionales"><i class="fas fa-search"></i> Profesionales</button>
+        <button class="tab" data-tab="citas"><i class="fas fa-calendar-alt"></i> Mis citas</button>
+        <button class="tab" data-tab="favoritos"><i class="fas fa-heart"></i> Favoritos</button>
+        <button class="tab" data-tab="guias"><i class="fas fa-book"></i> Guías</button>
+    </div>
+    
+    <div class="app-content" id="contenidoDinamico"></div>
+</div>
+
+<!-- Modal profesional -->
+<div id="modalProfesional" class="modal">
+    <div class="modal-content">
+        <div id="profesionalContent"></div>
+        <div class="modal-buttons" style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn-secondary" onclick="cerrarModal()">Cerrar</button>
+            <button class="btn-primary" id="agendarBtn" onclick="solicitarCita()">Solicitar cita</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal cita -->
+<div id="modalCita" class="modal">
+    <div class="modal-content">
+        <h3>📅 Solicitar cita</h3>
+        <input type="date" id="citaFecha" class="input-field">
+        <select id="citaHora" class="input-field">
+            <option value="09:00">09:00</option><option value="10:00">10:00</option><option value="11:00">11:00</option>
+            <option value="12:00">12:00</option><option value="16:00">16:00</option><option value="17:00">17:00</option>
+            <option value="18:00">18:00</option><option value="19:00">19:00</option>
+        </select>
+        <select id="citaModalidad" class="input-field">
+            <option value="presencial">Presencial</option>
+            <option value="online">Online (videollamada)</option>
+        </select>
+        <textarea id="citaNotas" class="input-field" rows="3" placeholder="Motivo de consulta (opcional)"></textarea>
+        <div class="modal-buttons" style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn-secondary" onclick="cerrarModalCita()">Cancelar</button>
+            <button class="btn-primary" onclick="confirmarCita()">Confirmar cita</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== DATOS DE PROFESIONALES ====================
+    const PROFESIONALES = [
+        {
+            id: 1,
+            nombre: "Dra. Ana Martínez",
+            especialidad: "Psicóloga Clínica",
+            avatar: "👩‍⚕️",
+            descripcion: "Especialista en ansiedad, depresión y terapia cognitivo-conductual. 10 años de experiencia.",
+            experiencia: "10 años",
+            formacion: "Universidad Complutense de Madrid",
+            precio: 60,
+            rating: 4.9,
+            reseñas: [
+                { usuario: "María", texto: "Excelente profesional, me ha ayudado mucho", estrellas: 5, fecha: "2024-02-15" },
+                { usuario: "Carlos", texto: "Muy empática y profesional", estrellas: 5, fecha: "2024-02-10" }
+            ],
+            disponibilidad: ["Lunes 9-14", "Martes 9-14", "Miércoles 15-20", "Jueves 9-14", "Viernes 9-14"],
+            modalidad: ["presencial", "online"],
+            ubicacion: "Madrid"
+        },
+        {
+            id: 2,
+            nombre: "Dr. Javier Ruiz",
+            especialidad: "Psiquiatra",
+            avatar: "👨‍⚕️",
+            descripcion: "Psiquiatría general, trastornos de ansiedad y del estado de ánimo. Atención presencial y online.",
+            experiencia: "15 años",
+            formacion: "Universidad Autónoma de Barcelona",
+            precio: 80,
+            rating: 4.8,
+            reseñas: [
+                { usuario: "Laura", texto: "Muy atento y profesional", estrellas: 5, fecha: "2024-02-12" },
+                { usuario: "Pedro", texto: "Buen profesional", estrellas: 4, fecha: "2024-02-05" }
+            ],
+            disponibilidad: ["Lunes 15-20", "Martes 15-20", "Miércoles 9-14", "Jueves 9-14", "Viernes 9-14"],
+            modalidad: ["presencial", "online"],
+            ubicacion: "Barcelona"
+        },
+        {
+            id: 3,
+            nombre: "Dra. Laura Gómez",
+            especialidad: "Coach de Bienestar",
+            avatar: "👩‍💼",
+            descripcion: "Coaching para desarrollo personal, gestión del estrés y equilibrio vida-trabajo.",
+            experiencia: "8 años",
+            formacion: "ICF Certified Coach",
+            precio: 50,
+            rating: 4.7,
+            reseñas: [
+                { usuario: "Sofia", texto: "Me ayudó a encontrar mi propósito", estrellas: 5, fecha: "2024-02-08" }
+            ],
+            disponibilidad: ["Lunes 10-14", "Martes 16-20", "Miércoles 10-14", "Jueves 16-20", "Viernes 10-14"],
+            modalidad: ["online"],
+            ubicacion: "Online"
+        },
+        {
+            id: 4,
+            nombre: "Dr. Miguel Torres",
+            especialidad: "Psicólogo Infantil",
+            avatar: "👨‍👧",
+            descripcion: "Especialista en niños y adolescentes. Problemas de conducta, ansiedad escolar y TDAH.",
+            experiencia: "12 años",
+            formacion: "Universidad de Sevilla",
+            precio: 65,
+            rating: 4.9,
+            reseñas: [
+                { usuario: "Ana", texto: "Excelente con mi hijo, muy paciente", estrellas: 5, fecha: "2024-02-14" }
+            ],
+            disponibilidad: ["Lunes 15-19", "Martes 15-19", "Miércoles 9-14", "Jueves 15-19", "Viernes 9-14"],
+            modalidad: ["presencial", "online"],
+            ubicacion: "Sevilla"
+        }
+    ];
+    
+    let usuario = {
+        citas: [], // { profesionalId, fecha, hora, modalidad, notas, estado }
+        favoritos: [],
+        historialCitas: []
+    };
+    
+    let profesionalActual = null;
+    let filtroEspecialidad = 'todos';
+    let filtroModalidad = 'todos';
+    let busquedaActual = '';
+    
+    // ==================== DATOS PERSISTENTES ====================
+    function cargarDatos() {
+        let guardado = localStorage.getItem('reprompt_profesionales_v1');
+        if (guardado) usuario = JSON.parse(guardado);
+        actualizarStats();
+        enviarDatosGlobales();
+    }
+    
+    function guardarDatos() {
+        localStorage.setItem('reprompt_profesionales_v1', JSON.stringify(usuario));
+        actualizarStats();
+        enviarDatosGlobales();
+    }
+    
+    function actualizarStats() {
+        document.getElementById('totalProfesionales').innerText = PROFESIONALES.length;
+        document.getElementById('citasTotales').innerText = usuario.citas.length;
+        document.getElementById('proximasCitas').innerText = usuario.citas.filter(c => new Date(c.fecha) >= new Date()).length;
+        document.getElementById('citasPendientes').innerText = usuario.citas.filter(c => c.estado === 'pendiente').length;
+        document.getElementById('favoritosCount').innerText = usuario.favoritos.length;
+        
+        let totalRating = PROFESIONALES.reduce((s, p) => s + p.rating, 0);
+        document.getElementById('valoracionMedia').innerText = (totalRating / PROFESIONALES.length).toFixed(1);
+    }
+    
+    function esFavorito(id) { return usuario.favoritos.includes(id); }
+    
+    function toggleFavorito(id) {
+        if (esFavorito(id)) {
+            usuario.favoritos = usuario.favoritos.filter(f => f !== id);
+            mostrarNotificacion("❌ Eliminado de favoritos");
+        } else {
+            usuario.favoritos.push(id);
+            mostrarNotificacion("⭐ Añadido a favoritos");
+        }
+        guardarDatos();
+        renderizarVistaActual();
+    }
+    
+    // ==================== FUNCIONES PRINCIPALES ====================
+    function solicitarCita() {
+        if (profesionalActual) {
+            document.getElementById('modalCita').style.display = 'flex';
+            document.getElementById('citaFecha').min = new Date().toISOString().split('T')[0];
+        }
+    }
+    
+    function confirmarCita() {
+        let fecha = document.getElementById('citaFecha').value;
+        let hora = document.getElementById('citaHora').value;
+        let modalidad = document.getElementById('citaModalidad').value;
+        let notas = document.getElementById('citaNotas').value;
+        
+        if (!fecha) {
+            mostrarNotificacion("❌ Selecciona una fecha");
+            return;
+        }
+        
+        usuario.citas.push({
+            id: Date.now(),
+            profesionalId: profesionalActual.id,
+            profesionalNombre: profesionalActual.nombre,
+            fecha: fecha,
+            hora: hora,
+            modalidad: modalidad,
+            notas: notas,
+            estado: "pendiente",
+            fechaSolicitud: new Date().toISOString()
+        });
+        
+        guardarDatos();
+        cerrarModalCita();
+        cerrarModal();
+        mostrarNotificacion("✅ Cita solicitada. El profesional te contactará pronto.");
+        if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'citas') renderizarCitas();
+    }
+    
+    function cancelarCita(id) {
+        if (confirm("¿Cancelar esta cita?")) {
+            usuario.citas = usuario.citas.filter(c => c.id !== id);
+            guardarDatos();
+            mostrarNotificacion("🗑️ Cita cancelada");
+            renderizarCitas();
+        }
+    }
+    
+    function agregarResena(profesionalId, texto, estrellas) {
+        let profesional = PROFESIONALES.find(p => p.id === profesionalId);
+        if (profesional) {
+            profesional.reseñas.unshift({
+                usuario: "Tú",
+                texto: texto,
+                estrellas: estrellas,
+                fecha: new Date().toISOString().split('T')[0]
+            });
+            // Recalcular rating
+            let total = profesional.reseñas.reduce((s, r) => s + r.estrellas, 0);
+            profesional.rating = +(total / profesional.reseñas.length).toFixed(1);
+            guardarDatos();
+            mostrarNotificacion("✅ Reseña publicada");
+            if (profesionalActual) mostrarProfesionalDetalle(profesionalActual);
+        }
+    }
+    
+    // ==================== RENDERIZADO ====================
+    function renderizarProfesionales() {
+        let profesionales = [...PROFESIONALES];
+        
+        if (filtroEspecialidad !== 'todos') {
+            profesionales = profesionales.filter(p => p.especialidad.toLowerCase().includes(filtroEspecialidad.toLowerCase()));
+        }
+        if (filtroModalidad !== 'todos') {
+            profesionales = profesionales.filter(p => p.modalidad.includes(filtroModalidad));
+        }
+        if (busquedaActual) {
+            profesionales = profesionales.filter(p => 
+                p.nombre.toLowerCase().includes(busquedaActual.toLowerCase()) ||
+                p.especialidad.toLowerCase().includes(busquedaActual.toLowerCase()) ||
+                p.ubicacion?.toLowerCase().includes(busquedaActual.toLowerCase())
+            );
+        }
+        
+        if (profesionales.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-user-md"></i><br>No hay profesionales con esos filtros</div>';
+            return;
+        }
+        
+        let html = `
+            <div class="filtros">
+                <input type="text" id="busquedaInput" class="busqueda" placeholder="🔍 Buscar profesional, especialidad..." onkeyup="buscarProfesionales()">
+                <select id="filtroEspecialidad" class="filtro-select" onchange="filtrarPorEspecialidad()">
+                    <option value="todos">📋 Todas las especialidades</option>
+                    <option value="psicólogo">🧠 Psicólogo</option>
+                    <option value="psiquiatra">💊 Psiquiatra</option>
+                    <option value="coach">🎯 Coach</option>
+                    <option value="infantil">👶 Psicólogo infantil</option>
+                </select>
+                <select id="filtroModalidad" class="filtro-select" onchange="filtrarPorModalidad()">
+                    <option value="todos">📍 Todas las modalidades</option>
+                    <option value="presencial">🏢 Presencial</option>
+                    <option value="online">💻 Online</option>
+                </select>
+            </div>
+            <div class="profesionales-grid">
+        `;
+        
+        for (let p of profesionales) {
+            let favorito = esFavorito(p.id);
+            html += `
+                <div class="profesional-card" onclick="mostrarProfesionalDetalle(${p.id})">
+                    <div class="profesional-header">
+                        <div class="profesional-avatar">${p.avatar}</div>
+                        <div class="profesional-info">
+                            <h3>${p.nombre} ${favorito ? '<span style="color:#f59e0b;">⭐</span>' : ''}</h3>
+                            <div class="profesional-especialidad">${p.especialidad}</div>
+                            <div class="profesional-rating"><i class="fas fa-star"></i> ${p.rating} (${p.reseñas.length} reseñas)</div>
+                        </div>
+                    </div>
+                    <div class="profesional-desc">${p.descripcion.substring(0, 100)}...</div>
+                    <div class="profesional-precio">${p.precio}€ / sesión</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-agendar" onclick="event.stopPropagation(); mostrarProfesionalDetalle(${p.id})">Ver perfil</button>
+                        <button class="btn-secondary" onclick="event.stopPropagation(); toggleFavorito(${p.id})" style="padding:10px;">${favorito ? '❤️' : '🤍'}</button>
+                    </div>
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function mostrarProfesionalDetalle(id) {
+        profesionalActual = PROFESIONALES.find(p => p.id === id);
+        if (!profesionalActual) return;
+        
+        let favorito = esFavorito(id);
+        let html = `
+            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+                <div class="profesional-avatar" style="width: 80px; height: 80px; font-size: 40px;">${profesionalActual.avatar}</div>
+                <div>
+                    <h2>${profesionalActual.nombre}</h2>
+                    <div class="profesional-especialidad" style="font-size: 14px;">${profesionalActual.especialidad}</div>
+                    <div class="profesional-rating"><i class="fas fa-star"></i> ${profesionalActual.rating} (${profesionalActual.reseñas.length} reseñas)</div>
+                </div>
+            </div>
+            <p><strong>📋 Sobre mí:</strong> ${profesionalActual.descripcion}</p>
+            <p><strong>🎓 Formación:</strong> ${profesionalActual.formacion}</p>
+            <p><strong>⏱️ Experiencia:</strong> ${profesionalActual.experiencia}</p>
+            <p><strong>📍 Ubicación:</strong> ${profesionalActual.ubicacion || 'Online'}</p>
+            <p><strong>💰 Tarifa:</strong> ${profesionalActual.precio}€ por sesión (50 min)</p>
+            <p><strong>📅 Disponibilidad:</strong> ${profesionalActual.disponibilidad.join(', ')}</p>
+            <p><strong>💻 Modalidades:</strong> ${profesionalActual.modalidad.map(m => m === 'presencial' ? '🏢 Presencial' : '💻 Online').join(' | ')}</p>
+            
+            <h3 style="margin: 16px 0 8px;">⭐ Reseñas (${profesionalActual.reseñas.length})</h3>
+            <div style="max-height: 200px; overflow-y: auto;">
+                ${profesionalActual.reseñas.map(r => `
+                    <div class="resena-card">
+                        <div><strong>${r.usuario}</strong> • ${r.fecha} • ${'⭐'.repeat(r.estrellas)}</div>
+                        <div style="font-size: 12px; margin-top: 4px;">${r.texto}</div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div style="margin-top: 16px;">
+                <textarea id="nuevaResena" class="input-field" rows="2" placeholder="Escribe tu reseña..."></textarea>
+                <div style="display: flex; gap: 8px;">
+                    <select id="estrellasResena" class="filtro-select">
+                        <option value="5">⭐⭐⭐⭐⭐ Excelente</option>
+                        <option value="4">⭐⭐⭐⭐ Muy bueno</option>
+                        <option value="3">⭐⭐⭐ Bueno</option>
+                        <option value="2">⭐⭐ Regular</option>
+                        <option value="1">⭐ Malo</option>
+                    </select>
+                    <button class="btn-secondary" onclick="publicarResena()">Publicar reseña</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('profesionalContent').innerHTML = html;
+        document.getElementById('modalProfesional').style.display = 'flex';
+        
+        document.getElementById('agendarBtn').innerHTML = favorito ? '📅 Solicitar cita ❤️' : '📅 Solicitar cita';
+    }
+    
+    function publicarResena() {
+        let texto = document.getElementById('nuevaResena').value.trim();
+        let estrellas = parseInt(document.getElementById('estrellasResena').value);
+        if (!texto) { mostrarNotificacion("Escribe tu reseña"); return; }
+        agregarResena(profesionalActual.id, texto, estrellas);
+        document.getElementById('nuevaResena').value = '';
+        mostrarProfesionalDetalle(profesionalActual.id);
+    }
+    
+    function renderizarCitas() {
+        if (usuario.citas.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-calendar-alt"></i><br>No tienes citas programadas. Busca un profesional y agenda tu primera cita.</div>';
+            return;
+        }
+        
+        let citasOrdenadas = [...usuario.citas].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+        let html = '<div class="profesionales-grid">';
+        for (let c of citasOrdenadas) {
+            let profesional = PROFESIONALES.find(p => p.id === c.profesionalId);
+            let fechaCita = new Date(c.fecha);
+            let esPasada = fechaCita < new Date();
+            html += `
+                <div class="cita-card">
+                    <div><strong>${profesional?.nombre || c.profesionalNombre}</strong></div>
+                    <div><i class="fas fa-calendar"></i> ${c.fecha} • ${c.hora}</div>
+                    <div><i class="fas fa-video"></i> ${c.modalidad === 'presencial' ? 'Presencial' : 'Online'}</div>
+                    <div><span class="badge" style="background: ${c.estado === 'pendiente' ? '#f59e0b' : '#10b981'}; padding:2px 8px; border-radius:20px;">${c.estado === 'pendiente' ? 'Pendiente' : 'Confirmada'}</span></div>
+                    ${c.notas ? `<div style="font-size:11px; margin-top:8px;">📝 ${c.notas}</div>` : ''}
+                    <button class="btn-secondary" onclick="cancelarCita(${c.id})" style="margin-top:12px; background:#ef4444;">Cancelar cita</button>
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarFavoritos() {
+        let favoritos = PROFESIONALES.filter(p => esFavorito(p.id));
+        if (favoritos.length === 0) {
+            document.getElementById('contenidoDinamico').innerHTML = '<div class="empty-state"><i class="fas fa-heart"></i><br>No tienes profesionales favoritos. Marca los que te interesen.</div>';
+            return;
+        }
+        
+        let html = '<div class="profesionales-grid">';
+        for (let p of favoritos) {
+            html += `
+                <div class="profesional-card" onclick="mostrarProfesionalDetalle(${p.id})">
+                    <div class="profesional-header">
+                        <div class="profesional-avatar">${p.avatar}</div>
+                        <div class="profesional-info">
+                            <h3>${p.nombre} ⭐</h3>
+                            <div class="profesional-especialidad">${p.especialidad}</div>
+                            <div class="profesional-rating"><i class="fas fa-star"></i> ${p.rating}</div>
+                        </div>
+                    </div>
+                    <div class="profesional-desc">${p.descripcion.substring(0, 100)}...</div>
+                    <div class="profesional-precio">${p.precio}€ / sesión</div>
+                    <button class="btn-agendar" onclick="event.stopPropagation(); mostrarProfesionalDetalle(${p.id})">Ver perfil</button>
+                </div>
+            `;
+        }
+        html += '</div>';
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    function renderizarGuias() {
+        let html = `
+            <div class="recomendacion-card" style="background:linear-gradient(135deg, rgba(139,92,246,0.1), rgba(16,185,129,0.1)); border-radius:20px; padding:20px; margin-bottom:20px;">
+                <h3><i class="fas fa-book-open"></i> Guía para elegir profesional</h3>
+                <ul style="margin: 16px 0 0 20px;">
+                    <li>🧠 <strong>Psicólogo</strong> - Terapia psicológica, ansiedad, depresión, relaciones</li>
+                    <li>💊 <strong>Psiquiatra</strong> - Diagnóstico y medicación para trastornos mentales</li>
+                    <li>🎯 <strong>Coach</strong> - Desarrollo personal, metas profesionales, hábitos</li>
+                    <li>👶 <strong>Psicólogo infantil</strong> - Problemas de conducta, TDAH, ansiedad en niños</li>
+                </ul>
+            </div>
+            <div class="recomendacion-card" style="border-radius:20px; padding:20px; margin-bottom:20px;">
+                <h3><i class="fas fa-question-circle"></i> ¿Cómo preparar tu primera cita?</h3>
+                <ol style="margin: 16px 0 0 20px;">
+                    <li>📝 Escribe lo que quieres trabajar antes de la sesión</li>
+                    <li>📅 Elige un horario donde puedas estar tranquilo/a</li>
+                    <li>💻 Prepara tu espacio (cámara, audífonos, lugar privado)</li>
+                    <li>📋 Pregunta sobre el proceso y lo que puedes esperar</li>
+                    <li>💭 Sé honesto/a sobre cómo te sientes</li>
+                </ol>
+            </div>
+            <div class="recomendacion-card" style="border-radius:20px; padding:20px;">
+                <h3><i class="fas fa-hand-holding-heart"></i> Recursos gratuitos</h3>
+                <ul style="margin: 16px 0 0 20px;">
+                    <li>📞 Teléfono de la Esperanza: 717 003 717</li>
+                    <li>📞 Línea de la Vida (México): 800 911 2000</li>
+                    <li>📞 024 (España) - Prevención del suicidio</li>
+                    <li>💻 Asociación Española de Psicología Clínica</li>
+                </ul>
+            </div>
+        `;
+        document.getElementById('contenidoDinamico').innerHTML = html;
+    }
+    
+    // ==================== UTILIDADES ====================
+    function buscarProfesionales() { busquedaActual = document.getElementById('busquedaInput')?.value || ''; renderizarProfesionales(); }
+    function filtrarPorEspecialidad() { filtroEspecialidad = document.getElementById('filtroEspecialidad')?.value || 'todos'; renderizarProfesionales(); }
+    function filtrarPorModalidad() { filtroModalidad = document.getElementById('filtroModalidad')?.value || 'todos'; renderizarProfesionales(); }
+    function cerrarModal() { document.getElementById('modalProfesional').style.display = 'none'; profesionalActual = null; }
+    function cerrarModalCita() { document.getElementById('modalCita').style.display = 'none'; }
+    function mostrarNotificacion(msg) { let n = document.createElement('div'); n.className = 'notification-toast'; n.innerHTML = msg; document.body.appendChild(n); setTimeout(() => n.remove(), 2500); }
+    
+    function renderizarVistaActual() {
+        let tab = document.querySelector('.tab.active')?.getAttribute('data-tab') || 'profesionales';
+        if (tab === 'profesionales') renderizarProfesionales();
+        else if (tab === 'citas') renderizarCitas();
+        else if (tab === 'favoritos') renderizarFavoritos();
+        else if (tab === 'guias') renderizarGuias();
+    }
+    
+    function cambiarTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+        renderizarVistaActual();
+    }
+    
+    function enviarDatosGlobales() {
+        let datos = {
+            profesionales_favoritos: usuario.favoritos.length,
+            citas_totales: usuario.citas.length,
+            citas_pendientes: usuario.citas.filter(c => c.estado === 'pendiente').length,
+            ultima_cita: usuario.citas[0]?.fecha || null,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('reprompt_profesionales_data', JSON.stringify(datos));
+        if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'GLOBAL_DATA_UPDATE', app: 'profesionales', data: datos }, '*');
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarDatos();
+        renderizarProfesionales();
+        
+        document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => cambiarTab(tab.getAttribute('data-tab'))));
+        
+        window.cambiarTab = cambiarTab;
+        window.mostrarProfesionalDetalle = mostrarProfesionalDetalle;
+        window.publicarResena = publicarResena;
+        window.solicitarCita = solicitarCita;
+        window.confirmarCita = confirmarCita;
+        window.cancelarCita = cancelarCita;
+        window.cerrarModal = cerrarModal;
+        window.cerrarModalCita = cerrarModalCita;
+        window.buscarProfesionales = buscarProfesionales;
+        window.filtrarPorEspecialidad = filtrarPorEspecialidad;
+        window.filtrarPorModalidad = filtrarPorModalidad;
+        window.toggleFavorito = toggleFavorito;
+        
+        setInterval(() => enviarDatosGlobales(), 30000);
+        if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'APP_ACTIVE', app: 'profesionales' }, '*');
+    });
+</script>
+</body>
+</html>

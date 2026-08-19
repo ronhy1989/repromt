@@ -1,0 +1,1470 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>REPROMPT - Libro de Vida IA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- REPROMPT INTELLIGENCE - Auto-evolutiva -->
+    <script src="../../js/core/reprompt-intelligence.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary, #0a0a0f);
+            color: var(--text-primary, #ffffff);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+        [data-theme="light"] body {
+            --bg-primary: #f8fafc;
+            --text-primary: #0f172a;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 2rem; background: linear-gradient(135deg, #f59e0b, #8b5cf6, #10b981); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .ia-section {
+            background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(16,185,129,0.2));
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid rgba(139,92,246,0.3);
+        }
+        .avatar-container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+        .avatar-large { font-size: 80px; background: linear-gradient(135deg, #8b5cf6, #ec489a); border-radius: 50%; padding: 15px; cursor: pointer; transition: transform 0.3s; text-align: center; }
+        .avatar-large:hover { transform: scale(1.05); }
+        .chat-bubble { flex: 1; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; }
+        .ia-message { font-size: 16px; line-height: 1.6; margin-bottom: 15px; min-height: 80px; white-space: pre-wrap; }
+        
+        .feedback-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-btn {
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .feedback-btn:hover { transform: scale(1.05); }
+        .feedback-btn-positive { background: #10b981; }
+        .feedback-btn-positive:hover { background: #059669; }
+        .feedback-btn-negative { background: #ef4444; }
+        .feedback-btn-negative:hover { background: #dc2626; }
+        
+        .ia-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .ia-btn { padding: 8px 16px; border-radius: 30px; border: none; font-size: 12px; cursor: pointer; background: rgba(139,92,246,0.3); color: white; transition: all 0.2s; }
+        .ia-btn:hover { background: #8b5cf6; transform: translateY(-2px); }
+        .btn-speak { background: #10b981; }
+        .input-group { display: flex; gap: 10px; margin-top: 15px; }
+        .user-input { flex: 1; padding: 12px; background: #1a1a2e; border: 1px solid #2a2a3a; border-radius: 30px; color: white; }
+        .send-btn { background: #8b5cf6; border: none; border-radius: 30px; padding: 0 20px; color: white; cursor: pointer; }
+        .avatar-mini-selector { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .avatar-mini { font-size: 28px; cursor: pointer; opacity: 0.5; transition: all 0.2s; }
+        .avatar-mini.selected { opacity: 1; transform: scale(1.1); }
+        
+        .recording-section { background: rgba(255,255,255,0.03); border-radius: 24px; padding: 20px; }
+        .device-controls {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+        .device-select {
+            background: #1a1a2e;
+            border: 1px solid #2a2a3a;
+            border-radius: 20px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .cam-control, .screen-control { display: flex; gap: 10px; align-items: center; }
+        .cam-toggle, .screen-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        .cam-toggle.on, .screen-toggle.on { background: #10b981; color: white; }
+        .cam-toggle.off, .screen-toggle.off { background: #ef4444; color: white; }
+        .preview-container {
+            position: relative;
+            margin: 15px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+        }
+        .preview-video { width: 100%; max-height: 200px; object-fit: cover; }
+        .recording-buttons { display: flex; justify-content: center; gap: 15px; margin: 20px 0; flex-wrap: wrap; }
+        .record-btn { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 32px; cursor: pointer; transition: all 0.2s; }
+        .record-audio { background: #ef4444; color: white; }
+        .record-video { background: #8b5cf6; color: white; }
+        .record-screen { background: #f59e0b; color: white; }
+        .stop-btn { background: #374151; color: white; }
+        .record-btn:hover { transform: scale(1.05); }
+        .recording-active { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+        .timer { font-size: 24px; text-align: center; font-family: monospace; color: #f59e0b; margin: 10px 0; }
+        .transcripcion-box { background: rgba(16,185,129,0.1); border-radius: 16px; padding: 12px; margin: 15px 0; border-left: 3px solid #10b981; max-height: 150px; overflow-y: auto; }
+        .respuesta-grabacion { margin-top: 15px; background: rgba(139,92,246,0.1); border-radius: 12px; padding: 12px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
+        .stat-card { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); background: rgba(139,92,246,0.2); }
+        .stat-value { font-size: 24px; font-weight: bold; color: #f59e0b; }
+        .stat-label { font-size: 10px; color: #a0a0b0; }
+        
+        .libro-virtual { background: rgba(255,255,255,0.03); border-radius: 24px; padding: 20px; margin-top: 20px; }
+        .libro-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .filtros { display: flex; gap: 10px; flex-wrap: wrap; }
+        .filtro-btn { padding: 6px 12px; border-radius: 20px; border: none; background: rgba(255,255,255,0.1); color: white; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+        .filtro-btn.active { background: #8b5cf6; }
+        .busqueda { padding: 8px 12px; border-radius: 20px; background: rgba(255,255,255,0.1); border: none; color: white; width: 200px; }
+        .entradas-container { max-height: 400px; overflow-y: auto; }
+        .entrada-item { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+        .entrada-item:hover { background: rgba(139,92,246,0.2); transform: translateX(5px); }
+        .entrada-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+        .entrada-fecha { color: #f59e0b; font-size: 11px; }
+        .entrada-tipo { padding: 2px 8px; border-radius: 20px; font-size: 10px; background: rgba(139,92,246,0.3); }
+        .entrada-texto { font-size: 12px; color: #a0a0b0; line-height: 1.4; }
+        
+        .emociones-stats { background: rgba(255,255,255,0.03); border-radius: 24px; padding: 20px; margin-top: 20px; }
+        .emociones-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .emociones-chart { max-height: 250px; margin-bottom: 20px; }
+        .resumen-semanal { background: rgba(139,92,246,0.1); border-radius: 16px; padding: 16px; margin-top: 15px; }
+        .recomendacion-ia { background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(139,92,246,0.1)); border-radius: 16px; padding: 16px; margin-top: 15px; border-left: 3px solid #10b981; }
+        .stats-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+        .stats-tab { padding: 6px 16px; border-radius: 20px; cursor: pointer; background: transparent; border: none; color: #a0a0b0; transition: all 0.2s; }
+        .stats-tab.active { background: #8b5cf6; color: white; }
+        .stats-panel { display: none; }
+        .stats-panel.active { display: block; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: #1a1a2e; border-radius: 24px; padding: 24px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .notification { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 10px; color: white; z-index: 1000; animation: slideIn 0.3s ease; }
+        .export-buttons { display: flex; gap: 10px; margin-top: 10px; }
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 800px) { .main-grid { grid-template-columns: 1fr; } }
+        
+        .transcripcion-texto { font-size: 13px; line-height: 1.5; color: #e0e0e0; white-space: pre-wrap; }
+        .global-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #8b5cf6, #10b981);
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: white;
+            font-size: 13px;
+            z-index: 1001;
+            animation: slideInGlobal 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            max-width: 300px;
+        }
+        @keyframes slideInGlobal {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .global-data-panel {
+            background: rgba(139,92,246,0.1);
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 15px;
+            border: 1px solid rgba(139,92,246,0.3);
+            font-size: 11px;
+        }
+        .global-data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .global-data-label { color: #a0a0b0; }
+        .global-data-value { color: #f59e0b; font-weight: bold; }
+        
+        .reflection-badge {
+            background: rgba(139,92,246,0.3);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 11px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-brain"></i> REPROMPT - Libro de Vida IA</h1>
+        <p>Asistente inteligente con grabación de audio, video y pantalla</p>
+    </div>
+    
+    <div class="main-grid">
+        <div class="ia-section">
+            <div class="avatar-container">
+                <div class="avatar-large" id="avatarLarge" onclick="cambiarAvatar()">🧠</div>
+                <div class="chat-bubble">
+                    <div class="ia-message" id="iaMessage">✨ Hola, soy REPROMPT. Comparte conmigo y juntos exploraremos tu mundo interior. Cada conversación me ayuda a conocerte mejor.</div>
+                    
+                    <div id="feedbackContainer" class="feedback-container" style="display: none;"></div>
+                    
+                    <div class="ia-actions">
+                        <button class="ia-btn btn-speak" onclick="hablarIA()"><i class="fas fa-volume-up"></i> Escuchar</button>
+                        <button class="ia-btn" onclick="nuevaPregunta()"><i class="fas fa-question"></i> Reflexión</button>
+                        <button class="ia-btn" onclick="analizarProgreso()"><i class="fas fa-chart-line"></i> Mi progreso</button>
+                        <button class="ia-btn" onclick="conectarMetas()"><i class="fas fa-bullseye"></i> Mis Metas</button>
+                        <button class="ia-btn" onclick="conectarHabitos()"><i class="fas fa-repeat"></i> Mis Hábitos</button>
+                        <button class="ia-btn" onclick="recomendacionPersonalizada()"><i class="fas fa-star"></i> Recomendación</button>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="userResponse" class="user-input" placeholder="Escribe tu respuesta..." onkeypress="if(event.key==='Enter') enviarRespuesta()">
+                        <button class="send-btn" onclick="enviarRespuesta()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                    <div class="avatar-mini-selector" id="avatarSelector"></div>
+                </div>
+            </div>
+            <div id="globalDataPanel" class="global-data-panel" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong><i class="fas fa-globe"></i> Datos Globales</strong>
+                    <button onclick="toggleGlobalPanel()" style="background: none; border: none; color: white; cursor: pointer;">✕</button>
+                </div>
+                <div id="globalDataContent"></div>
+            </div>
+        </div>
+        
+        <div class="recording-section">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <i class="fas fa-microphone-alt"></i> <strong>Controles de grabación</strong>
+            </div>
+            <div class="device-controls">
+                <select id="audioDeviceSelect" class="device-select"><option value="">🎤 Micrófono por defecto</option></select>
+                <select id="videoDeviceSelect" class="device-select"><option value="">📷 Cámara por defecto</option></select>
+                <div class="cam-control">
+                    <button id="camToggle" class="cam-toggle off" onclick="toggleCamaraPreview()"><i class="fas fa-video-slash"></i></button>
+                    <span style="font-size: 11px;">Previsualizar</span>
+                </div>
+                <div class="screen-control">
+                    <button id="screenToggle" class="screen-toggle off" onclick="toggleScreenPreview()"><i class="fas fa-desktop"></i></button>
+                    <span style="font-size: 11px;">Pantalla</span>
+                </div>
+            </div>
+            <div id="camPreviewContainer" class="preview-container" style="display: none;"><video id="camPreviewVideo" class="preview-video" autoplay muted playsinline></video></div>
+            <div id="screenPreviewContainer" class="preview-container" style="display: none;"><video id="screenPreviewVideo" class="preview-video" autoplay muted playsinline></video></div>
+            <div class="recording-buttons">
+                <button class="record-btn record-audio" id="recordAudioBtn"><i class="fas fa-microphone"></i></button>
+                <button class="record-btn record-video" id="recordVideoBtn"><i class="fas fa-video"></i></button>
+                <button class="record-btn record-screen" id="recordScreenBtn"><i class="fas fa-desktop"></i></button>
+                <button class="record-btn stop-btn" id="stopRecordingBtn"><i class="fas fa-stop"></i></button>
+            </div>
+            <div id="timerDisplay" class="timer" style="display: none;">00:00</div>
+            <div id="recordingStatus" style="text-align: center; font-size: 12px; color: #a0a0b0;"></div>
+            <div id="transcripcionBox" class="transcripcion-box" style="display: none;">
+                <div><i class="fas fa-microphone-alt"></i> <strong>📝 Transcripción:</strong></div>
+                <div id="transcripcionTexto" class="transcripcion-texto"></div>
+            </div>
+            <div id="respuestaGrabacion" style="display: none;">
+                <div class="respuesta-grabacion">
+                    <div><i class="fas fa-robot"></i> <strong>🤖 REPROMPT responde:</strong></div>
+                    <div id="respuestaTexto" style="font-size: 13px; margin-top: 8px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card" onclick="mostrarPanelEstadisticas()"><div class="stat-value" id="totalEntradas">0</div><div class="stat-label">Entradas</div></div>
+        <div class="stat-card" onclick="mostrarPanelEstadisticas()"><div class="stat-value" id="nivelSabiduria">1</div><div class="stat-label">Nivel</div></div>
+        <div class="stat-card" onclick="mostrarPanelEstadisticas()"><div class="stat-value" id="rachaDias">0</div><div class="stat-label">Racha 🔥</div></div>
+        <div class="stat-card" onclick="mostrarPanelEstadisticas()"><div class="stat-value" id="xpTotal">0</div><div class="stat-label">XP</div></div>
+    </div>
+    
+    <div class="libro-virtual">
+        <div class="libro-header">
+            <h3><i class="fas fa-book"></i> 📖 Mi Libro de Vida</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="searchInput" class="busqueda" placeholder="🔍 Buscar..." onkeyup="buscarEntradas()">
+                <div class="filtros">
+                    <button class="filtro-btn active" data-filtro="todos" onclick="filtrarEntradas('todos')">Todos</button>
+                    <button class="filtro-btn" data-filtro="texto" onclick="filtrarEntradas('texto')">📝 Texto</button>
+                    <button class="filtro-btn" data-filtro="audio" onclick="filtrarEntradas('audio')">🎤 Audio</button>
+                    <button class="filtro-btn" data-filtro="video" onclick="filtrarEntradas('video')">🎥 Video</button>
+                    <button class="filtro-btn" data-filtro="pantalla" onclick="filtrarEntradas('pantalla')">🖥️ Pantalla</button>
+                    <button class="filtro-btn" data-filtro="conversacion" onclick="filtrarEntradas('conversacion')">💬 Conversación</button>
+                </div>
+                <div class="export-buttons">
+                    <button class="ia-btn" onclick="exportarJSON()"><i class="fas fa-download"></i> JSON</button>
+                    <button class="ia-btn" onclick="exportarTXT()"><i class="fas fa-file-alt"></i> TXT</button>
+                </div>
+            </div>
+        </div>
+        <div class="entradas-container" id="entradasContainer"></div>
+    </div>
+    
+    <div class="emociones-stats" id="panelEstadisticas" style="display: none;">
+        <div class="emociones-header">
+            <h3><i class="fas fa-chart-pie"></i> 📊 Análisis de Emociones</h3>
+            <button class="ia-btn" onclick="cerrarPanelEstadisticas()"><i class="fas fa-times"></i> Cerrar</button>
+        </div>
+        <div class="stats-tabs">
+            <button class="stats-tab active" data-tab="emociones" onclick="cambiarStatsTab('emociones')">📈 Evolución</button>
+            <button class="stats-tab" data-tab="resumen" onclick="cambiarStatsTab('resumen')">📋 Resumen Semanal</button>
+            <button class="stats-tab" data-tab="recomendaciones" onclick="cambiarStatsTab('recomendaciones')">💡 Recomendaciones</button>
+        </div>
+        <div id="panelEmociones" class="stats-panel active">
+            <div class="emociones-chart"><canvas id="graficoEmociones"></canvas></div>
+            <div class="resumen-semanal"><h4>Distribución de Emociones</h4><div id="distribucionEmociones"></div></div>
+        </div>
+        <div id="panelResumen" class="stats-panel"><div class="resumen-semanal"><h4>Resumen de la Semana</h4><div id="resumenSemanal"></div></div></div>
+        <div id="panelRecomendaciones" class="stats-panel"><div class="recomendacion-ia"><h4>Recomendación Personalizada</h4><div id="recomendacionPersonalizada"></div></div></div>
+    </div>
+</div>
+
+<div id="modal" class="modal"><div class="modal-content"><button class="modal-close" onclick="cerrarModal()" style="float:right; background:none; border:none; color:white; font-size:24px;">&times;</button><div id="modalBody"></div></div></div>
+
+<script>
+    // ==================== CONFIGURACIÓN ====================
+    const LIBRO_KEY = 'reprompt_libro_v3';
+    const PERFIL_KEY = 'reprompt_perfil_v3';
+    
+    const AVATARES = [
+        { id: 'reprompt', nombre: 'REPROMPT', emoji: '🧠', saludo: 'Soy REPROMPT. Cuéntame, ¿cómo te sientes hoy? Quiero conocerte mejor.' },
+        { id: 'sabio', nombre: 'Sabio', emoji: '🦉', saludo: 'La sabiduría florece cuando nos conocemos a nosotros mismos. ¿Qué te trae por aquí?' },
+        { id: 'guerrero', nombre: 'Guerrero', emoji: '⚔️', saludo: '¡Cada día es una oportunidad para crecer! ¿Qué batalla enfrentas hoy?' },
+        { id: 'sanador', nombre: 'Sanador', emoji: '🌸', saludo: 'La sanación comienza en el corazón. ¿Qué necesitas sanar hoy?' },
+        { id: 'creativo', nombre: 'Creativo', emoji: '✨', saludo: 'Cada momento es una obra de arte. ¿Qué estás creando en tu vida?' }
+    ];
+    
+    const PREGUNTAS = [
+        "¿Qué emoción te acompañó hoy y por qué?",
+        "¿Qué aprendiste sobre ti mismo en las últimas horas?",
+        "¿Qué acción positiva realizaste hoy para ti o para otros?",
+        "¿Qué te hace sentir agradecido en este momento?",
+        "¿Qué sueño o meta quieres nutrir hoy?"
+    ];
+    
+    let libro = { entradas: [] };
+    let perfil = { avatarId: 'reprompt', nivelSabiduria: 1, xp: 0, racha: 0, ultimaFecha: null, respuestasProfundas: [] };
+    let filtroActual = 'todos';
+    let busquedaActual = '';
+    let graficoEmociones = null;
+    
+    // Variables de grabación
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let grabando = false;
+    let startTime = null;
+    let timerInterval = null;
+    let currentStream = null;
+    let recognition = null;
+    let textoTranscritoCompleto = '';
+    
+    // Previsualización
+    let camPreviewStream = null;
+    let screenPreviewStream = null;
+    let camPreviewActive = false;
+    let screenPreviewActive = false;
+    
+    let speechSynth = window.speechSynthesis;
+    
+    let globalData = {
+        ejercicios: null,
+        metas: null,
+        habitos: null,
+        sueno: null,
+        ultimaActualizacion: null
+    };
+    
+    // ==================== VARIABLE PARA CONTROLAR REPRODUCCIÓN ====================
+    let mediaElementActual = null;
+    let modalAbierto = false;
+    
+    // ==================== ALMACENAMIENTO PERMANENTE DE GRABACIONES (IndexedDB) ====================
+    let dbGrabaciones = null;
+    
+    function abrirDBGrabaciones() {
+        return new Promise((resolve, reject) => {
+            if (dbGrabaciones) {
+                resolve(dbGrabaciones);
+                return;
+            }
+            const request = indexedDB.open('RepromptGrabaciones', 1);
+            
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+                dbGrabaciones = request.result;
+                resolve(dbGrabaciones);
+            };
+            
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('grabaciones')) {
+                    db.createObjectStore('grabaciones', { keyPath: 'id' });
+                }
+            };
+        });
+    }
+    
+    async function guardarGrabacionPermanente(blob, tipo) {
+        try {
+            const db = await abrirDBGrabaciones();
+            const id = `grab_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+            
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['grabaciones'], 'readwrite');
+                const store = transaction.objectStore('grabaciones');
+                
+                const grabacionData = {
+                    id: id,
+                    tipo: tipo,
+                    blob: blob,
+                    fecha: new Date().toISOString()
+                };
+                
+                const request = store.put(grabacionData);
+                request.onsuccess = () => resolve(id);
+                request.onerror = () => reject(request.error);
+            });
+        } catch(e) {
+            console.error('Error guardando grabación:', e);
+            return null;
+        }
+    }
+    
+    async function recuperarGrabacion(id) {
+        try {
+            const db = await abrirDBGrabaciones();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['grabaciones'], 'readonly');
+                const store = transaction.objectStore('grabaciones');
+                const request = store.get(id);
+                
+                request.onsuccess = () => {
+                    if (request.result) {
+                        const blob = request.result.blob;
+                        const url = URL.createObjectURL(blob);
+                        resolve({ url, blob, data: request.result });
+                    } else {
+                        resolve(null);
+                    }
+                };
+                request.onerror = () => reject(request.error);
+            });
+        } catch(e) {
+            console.error('Error recuperando grabación:', e);
+            return null;
+        }
+    }
+    
+    async function migrarGrabacionesAntiguas() {
+        let migradas = 0;
+        for (let entrada of libro.entradas) {
+            if ((entrada.tipo === 'audio' || entrada.tipo === 'video' || entrada.tipo === 'pantalla') && 
+                entrada.contenido.url && !entrada.contenido.id) {
+                try {
+                    const response = await fetch(entrada.contenido.url);
+                    const blob = await response.blob();
+                    const nuevoId = await guardarGrabacionPermanente(blob, entrada.tipo);
+                    if (nuevoId) {
+                        entrada.contenido.id = nuevoId;
+                        delete entrada.contenido.url;
+                        migradas++;
+                    }
+                } catch(e) {
+                    console.error('Error migrando grabación:', e);
+                }
+            }
+        }
+        if (migradas > 0) {
+            guardarLibro();
+            console.log(`✅ Migradas ${migradas} grabaciones al almacenamiento permanente`);
+        }
+    }
+    
+    // ==================== SISTEMA DE PREGUNTAS PROFUNDAS ====================
+    
+    let preguntasRealizadas = new Set();
+    let contadorInteracciones = 0;
+    let preguntaPendiente = false;
+    let ultimaPregunta = "";
+    let ultimaCategoriaRespuesta = "";
+    
+    const PREGUNTAS_PROFUNDAS = {
+        emociones: [
+            "¿Qué crees que desencadenó esa emoción?",
+            "¿Cómo te gustaría sentirte en su lugar?",
+            "¿Hay algo que puedas hacer hoy para sentirte mejor?",
+            "¿Qué te enseñó esta emoción sobre ti mismo?",
+            "¿Cuándo fue la última vez que te sentiste así?",
+            "¿Qué necesita tu corazón en este momento?"
+        ],
+        metas: [
+            "¿Qué es lo que más te motiva a lograr esa meta?",
+            "¿Cuál es el primer paso pequeño que podrías dar hoy?",
+            "¿Qué te detiene de comenzar ahora mismo?",
+            "¿Cómo te verás cuando hayas alcanzado esta meta?",
+            "¿Quién podría apoyarte en este camino?",
+            "¿Qué harías si supieras que no puedes fallar?"
+        ],
+        habitos: [
+            "¿Qué te ayuda a mantener este hábito?",
+            "¿Cuándo es más fácil para ti practicarlo?",
+            "¿Qué pasa cuando no lo haces?",
+            "¿Cómo te sientes después de hacerlo?",
+            "¿Qué pequeño cambio haría más fácil mantenerlo?",
+            "¿Qué hábito te gustaría desarrollar y por qué?"
+        ],
+        crecimiento: [
+            "¿Qué aprendiste de ti mismo esta semana?",
+            "¿Qué persona te inspira y por qué?",
+            "¿Qué te gustaría recordar dentro de un año?",
+            "¿Qué parte de ti te gustaría explorar más?",
+            "¿Cuándo fue la última vez que hiciste algo que te asustaba?",
+            "¿Qué te hace sentir realmente vivo?"
+        ],
+        bienestar: [
+            "¿Cómo está tu energía hoy del 1 al 10?",
+            "¿Qué te recargó de energía esta semana?",
+            "¿Qué drenó tu energía?",
+            "¿Cuándo fue la última vez que hiciste algo solo por ti?",
+            "¿Qué necesitas en este momento para sentirte mejor?",
+            "¿Qué te gustaría que supiera de ti?"
+        ]
+    };
+    
+    function determinarCategoriaPregunta(analisis) {
+        if (analisis && analisis.emocionPrincipal) {
+            if (analisis.emocionPrincipal === "triste" || analisis.emocionPrincipal === "ansioso") return "bienestar";
+            if (analisis.emocionPrincipal === "motivado" || analisis.emocionPrincipal === "feliz") return "crecimiento";
+        }
+        if (perfil.metasActivas && perfil.metasActivas.length > 0) return "metas";
+        if (perfil.habitos && perfil.habitos.length > 0) return "habitos";
+        
+        const categorias = ["emociones", "crecimiento", "bienestar"];
+        const indice = contadorInteracciones % categorias.length;
+        return categorias[indice];
+    }
+    
+    function obtenerPreguntaProfunda(categoria) {
+        const preguntas = PREGUNTAS_PROFUNDAS[categoria] || PREGUNTAS_PROFUNDAS.crecimiento;
+        const disponibles = preguntas.filter(p => !preguntasRealizadas.has(p));
+        
+        let seleccionada;
+        if (disponibles.length > 0) {
+            seleccionada = disponibles[Math.floor(Math.random() * disponibles.length)];
+        } else {
+            preguntasRealizadas.clear();
+            seleccionada = preguntas[Math.floor(Math.random() * preguntas.length)];
+        }
+        
+        preguntasRealizadas.add(seleccionada);
+        if (preguntasRealizadas.size > 20) {
+            const primeros = Array.from(preguntasRealizadas).slice(0, 10);
+            preguntasRealizadas.clear();
+            primeros.forEach(p => preguntasRealizadas.add(p));
+        }
+        
+        return seleccionada;
+    }
+    
+    function guardarRespuestaProfunda(pregunta, respuesta) {
+        perfil.respuestasProfundas = perfil.respuestasProfundas || [];
+        perfil.respuestasProfundas.unshift({
+            pregunta: pregunta,
+            respuesta: respuesta,
+            fecha: new Date().toISOString(),
+            categoria: ultimaCategoriaRespuesta
+        });
+        if (perfil.respuestasProfundas.length > 50) perfil.respuestasProfundas.pop();
+        guardarPerfil();
+    }
+    
+    // ==================== VERIFICACIÓN DE IA AVANZADA ====================
+    let iaAvanzadaDisponible = false;
+    let iaInicializada = false;
+    
+    function esperarIA() {
+        return new Promise((resolve) => {
+            if (window.repromptAI && window.repromptAI.preguntar) {
+                iaAvanzadaDisponible = true;
+                iaInicializada = true;
+                console.log('✅ IA Avanzada REPROMPT disponible');
+                resolve(true);
+                return;
+            }
+            let intentos = 0;
+            const maxIntentos = 20;
+            const intervalo = setInterval(() => {
+                intentos++;
+                if (window.repromptAI && window.repromptAI.preguntar) {
+                    iaAvanzadaDisponible = true;
+                    iaInicializada = true;
+                    clearInterval(intervalo);
+                    console.log('✅ IA Avanzada REPROMPT disponible después de', intentos, 'intentos');
+                    resolve(true);
+                } else if (intentos >= maxIntentos) {
+                    clearInterval(intervalo);
+                    console.warn('⚠️ IA Avanzada no disponible, usando IA simple');
+                    iaAvanzadaDisponible = false;
+                    resolve(false);
+                }
+            }, 500);
+        });
+    }
+    
+    // ==================== UTILIDADES ====================
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+    
+    function mostrarNotificacionOS(msg, tipo = 'info') {
+        if (window.ui && window.ui.showNotification) {
+            window.ui.showNotification(msg, tipo);
+        } else {
+            let n = document.createElement('div');
+            n.className = 'notification';
+            n.style.background = tipo === 'success' ? '#10b981' : tipo === 'error' ? '#ef4444' : tipo === 'warning' ? '#f59e0b' : '#8b5cf6';
+            n.innerHTML = msg;
+            document.body.appendChild(n);
+            setTimeout(() => n.remove(), 3000);
+        }
+    }
+    
+    function mostrarNotificacionGlobal(mensaje, tipo = 'info') {
+        const n = document.createElement('div');
+        n.className = 'global-notification';
+        const iconos = { success: '✅', info: 'ℹ️', warning: '⚠️', error: '❌' };
+        n.innerHTML = `${iconos[tipo] || '🤖'} ${mensaje}`;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 5000);
+    }
+    
+    function formatearFecha(fechaStr) { let f = new Date(fechaStr); return f.toLocaleDateString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }); }
+    function sincronizarTema() { let tema = document.body.getAttribute('data-theme') || localStorage.getItem('theme') || 'dark'; document.body.setAttribute('data-theme', tema); }
+    
+    // ==================== DISPOSITIVOS ====================
+    async function cargarDispositivos() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            let audioSelect = document.getElementById('audioDeviceSelect');
+            audioSelect.innerHTML = '<option value="">🎤 Micrófono por defecto</option>';
+            devices.filter(d => d.kind === 'audioinput').forEach(d => { audioSelect.innerHTML += `<option value="${d.deviceId}">${d.label || `Micrófono`}</option>`; });
+            let videoSelect = document.getElementById('videoDeviceSelect');
+            videoSelect.innerHTML = '<option value="">📷 Cámara por defecto</option>';
+            devices.filter(d => d.kind === 'videoinput').forEach(d => { videoSelect.innerHTML += `<option value="${d.deviceId}">${d.label || `Cámara`}</option>`; });
+        } catch(e) { console.error('Error cargando dispositivos:', e); }
+    }
+    
+    // ==================== PREVISUALIZACIÓN ====================
+    async function toggleCamaraPreview() {
+        if (camPreviewActive) {
+            if (camPreviewStream) camPreviewStream.getTracks().forEach(t => t.stop());
+            document.getElementById('camPreviewContainer').style.display = 'none';
+            camPreviewActive = false;
+            document.getElementById('camToggle').innerHTML = '<i class="fas fa-video-slash"></i>';
+            document.getElementById('camToggle').classList.remove('on');
+            document.getElementById('camToggle').classList.add('off');
+            mostrarNotificacionOS('📷 Cámara apagada', 'info');
+        } else {
+            try {
+                let deviceId = document.getElementById('videoDeviceSelect').value;
+                let constraints = { video: deviceId ? { deviceId: { exact: deviceId } } : true };
+                camPreviewStream = await navigator.mediaDevices.getUserMedia(constraints);
+                let video = document.getElementById('camPreviewVideo');
+                video.srcObject = camPreviewStream;
+                document.getElementById('camPreviewContainer').style.display = 'block';
+                camPreviewActive = true;
+                document.getElementById('camToggle').innerHTML = '<i class="fas fa-video"></i>';
+                document.getElementById('camToggle').classList.remove('off');
+                document.getElementById('camToggle').classList.add('on');
+                mostrarNotificacionOS('📷 Cámara encendida', 'success');
+            } catch(e) { mostrarNotificacionOS('❌ No se pudo acceder a la cámara', 'error'); }
+        }
+    }
+    
+    async function toggleScreenPreview() {
+        if (screenPreviewActive) {
+            if (screenPreviewStream) screenPreviewStream.getTracks().forEach(t => t.stop());
+            document.getElementById('screenPreviewContainer').style.display = 'none';
+            screenPreviewActive = false;
+            document.getElementById('screenToggle').innerHTML = '<i class="fas fa-desktop"></i>';
+            document.getElementById('screenToggle').classList.remove('on');
+            document.getElementById('screenToggle').classList.add('off');
+            mostrarNotificacionOS('🖥️ Pantalla apagada', 'info');
+        } else {
+            try {
+                screenPreviewStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                let video = document.getElementById('screenPreviewVideo');
+                video.srcObject = screenPreviewStream;
+                document.getElementById('screenPreviewContainer').style.display = 'block';
+                screenPreviewActive = true;
+                document.getElementById('screenToggle').innerHTML = '<i class="fas fa-desktop"></i>';
+                document.getElementById('screenToggle').classList.remove('off');
+                document.getElementById('screenToggle').classList.add('on');
+                mostrarNotificacionOS('🖥️ Pantalla compartida', 'success');
+                screenPreviewStream.getVideoTracks()[0].onended = () => { toggleScreenPreview(); };
+            } catch(e) { mostrarNotificacionOS('❌ No se pudo compartir pantalla', 'error'); }
+        }
+    }
+    
+    // ==================== GRABACIÓN (CON GUARDADO PERMANENTE) ====================
+    function iniciarTimer() {
+        startTime = Date.now();
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (startTime) {
+                let e = Math.floor((Date.now() - startTime) / 1000);
+                let m = Math.floor(e / 60);
+                let s = e % 60;
+                document.getElementById('timerDisplay').textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            }
+        }, 1000);
+        document.getElementById('timerDisplay').style.display = 'block';
+    }
+    
+    function detenerTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        document.getElementById('timerDisplay').style.display = 'none';
+        document.getElementById('timerDisplay').textContent = '00:00';
+    }
+    
+    function iniciarReconocimientoVoz() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'es-ES';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.onstart = () => {
+                document.getElementById('transcripcionBox').style.display = 'block';
+                document.getElementById('transcripcionTexto').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Escuchando...';
+            };
+            recognition.onresult = (event) => {
+                let final = '', interim = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    let transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) final += transcript + ' ';
+                    else interim += transcript;
+                }
+                textoTranscritoCompleto = final + interim;
+                document.getElementById('transcripcionTexto').innerHTML = textoTranscritoCompleto || '...';
+            };
+            recognition.start();
+        }
+    }
+    
+    function detenerReconocimientoVoz() { if (recognition) recognition.stop(); }
+    
+    async function iniciarGrabacion(tipo) {
+        if (grabando) { mostrarNotificacionOS('Ya hay una grabación en curso', 'warning'); return; }
+        try {
+            let constraints = { audio: true };
+            let deviceId = document.getElementById('audioDeviceSelect').value;
+            if (deviceId) constraints.audio = { deviceId: { exact: deviceId } };
+            if (tipo === 'video') {
+                let videoDeviceId = document.getElementById('videoDeviceSelect').value;
+                constraints.video = videoDeviceId ? { deviceId: { exact: videoDeviceId } } : true;
+            } else if (tipo === 'pantalla') {
+                constraints = { audio: true, video: false };
+                let screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                currentStream = screenStream;
+            }
+            if (tipo !== 'pantalla') { currentStream = await navigator.mediaDevices.getUserMedia(constraints); }
+            recordedChunks = [];
+            textoTranscritoCompleto = '';
+            iniciarReconocimientoVoz();
+            mediaRecorder = new MediaRecorder(currentStream);
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = async () => {
+                detenerReconocimientoVoz();
+                let textoFinal = textoTranscritoCompleto.trim();
+                if (recordedChunks.length) {
+                    let blob = new Blob(recordedChunks, { type: tipo === 'pantalla' ? 'video/webm' : (tipo === 'video' ? 'video/webm' : 'audio/webm') });
+                    
+                    const grabacionId = await guardarGrabacionPermanente(blob, tipo);
+                    
+                    agregarEntrada(tipo, { 
+                        id: grabacionId,
+                        tipo: tipo,
+                        duracion: Math.floor((Date.now() - startTime) / 1000), 
+                        transcripcion: textoFinal 
+                    }, {});
+                    
+                    mostrarNotificacionOS(`${tipo === 'audio' ? '🎤 Audio' : tipo === 'video' ? '🎥 Video' : '🖥️ Pantalla'} guardado permanentemente`, 'success');
+                    
+                    if (textoFinal && textoFinal.length > 5) {
+                        document.getElementById('respuestaGrabacion').style.display = 'block';
+                        let iaResponse = await generarRespuestaIA(textoFinal);
+                        agregarEntrada('conversacion', {
+                            pregunta: `Grabación de ${tipo}`,
+                            respuesta: textoFinal,
+                            iaRespuesta: iaResponse.respuesta,
+                            emocion: iaResponse.emocion
+                        }, { emocion: iaResponse.emocion });
+                        document.getElementById('respuestaTexto').innerHTML = `${iaResponse.emoji} ${iaResponse.respuesta}`;
+                        document.getElementById('iaMessage').innerHTML = `${iaResponse.emoji} ${iaResponse.respuesta}`;
+                        hablarIA();
+                        perfil.xp += 15;
+                        guardarPerfil();
+                        setTimeout(() => {
+                            document.getElementById('respuestaGrabacion').style.display = 'none';
+                            document.getElementById('transcripcionBox').style.display = 'none';
+                        }, 8000);
+                    }
+                }
+                if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+                detenerGrabacion();
+            };
+            mediaRecorder.start();
+            grabando = true;
+            iniciarTimer();
+            document.getElementById('recordingStatus').innerHTML = `🔴 GRABANDO ${tipo.toUpperCase()}...`;
+            document.getElementById(`record${tipo.charAt(0).toUpperCase() + tipo.slice(1)}Btn`).classList.add('recording-active');
+        } catch(e) {
+            console.error(e);
+            mostrarNotificacionOS(`❌ Error al acceder al ${tipo === 'audio' ? 'micrófono' : tipo === 'video' ? 'cámara' : 'pantalla'}`, 'error');
+        }
+    }
+    
+    function detenerGrabacion() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+        detenerReconocimientoVoz();
+        grabando = false;
+        detenerTimer();
+        document.getElementById('recordingStatus').innerHTML = '✅ Grabación finalizada';
+        document.querySelectorAll('.record-btn').forEach(btn => btn.classList.remove('recording-active'));
+        if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+    }
+    
+    // ==================== FUNCIONES PRINCIPALES ====================
+    function cargarDatos() {
+        try { let g = localStorage.getItem(LIBRO_KEY); if (g) libro = JSON.parse(g); if (!libro.entradas) libro.entradas = []; } catch(e) {}
+        try { let g = localStorage.getItem(PERFIL_KEY); if (g) perfil = JSON.parse(g); if (!perfil.respuestasProfundas) perfil.respuestasProfundas = []; } catch(e) {}
+        cargarDatosMetasYHabitos();
+    }
+    
+    function cargarDatosMetasYHabitos() {
+        try { const metas = JSON.parse(localStorage.getItem("metas_proyectos_v6") || "[]"); perfil.metasActivas = metas.filter(m => !m.completado).length; } catch(e) { perfil.metasActivas = 0; }
+        try { const habitos = JSON.parse(localStorage.getItem("habitos_v4") || "[]"); perfil.habitos = habitos.map(h => ({ nombre: h.nombre, racha: h.racha || 0 })); } catch(e) { perfil.habitos = []; }
+    }
+    
+    function guardarLibro() { localStorage.setItem(LIBRO_KEY, JSON.stringify(libro)); actualizarStatsUI(); renderizarLibro(); actualizarEstadisticas(); }
+    function guardarPerfil() { localStorage.setItem(PERFIL_KEY, JSON.stringify(perfil)); actualizarStatsUI(); }
+    
+    function agregarEntrada(tipo, contenido, metadata = {}) {
+        let entrada = { id: Date.now(), fecha: new Date().toISOString(), tipo: tipo, contenido: contenido, emocion: metadata.emocion || null, avatar: perfil.avatarId };
+        libro.entradas.unshift(entrada);
+        guardarLibro();
+        let hoy = new Date().toISOString().split('T')[0];
+        if (perfil.ultimaFecha !== hoy) {
+            if (perfil.ultimaFecha === new Date(Date.now() - 86400000).toISOString().split('T')[0]) perfil.racha++;
+            else perfil.racha = 1;
+            perfil.ultimaFecha = hoy;
+        }
+        perfil.xp += 10;
+        let xpNecesario = perfil.nivelSabiduria * 100;
+        if (perfil.xp >= xpNecesario) { perfil.nivelSabiduria++; perfil.xp -= xpNecesario; mostrarNotificacionOS(`🎉 ¡Nivel ${perfil.nivelSabiduria}!`, 'success'); }
+        guardarPerfil();
+        return entrada;
+    }
+    
+    function obtenerAvatar() { return AVATARES.find(a => a.id === perfil.avatarId) || AVATARES[0]; }
+    
+    // ==================== IA AVANZADA CON DETECCIÓN DE REPETICIÓN ====================
+    
+    let historialRespuestas = [];
+    
+    function esRespuestaRepetitiva(nuevaRespuesta) {
+        for (let resp of historialRespuestas.slice(-3)) {
+            if (resp === nuevaRespuesta) return true;
+            const palabrasNuevas = nuevaRespuesta.toLowerCase().split(/\s+/);
+            const palabrasAnteriores = resp.toLowerCase().split(/\s+/);
+            const comunes = palabrasNuevas.filter(p => palabrasAnteriores.includes(p));
+            if (comunes.length / Math.max(palabrasNuevas.length, palabrasAnteriores.length) > 0.7) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    function generarRespuestaAlternativa() {
+        const alternativas = [
+            "Cuéntame más, ¿hay algo nuevo que quieras compartir?",
+            "Entiendo. ¿Te gustaría explorar otro ángulo de esto?",
+            "Gracias por compartir. ¿Qué te gustaría profundizar?",
+            "Me interesa saber más. ¿Hay algo específico que te preocupa?",
+            "Sigamos explorando. ¿Qué te gustaría que analicemos ahora?",
+            "¿Hay algo diferente que quieras contarme hoy?",
+            "Entiendo lo que dices. ¿Qué aspecto te gustaría desarrollar más?"
+        ];
+        return alternativas[Math.floor(Math.random() * alternativas.length)];
+    }
+    
+    async function generarRespuestaIA(textoUsuario) {
+        console.log('🧠 Generando respuesta para:', textoUsuario);
+        
+        if (iaAvanzadaDisponible && window.repromptAI && window.repromptAI.preguntar) {
+            try {
+                console.log('🎯 Usando IA Avanzada REPROMPT...');
+                const resultado = await window.repromptAI.preguntar(textoUsuario);
+                console.log('🤖 Respuesta IA Avanzada:', resultado);
+                
+                let respuestaTexto = resultado.texto || resultado.respuesta || "Lo siento, no pude procesar tu mensaje.";
+                let emocion = resultado.emocion || 'reflexivo';
+                let emoji = '';
+                
+                const emojisMap = {
+                    feliz: '😊', triste: '😢', motivado: '💪', 
+                    ansioso: '😌', agradecido: '🙏', cansado: '😴', 
+                    enojado: '😤', neutral: '🧠', reflexivo: '🤔'
+                };
+                emoji = emojisMap[emocion] || '🧠';
+                
+                respuestaTexto = respuestaTexto.replace(/[😊😢💪😌🙏😴😤🧠🤔✨💡🎯📝🔍💭🌟🔥💫]/g, "");
+                respuestaTexto = respuestaTexto.trim();
+                
+                if (esRespuestaRepetitiva(respuestaTexto)) {
+                    console.log("⚠️ Repetición detectada, usando respuesta alternativa");
+                    respuestaTexto = generarRespuestaAlternativa();
+                }
+                
+                historialRespuestas.push(respuestaTexto);
+                if (historialRespuestas.length > 10) historialRespuestas.shift();
+                
+                return {
+                    respuesta: respuestaTexto,
+                    emocion: emocion,
+                    emoji: emoji,
+                    confianza: resultado.confianza || 0.7,
+                    esAvanzada: true
+                };
+            } catch(e) {
+                console.error('❌ Error usando IA avanzada:', e);
+                return generarRespuestaIASimple(textoUsuario);
+            }
+        } else {
+            console.log('📝 Usando IA Simple (fallback)');
+            return generarRespuestaIASimple(textoUsuario);
+        }
+    }
+    
+    function generarRespuestaIASimple(textoUsuario) {
+        let analisis = analizarTextoInteligente(textoUsuario);
+        let respuestaBase = `${analisis.emoji} ${analisis.consejo}`;
+        
+        if (esRespuestaRepetitiva(respuestaBase)) {
+            respuestaBase = generarRespuestaAlternativa();
+        }
+        
+        historialRespuestas.push(respuestaBase);
+        if (historialRespuestas.length > 10) historialRespuestas.shift();
+        
+        return { 
+            respuesta: respuestaBase,
+            emocion: analisis.emocion, 
+            emoji: analisis.emoji,
+            esAvanzada: false
+        };
+    }
+    
+    function analizarTextoInteligente(texto) {
+        let textoLower = texto.toLowerCase();
+        let emocion = 'reflexivo', emoji = '🧠', consejo = '';
+        if (textoLower.includes('feliz') || textoLower.includes('alegre')) { emocion = 'feliz'; emoji = '😊'; consejo = 'Tu alegría es contagiosa.'; }
+        else if (textoLower.includes('triste')) { emocion = 'triste'; emoji = '😢'; consejo = 'Las emociones difíciles también son válidas.'; }
+        else if (textoLower.includes('motivado')) { emocion = 'motivado'; emoji = '💪'; consejo = '¡Qué poderosa energía!'; }
+        else if (textoLower.includes('cansado')) { emocion = 'cansado'; emoji = '😴'; consejo = 'El descanso es sagrado.'; }
+        else if (textoLower.includes('agradecido')) { emocion = 'agradecido'; emoji = '🙏'; consejo = 'La gratitud abre puertas.'; }
+        else if (textoLower.includes('miedo')) { emocion = 'ansioso'; emoji = '😰'; consejo = 'Respira profundo, estás a salvo.'; }
+        else if (textoLower.includes('enojado')) { emocion = 'enojado'; emoji = '😤'; consejo = 'Reconocer tu enojo es el primer paso.'; }
+        else { consejo = 'Cada palabra que compartes construye tu camino.'; }
+        return { emocion, emoji, consejo };
+    }
+    
+    // ==================== SISTEMA DE FEEDBACK ====================
+    
+    function mostrarFeedback(conversacionId) {
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (!feedbackContainer) return;
+        
+        feedbackContainer.innerHTML = '';
+        
+        const btnPositivo = document.createElement('button');
+        btnPositivo.className = 'feedback-btn feedback-btn-positive';
+        btnPositivo.innerHTML = '👍 Útil';
+        btnPositivo.onclick = (e) => {
+            e.stopPropagation();
+            enviarFeedback(conversacionId, 'positivo');
+        };
+        
+        const btnNegativo = document.createElement('button');
+        btnNegativo.className = 'feedback-btn feedback-btn-negative';
+        btnNegativo.innerHTML = '👎 No útil';
+        btnNegativo.onclick = (e) => {
+            e.stopPropagation();
+            enviarFeedback(conversacionId, 'negativo');
+        };
+        
+        feedbackContainer.appendChild(btnPositivo);
+        feedbackContainer.appendChild(btnNegativo);
+        feedbackContainer.style.display = 'flex';
+        
+        setTimeout(() => {
+            if (feedbackContainer && feedbackContainer.style.display !== 'none') {
+                feedbackContainer.style.opacity = '0.6';
+                setTimeout(() => {
+                    if (feedbackContainer && feedbackContainer.style.display !== 'none') {
+                        feedbackContainer.style.display = 'none';
+                        feedbackContainer.style.opacity = '';
+                    }
+                }, 3000);
+            }
+        }, 10000);
+    }
+    
+    function enviarFeedback(conversacionId, tipo) {
+        console.log(`📊 Feedback enviado: ${tipo} para conversación ${conversacionId}`);
+        
+        const feedbacks = JSON.parse(localStorage.getItem('reprompt_feedbacks') || '{}');
+        feedbacks[conversacionId] = {
+            tipo: tipo,
+            fecha: new Date().toISOString()
+        };
+        localStorage.setItem('reprompt_feedbacks', JSON.stringify(feedbacks));
+        
+        if (window.repromptAI && window.repromptAI.registrarFeedback) {
+            window.repromptAI.registrarFeedback(conversacionId, tipo);
+        }
+        
+        const notificacion = document.createElement('div');
+        notificacion.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 8px 16px; border-radius: 8px; font-size: 12px; z-index: 2000;';
+        notificacion.innerHTML = tipo === 'positivo' ? '✅ Gracias por tu feedback' : '🙏 Gracias, lo tendré en cuenta';
+        document.body.appendChild(notificacion);
+        setTimeout(() => notificacion.remove(), 2000);
+        
+        const feedbackContainer = document.getElementById('feedbackContainer');
+        if (feedbackContainer) {
+            feedbackContainer.style.display = 'none';
+            feedbackContainer.innerHTML = '';
+        }
+    }
+    
+    async function procesarYGuardarRespuesta(respuestaUsuario) {
+        console.log('📝 Procesando respuesta:', respuestaUsuario);
+        
+        if (ultimaPregunta && preguntaPendiente) {
+            guardarRespuestaProfunda(ultimaPregunta, respuestaUsuario);
+            preguntaPendiente = false;
+        }
+        
+        const iaResponse = await generarRespuestaIA(respuestaUsuario);
+        console.log('💬 Respuesta IA:', iaResponse.respuesta);
+        
+        const conversacionId = Date.now();
+        
+        agregarEntrada('conversacion', {
+            id: conversacionId,
+            pregunta: document.getElementById('iaMessage').innerText,
+            respuesta: respuestaUsuario,
+            iaRespuesta: iaResponse.respuesta,
+            emocion: iaResponse.emocion
+        }, { emocion: iaResponse.emocion });
+        
+        document.getElementById('iaMessage').innerHTML = `${iaResponse.emoji} ${iaResponse.respuesta}`;
+        
+        mostrarFeedback(conversacionId);
+        
+        if (respuestaUsuario.length > 80) { perfil.xp += 5; guardarPerfil(); }
+        hablarIA();
+    }
+    
+    window.enviarRespuesta = async function() {
+        let input = document.getElementById('userResponse');
+        let respuesta = input.value.trim();
+        if (!respuesta) return;
+        console.log('✍️ Usuario escribe:', respuesta);
+        document.getElementById('iaMessage').innerHTML = `<i class="fas fa-spinner fa-spin"></i> Reflexionando...`;
+        input.value = '';
+        await procesarYGuardarRespuesta(respuesta);
+    };
+    
+    function cargarDatosMetas() { return JSON.parse(localStorage.getItem('metas_proyectos_v6') || '[]'); }
+    function cargarDatosHabitos() { return JSON.parse(localStorage.getItem('habitos_v4') || '[]'); }
+    
+    window.conectarMetas = function() {
+        let metas = cargarDatosMetas();
+        if (metas.length === 0) document.getElementById('iaMessage').innerHTML = "📋 No tienes metas creadas aún. ¿Qué te gustaría lograr?";
+        else {
+            let activas = metas.filter(m => !m.completado);
+            document.getElementById('iaMessage').innerHTML = `📊 Tus Metas: ${metas.length} total, ${activas.length} activas\n${activas.slice(0,3).map(m => `• ${m.nombre} - ${m.progreso || 0}%`).join('\n')}\n\n💭 ¿Cuál de ellas es más importante para ti ahora?`;
+        }
+        hablarIA();
+    };
+    
+    window.conectarHabitos = function() {
+        let habitos = cargarDatosHabitos();
+        if (habitos.length === 0) document.getElementById('iaMessage').innerHTML = "🔄 No tienes hábitos creados aún. ¿Qué hábito te gustaría desarrollar?";
+        else {
+            let rachaTotal = habitos.reduce((s, h) => s + (h.racha || 0), 0);
+            document.getElementById('iaMessage').innerHTML = `🔄 Tus Hábitos: ${habitos.length} hábitos, 🔥 Racha total: ${rachaTotal} días\n\n💭 ¿Qué hábito te está costando más mantener?`;
+        }
+        hablarIA();
+    };
+    
+    function generarRecomendacionPersonalizada() {
+        let metas = cargarDatosMetas();
+        let pendientes = metas.filter(m => !m.completado && (m.progreso || 0) < 50);
+        if (pendientes.length) return `🎯 Tu meta "${pendientes[0].nombre}" está al ${pendientes[0].progreso || 0}%. ¿Qué pequeño paso puedes dar hoy para avanzar?`;
+        if (perfil.respuestasProfundas && perfil.respuestasProfundas.length > 0) {
+            const ultimaRespuesta = perfil.respuestasProfundas[0];
+            return `💭 Recuerdo que compartiste: "${ultimaRespuesta.respuesta.substring(0, 80)}". ¿Cómo te sientes con eso ahora?`;
+        }
+        return "🌟 Sigue en tu camino de crecimiento. ¿Qué te gustaría explorar hoy?";
+    }
+    
+    window.recomendacionPersonalizada = function() {
+        document.getElementById('iaMessage').innerHTML = `💡 ${generarRecomendacionPersonalizada()}`;
+        hablarIA();
+    };
+    
+    function actualizarEstadisticas() {
+        let emociones = libro.entradas.filter(e => e.emocion).map(e => e.emocion);
+        let conteo = {};
+        emociones.forEach(e => { conteo[e] = (conteo[e] || 0) + 1; });
+        let emojis = { feliz:'😊', triste:'😢', motivado:'💪', ansioso:'😰', amoroso:'❤️', enojado:'😤', cansado:'😴', agradecido:'🙏', reflexivo:'🧠' };
+        
+        if (graficoEmociones) graficoEmociones.destroy();
+        let ctx = document.getElementById('graficoEmociones')?.getContext('2d');
+        if (ctx && Object.keys(conteo).length) {
+            graficoEmociones = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: Object.keys(conteo).map(l => `${emojis[l] || '🧠'} ${l}`), datasets: [{ label: 'Frecuencia', data: Object.values(conteo), backgroundColor: '#8b5cf6', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#a0a0b0' } }, x: { ticks: { color: '#a0a0b0' } } } }
+            });
+        }
+        
+        let distribucionHtml = '<div style="display: flex; flex-wrap: wrap; gap: 12px;">';
+        for (let [emoji, count] of Object.entries(conteo)) {
+            distribucionHtml += `<div style="background:rgba(139,92,246,0.2); padding:8px 12px; border-radius:20px;">${emojis[emoji] || '🧠'} ${emoji}: ${count}</div>`;
+        }
+        distribucionHtml += '</div>';
+        document.getElementById('distribucionEmociones').innerHTML = distribucionHtml || '<p>Sin datos</p>';
+        
+        let hoy = new Date();
+        let inicioSemana = new Date(hoy); inicioSemana.setDate(hoy.getDate() - hoy.getDay());
+        let entradasSemana = libro.entradas.filter(e => new Date(e.fecha) >= inicioSemana);
+        document.getElementById('resumenSemanal').innerHTML = `<p>📊 ${entradasSemana.length} entradas esta semana</p><p>🔥 Racha: ${perfil.racha} días</p><p>✨ XP: ${perfil.xp}</p><p>💭 Reflexiones profundas: ${perfil.respuestasProfundas?.length || 0}</p>`;
+        document.getElementById('recomendacionPersonalizada').innerHTML = `<p>${generarRecomendacionPersonalizada()}</p>`;
+    }
+    
+    // ==================== UI ====================
+    function actualizarAvatarUI() {
+        let avatar = obtenerAvatar();
+        document.getElementById('avatarLarge').innerHTML = avatar.emoji;
+        let html = '';
+        for (let a of AVATARES) { let selected = perfil.avatarId === a.id ? 'selected' : ''; html += `<div class="avatar-mini ${selected}" onclick="cambiarAvatarEspecifico('${a.id}')">${a.emoji}</div>`; }
+        document.getElementById('avatarSelector').innerHTML = html;
+    }
+    
+    window.cambiarAvatarEspecifico = function(id) { perfil.avatarId = id; guardarPerfil(); actualizarAvatarUI(); mostrarNotificacionOS(`✨ Ahora soy ${AVATARES.find(a=>a.id===id).nombre}`, 'info'); };
+    window.cambiarAvatar = function() { let idx = AVATARES.findIndex(a => a.id === perfil.avatarId); cambiarAvatarEspecifico(AVATARES[(idx + 1) % AVATARES.length].id); };
+    
+    // ==================== FUNCIÓN HABLAR IA CORREGIDA ====================
+    // ✅ CONSERVA NÚMEROS Y PORCENTAJES - SOLO ELIMINA EMOJIS Y CARACTERES ESPECIALES
+    window.hablarIA = function() { 
+        let mensaje = document.getElementById('iaMessage').innerText; 
+        if (!mensaje || !speechSynth) return;
+        
+        // 1. ELIMINAR EMOJIS
+        mensaje = mensaje.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "");
+        
+        // 2. ELIMINAR CARACTERES DE MARKDOWN
+        mensaje = mensaje.replace(/\*/g, "");
+        mensaje = mensaje.replace(/_/g, "");
+        mensaje = mensaje.replace(/`/g, "");
+        mensaje = mensaje.replace(/~/g, "");
+        
+        // 3. ELIMINAR SIGNOS DE PUNTUACIÓN EXCESIVOS (PERO NO NÚMEROS)
+        mensaje = mensaje.replace(/[¡!¿?;:()\[\]{}<>\/\\|+=]/g, "");
+        
+        // 4. CONVERTIR % A "POR CIENTO" PARA MEJOR LECTURA
+        mensaje = mensaje.replace(/%/g, " por ciento");
+        
+        // 5. LIMPIAR ESPACIOS EXTRA
+        mensaje = mensaje.replace(/\s+/g, " ").trim();
+        
+        if (mensaje.length === 0) return;
+        
+        speechSynth.cancel(); 
+        let utterance = new SpeechSynthesisUtterance(mensaje); 
+        utterance.lang = 'es-ES'; 
+        utterance.rate = 0.9; 
+        speechSynth.speak(utterance); 
+    };
+    
+    window.nuevaPregunta = function() { 
+        let pregunta = PREGUNTAS[Math.floor(Math.random() * PREGUNTAS.length)]; 
+        document.getElementById('iaMessage').innerHTML = `🧠 ${pregunta}\n\n💭 Tómate tu tiempo para responder.`; 
+        hablarIA(); 
+    };
+    
+    window.analizarProgreso = function() { 
+        document.getElementById('iaMessage').innerHTML = `📊 Progreso: ${libro.entradas.length} entradas, Nivel ${perfil.nivelSabiduria}, Racha ${perfil.racha} días, XP ${perfil.xp}\n\n💭 Reflexiones compartidas: ${perfil.respuestasProfundas?.length || 0}`; 
+        hablarIA(); 
+    };
+    
+    function renderizarLibro() {
+        let filtradas = libro.entradas.filter(e => {
+            if (filtroActual !== 'todos' && e.tipo !== filtroActual) return false;
+            if (busquedaActual) {
+                let texto = '';
+                if (e.tipo === 'texto') texto = e.contenido;
+                else if (e.tipo === 'conversacion') texto = e.contenido.respuesta + ' ' + e.contenido.iaRespuesta;
+                else if (e.tipo === 'audio' || e.tipo === 'video' || e.tipo === 'pantalla') texto = e.contenido.transcripcion || '';
+                return texto.toLowerCase().includes(busquedaActual.toLowerCase());
+            }
+            return true;
+        });
+        let html = '';
+        if (filtradas.length === 0) html = '<div style="text-align:center; padding:40px;">📖 No hay entradas</div>';
+        else for (let e of filtradas) {
+            let tipoIcono = { texto:'📝', audio:'🎤', video:'🎥', pantalla:'🖥️', conversacion:'💬' }[e.tipo] || '📖';
+            let preview = '';
+            if (e.tipo === 'texto') preview = typeof e.contenido === 'string' ? e.contenido.substring(0, 80) : '';
+            else if (e.tipo === 'conversacion') preview = e.contenido.respuesta?.substring(0, 80) || '';
+            else if (e.tipo === 'audio') preview = e.contenido.transcripcion ? `🎤 "${e.contenido.transcripcion.substring(0, 60)}"` : '🎤 Audio';
+            else if (e.tipo === 'video') preview = e.contenido.transcripcion ? `🎥 "${e.contenido.transcripcion.substring(0, 60)}"` : '🎥 Video';
+            else preview = e.contenido.transcripcion ? `🖥️ "${e.contenido.transcripcion.substring(0, 60)}"` : '🖥️ Pantalla';
+            let emocionEmoji = { feliz:'😊', triste:'😢', motivado:'💪', ansioso:'😰', amoroso:'❤️', enojado:'😤', cansado:'😴', agradecido:'🙏' }[e.emocion] || '🧠';
+            html += `<div class="entrada-item" onclick="verEntradaDetalle('${e.id}')"><div class="entrada-header"><span class="entrada-fecha">${formatearFecha(e.fecha)}</span><span class="entrada-tipo">${tipoIcono} ${e.tipo}</span><span>${emocionEmoji}</span></div><div class="entrada-texto">${escapeHtml(preview)}</div></div>`;
+        }
+        document.getElementById('entradasContainer').innerHTML = html;
+    }
+    
+    // ==================== VER DETALLE CON CIERRE CORRECTO DE REPRODUCCIÓN ====================
+    window.verEntradaDetalle = async function(id) {
+        // Detener cualquier reproducción anterior
+        if (mediaElementActual) {
+            mediaElementActual.pause();
+            mediaElementActual.currentTime = 0;
+            mediaElementActual = null;
+        }
+        
+        let e = libro.entradas.find(e => e.id == id);
+        if (!e) return;
+        
+        let html = `<h3>📖 ${new Date(e.fecha).toLocaleString()}</h3><div><span style="background:#8b5cf6; padding:2px 8px; border-radius:20px;">${e.tipo}</span></div>`;
+        
+        if (e.tipo === 'texto') {
+            html += `<div style="margin-top:15px; padding:16px; background:rgba(139,92,246,0.1); border-radius:12px;">${escapeHtml(e.contenido)}</div>`;
+        }
+        else if (e.tipo === 'conversacion') {
+            html += `<div style="margin-top:15px; padding:16px; background:rgba(139,92,246,0.1);"><strong>Tú:</strong> ${escapeHtml(e.contenido.respuesta)}</div>
+                     <div style="margin-top:10px; padding:16px; background:rgba(16,185,129,0.1);"><strong>REPROMPT:</strong> ${escapeHtml(e.contenido.iaRespuesta)}</div>`;
+        }
+        else if (e.tipo === 'audio' || e.tipo === 'video' || e.tipo === 'pantalla') {
+            if (e.contenido.id) {
+                const grabacion = await recuperarGrabacion(e.contenido.id);
+                if (grabacion && grabacion.url) {
+                    const mediaTag = e.tipo === 'audio' ? 'audio' : 'video';
+                    const mediaId = `media_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+                    html += `<div style="margin-top:15px;">
+                                <${mediaTag} id="${mediaId}" controls style="width:100%; border-radius:12px;">
+                                    <source src="${grabacion.url}" type="${e.tipo === 'audio' ? 'audio/webm' : 'video/webm'}">
+                                </${mediaTag}>
+                             </div>`;
+                    setTimeout(() => {
+                        const mediaElem = document.getElementById(mediaId);
+                        if (mediaElem) {
+                            mediaElementActual = mediaElem;
+                        }
+                    }, 100);
+                } else {
+                    html += `<div style="margin-top:15px; background:rgba(239,68,68,0.2); padding:20px; border-radius:12px; text-align:center;">
+                                ⚠️ No se pudo recuperar la grabación.
+                             </div>`;
+                }
+            } else if (e.contenido.url) {
+                const mediaTag = e.tipo === 'audio' ? 'audio' : 'video';
+                const mediaId = `media_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+                html += `<div style="margin-top:15px;">
+                            <${mediaTag} id="${mediaId}" controls style="width:100%; border-radius:12px;">
+                                <source src="${e.contenido.url}" type="${e.tipo === 'audio' ? 'audio/webm' : 'video/webm'}">
+                            </${mediaTag}>
+                            <div style="margin-top:8px; font-size:11px; color:#f59e0b;">⚠️ Grabación temporal - puede no estar disponible después de recargar</div>
+                         </div>`;
+                setTimeout(() => {
+                    const mediaElem = document.getElementById(mediaId);
+                    if (mediaElem) {
+                        mediaElementActual = mediaElem;
+                    }
+                }, 100);
+            } else {
+                html += `<div style="margin-top:15px; background:rgba(239,68,68,0.2); padding:20px; border-radius:12px; text-align:center;">
+                            ⚠️ No se pudo recuperar la grabación.
+                         </div>`;
+            }
+            
+            if (e.contenido.transcripcion) {
+                html += `<div style="margin-top:10px; background:rgba(139,92,246,0.2); padding:12px; border-radius:8px;">
+                            <strong>📝 Transcripción:</strong><br>
+                            "${escapeHtml(e.contenido.transcripcion)}"
+                         </div>`;
+            }
+            
+            if (e.contenido.duracion) {
+                const minutos = Math.floor(e.contenido.duracion / 60);
+                const segundos = e.contenido.duracion % 60;
+                html += `<div style="margin-top:8px; font-size:11px; color:#a0a0b0;">⏱️ Duración: ${minutos}:${segundos.toString().padStart(2,'0')}</div>`;
+            }
+        }
+        
+        document.getElementById('modalBody').innerHTML = html;
+        document.getElementById('modal').style.display = 'flex';
+        modalAbierto = true;
+    };
+    
+    // ==================== CERRAR MODAL CON DETENCIÓN DE REPRODUCCIÓN ====================
+    window.cerrarModal = function() {
+        if (mediaElementActual) {
+            mediaElementActual.pause();
+            mediaElementActual.currentTime = 0;
+            if (mediaElementActual.src) {
+                mediaElementActual.src = '';
+                mediaElementActual.load();
+            }
+            mediaElementActual = null;
+        }
+        
+        const modalBody = document.getElementById('modalBody');
+        if (modalBody) {
+            modalBody.innerHTML = '';
+        }
+        
+        const modal = document.getElementById('modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        modalAbierto = false;
+    };
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modalAbierto) {
+            cerrarModal();
+        }
+    });
+    
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('modal');
+        if (modal && modal.style.display === 'flex' && e.target === modal) {
+            cerrarModal();
+        }
+    });
+    
+    window.filtrarEntradas = function(filtro) { filtroActual = filtro; document.querySelectorAll('.filtro-btn').forEach(btn => btn.classList.remove('active')); document.querySelector(`.filtro-btn[data-filtro="${filtro}"]`).classList.add('active'); renderizarLibro(); };
+    window.buscarEntradas = function() { busquedaActual = document.getElementById('searchInput').value; renderizarLibro(); };
+    window.exportarJSON = function() { let blob = new Blob([JSON.stringify(libro, null, 2)], {type:'application/json'}); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `libro_vida_${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(a.href); };
+    window.exportarTXT = function() { let txt = "LIBRO DE VIDA\n\n"; for (let e of libro.entradas) { txt += `[${new Date(e.fecha).toLocaleString()}] [${e.tipo}]\n`; if (e.tipo === 'texto') txt += `${e.contenido}\n`; else if (e.tipo === 'conversacion') txt += `Tú: ${e.contenido.respuesta}\nREPROMPT: ${e.contenido.iaRespuesta}\n`; else txt += `Transcripción: ${e.contenido.transcripcion || 'Sin transcripción'}\n`; txt += `\n`; } let blob = new Blob([txt], {type:'text/plain'}); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `libro_vida_${new Date().toISOString().split('T')[0]}.txt`; a.click(); URL.revokeObjectURL(a.href); };
+    
+    function actualizarStatsUI() { document.getElementById('totalEntradas').innerText = libro.entradas.length; document.getElementById('nivelSabiduria').innerText = perfil.nivelSabiduria; document.getElementById('rachaDias').innerText = perfil.racha; document.getElementById('xpTotal').innerText = perfil.xp; }
+    window.mostrarPanelEstadisticas = function() { document.getElementById('panelEstadisticas').style.display = 'block'; actualizarEstadisticas(); };
+    window.cerrarPanelEstadisticas = function() { document.getElementById('panelEstadisticas').style.display = 'none'; };
+    window.cambiarStatsTab = function(tab) {
+        document.querySelectorAll('.stats-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.stats-tab[data-tab="${tab}"]`).classList.add('active');
+        document.querySelectorAll('.stats-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(`panel${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+    };
+    
+    // ==================== DATOS GLOBALES ====================
+    
+    function recibirDatosGlobales(app, data) {
+        console.log(`📥 Asistente recibió datos de ${app}:`, data);
+        if (app === 'ejercicios') { globalData.ejercicios = data; mostrarNotificacionGlobal(`🏃 Datos de ejercicios recibidos: ${data.caloriasHoy || 0} kcal hoy`); if (data.caloriasHoy > 200) { setTimeout(() => { mostrarNotificacionGlobal("🔥 ¡Excelente! Has hecho ejercicio. ¿Quieres registrar cómo te sientes?", "success"); }, 1000); } }
+        if (app === 'metas') { globalData.metas = data; const completadas = data.completadas || 0; if (completadas > 0) { mostrarNotificacionGlobal(`🎉 ¡Felicidades! Has completado ${completadas} ${completadas === 1 ? 'meta' : 'metas'}`, "success"); } }
+        if (app === 'habitos') { globalData.habitos = data; if (data.rachaTotal > 3) { mostrarNotificacionGlobal(`🔥 Llevas ${data.rachaTotal} días de racha con tus hábitos. ¡Sigue así!`, "info"); } }
+        globalData.ultimaActualizacion = new Date(); actualizarPanelGlobal();
+    }
+    
+    function actualizarPanelGlobal() {
+        const panel = document.getElementById('globalDataContent'); if (!panel) return;
+        let html = '';
+        if (globalData.ejercicios) { html += `<div class="global-data-item"><span class="global-data-label">🏃 Ejercicios hoy:</span><span class="global-data-value">${globalData.ejercicios.caloriasHoy || 0} kcal</span></div>`; if (globalData.ejercicios.racha) { html += `<div class="global-data-item"><span class="global-data-label">🔥 Racha ejercicios:</span><span class="global-data-value">${globalData.ejercicios.racha} días</span></div>`; } }
+        if (globalData.metas) { html += `<div class="global-data-item"><span class="global-data-label">🎯 Metas completadas:</span><span class="global-data-value">${globalData.metas.completadas || 0}/${globalData.metas.total || 0}</span></div>`; }
+        if (globalData.habitos) { html += `<div class="global-data-item"><span class="global-data-label">🔄 Hábitos racha:</span><span class="global-data-value">${globalData.habitos.rachaTotal || 0} días</span></div>`; }
+        if (globalData.ultimaActualizacion) { const hora = globalData.ultimaActualizacion.toLocaleTimeString(); html += `<div class="global-data-item" style="border-bottom: none;"><span class="global-data-label">🕐 Última actualización:</span><span class="global-data-value">${hora}</span></div>`; }
+        if (html === '') { html = '<div class="global-data-item">Esperando datos de otras apps...</div>'; }
+        panel.innerHTML = html;
+    }
+    
+    window.toggleGlobalPanel = function() { const panel = document.getElementById('globalDataPanel'); if (panel.style.display === 'none') { panel.style.display = 'block'; actualizarPanelGlobal(); } else { panel.style.display = 'none'; } };
+    
+    function setupGlobalListener() {
+        window.addEventListener('message', (event) => { if (event.data && event.data.type === 'GLOBAL_DATA_UPDATE') { recibirDatosGlobales(event.data.app, event.data.data); } });
+        window.addEventListener('external:data-update', (e) => { if (e.detail) { recibirDatosGlobales(e.detail.source, e.detail.data); } });
+        console.log('🌐 Asistente IA: Listener global configurado');
+    }
+    
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', async function() {
+        await esperarIA();
+        console.log('🚀 IA Avanzada disponible?', iaAvanzadaDisponible);
+        sincronizarTema();
+        cargarDatos();
+        actualizarAvatarUI();
+        renderizarLibro();
+        actualizarStatsUI();
+        await cargarDispositivos();
+        
+        document.getElementById('recordAudioBtn').addEventListener('click', () => iniciarGrabacion('audio'));
+        document.getElementById('recordVideoBtn').addEventListener('click', () => iniciarGrabacion('video'));
+        document.getElementById('recordScreenBtn').addEventListener('click', () => iniciarGrabacion('pantalla'));
+        document.getElementById('stopRecordingBtn').addEventListener('click', detenerGrabacion);
+        document.getElementById('iaMessage').innerHTML = obtenerAvatar().saludo;
+        
+        window.addEventListener('theme:changed', function(e) { document.body.setAttribute('data-theme', e.detail.theme); });
+        
+        try { await navigator.mediaDevices.getUserMedia({ audio: true }); mostrarNotificacionOS('✅ Permisos de audio concedidos', 'success'); } catch(e) { mostrarNotificacionOS('⚠️ Permisos de audio necesarios para grabar', 'warning'); }
+        
+        setupGlobalListener();
+        setTimeout(() => { document.getElementById('globalDataPanel').style.display = 'block'; actualizarPanelGlobal(); }, 2000);
+        
+        setTimeout(() => {
+            migrarGrabacionesAntiguas();
+        }, 3000);
+        
+        console.log('🧠 REPROMPT Asistente cargado con IA avanzada auto-evolutiva y detección de repetición');
+        console.log('✅ Grabaciones guardadas permanentemente en IndexedDB');
+        console.log('✅ Al cerrar modal, el video/audio se detiene correctamente');
+        console.log('✅ La función de voz conserva números y porcentajes');
+    });
+</script>
+</body>
+</html>
