@@ -1,0 +1,51 @@
+﻿# ===== JavaScript / Node =====
+node_modules/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+venv/
+.venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ===== Entorno y credenciales =====
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Base de datos (datos crudos) =====
+*.ibd
+*.frm
+*.myd
+*.myi
+*.ibdata
+*.ib_logfile*
+mysql-data/
+data/
+
+# ===== Builds =====
+dist/
+build/
+*.min.js
+
+# ===== Editores y sistema =====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

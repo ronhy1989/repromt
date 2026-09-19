@@ -86,7 +86,8 @@ console.log('\n' + '='.repeat(70));
 console.log('🔧 CARGANDO RUTAS DEL SISTEMA...');
 console.log('='.repeat(70));
 
-let authRoutes, habitRoutes, piedpiperRoutes, syncRoutes;  // 🆕 AGREGADO syncRoutes
+// 🔹 MODIFICADO: AÑADIR memoriaRoutes
+let authRoutes, habitRoutes, piedpiperRoutes, syncRoutes, memoriaRoutes;  // 🆕 AGREGADO memoriaRoutes
 
 try {
     authRoutes = (await import('./routes/authRoutes.js')).default;
@@ -121,11 +122,21 @@ try {
     syncRoutes = express.Router();
 }
 
+// 🆕 AGREGAR: Cargar memoriaRoutes
+try {
+    memoriaRoutes = (await import('./routes/memoriaRoutes.js')).default;
+    console.log('✅ memoriaRoutes cargado correctamente');
+} catch (error) {
+    console.error('❌ ERROR CARGANDO memoriaRoutes:', error.message);
+    memoriaRoutes = express.Router();
+}
+
 // ================= 📍 RUTAS MANUALES =================
 app.use('/api/auth', authRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/piedpiper', piedpiperRoutes);
 app.use('/api/sync', syncRoutes);  // 🆕 AGREGADO
+app.use('/api/memoria', memoriaRoutes);  // 🆕 AGREGADO
 
 // ================= 🤖 GENERADOR INTELIGENTE DE ENDPOINTS =================
 app.use('/api', async (req, res, next) => {
@@ -187,6 +198,7 @@ app.get('/api/health', async (req, res) => {
             habits: '/api/habits',
             piedpiper: '/api/piedpiper',
             sync: '/api/sync',  // 🆕 AGREGADO
+            memoria: '/api/memoria',  // 🆕 AGREGADO
             inteligentes: '/api/* (auto-generados)',
             health: '/api/health',
             docs: '/api-docs',
@@ -260,6 +272,22 @@ app.get('/', (req, res) => {
             all: 'POST http://localhost:8000/api/sync/all'
         },
         
+        // ================= 🧠 MEMORIA (NUEVO) =================
+        memoria: {  // 🆕 AGREGADO
+            crear: 'POST http://localhost:8000/api/memoria/crear',
+            preguntar: 'POST http://localhost:8000/api/memoria/preguntar',
+            listar: 'GET http://localhost:8000/api/memoria/listar',
+            heads_up: 'GET http://localhost:8000/api/memoria/heads-up',
+            colecciones: 'GET http://localhost:8000/api/memoria/colecciones',
+            patrones: 'GET http://localhost:8000/api/memoria/patrones',
+            contexto: 'GET http://localhost:8000/api/memoria/contexto/:memoriaId',
+            estadisticas: 'GET http://localhost:8000/api/memoria/estadisticas',
+            detalle: 'GET http://localhost:8000/api/memoria/:id',
+            eliminar: 'DELETE http://localhost:8000/api/memoria/:id',
+            crear_coleccion: 'POST http://localhost:8000/api/memoria/coleccion',
+            asignar_coleccion: 'POST http://localhost:8000/api/memoria/asignar-coleccion'
+        },
+        
         // ================= 🤖 ENDPOINTS INTELIGENTES (Auto-generados) =================
         inteligentes: {
             descubrir_todas: 'GET http://localhost:8000/api/system/discover',
@@ -325,6 +353,20 @@ app.get('/api/endpoints', (req, res) => {
             'POST /api/sync/app',
             'POST /api/sync/all'
         ],
+        memoria: [  // 🆕 AGREGADO
+            'POST /api/memoria/crear',
+            'POST /api/memoria/preguntar',
+            'POST /api/memoria/asignar-coleccion',
+            'POST /api/memoria/coleccion',
+            'GET /api/memoria/listar',
+            'GET /api/memoria/heads-up',
+            'GET /api/memoria/colecciones',
+            'GET /api/memoria/patrones',
+            'GET /api/memoria/contexto/:memoriaId',
+            'GET /api/memoria/estadisticas',
+            'GET /api/memoria/:id',
+            'DELETE /api/memoria/:id'
+        ],
         system: [
             'GET /api/health',
             'GET /api/system/discover',
@@ -383,6 +425,7 @@ app.listen(PORT, async () => {
     console.log(`📊 HÁBITOS:            GET http://localhost:${PORT}/api/habits`);
     console.log(`🧠 PIED PIPER:         GET http://localhost:${PORT}/api/piedpiper/dashboard`);
     console.log(`🔄 SYNC GLOBAL:        POST http://localhost:${PORT}/api/sync/global`);  // 🆕 AGREGADO
+    console.log(`🧠 MEMORIA:            POST http://localhost:${PORT}/api/memoria/crear`);  // 🆕 AGREGADO
     console.log(`🤖 ENDPOINTS DINÁMICOS: GET http://localhost:${PORT}/api/[nombre_tabla]`);
     console.log('='.repeat(70));
     
