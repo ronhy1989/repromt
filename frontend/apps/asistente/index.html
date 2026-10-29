@@ -220,7 +220,41 @@
             display: inline-block;
             margin-top: 8px;
         }
-    </style>
+    
+        /* ===== RESPONSIVE MÓVIL (agregado automáticamente) ===== */
+        @media (max-width: 768px) {
+            body { padding: 10px !important; }
+            .container { padding: 0 !important; }
+
+            /* Grid principal: 2 columnas -> 1 columna */
+            .main-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+
+            /* Header */
+            .header h1 { font-size: 1.4rem !important; }
+            .header { margin-bottom: 15px !important; }
+
+            /* Sección IA */
+            .ia-section { padding: 14px !important; border-radius: 16px !important; }
+
+            /* Avatar y chat */
+            .avatar-container { flex-direction: column !important; align-items: center !important; gap: 12px !important; }
+            .avatar-large { font-size: 60px !important; }
+            .chat-bubble { padding: 14px !important; border-radius: 14px !important; }
+            .ia-message { font-size: 14px !important; }
+
+            /* Inputs y botones */
+            .input-group { flex-direction: column !important; gap: 8px !important; }
+            .input-group input, .input-group button, .input-group textarea { width: 100% !important; font-size: 16px !important; }
+            .ia-actions { gap: 8px !important; }
+            .ia-btn { width: 100% !important; text-align: center !important; padding: 10px !important; }
+            .feedback-btn { padding: 8px 12px !important; font-size: 13px !important; }
+
+            /* Ajustes de texto */
+            h2 { font-size: 1.2em !important; }
+            h3 { font-size: 1.1em !important; }
+        }
+        /* ===== FIN RESPONSIVE MÓVIL ===== */
+</style>
 </head>
 <body>
 <div class="container">

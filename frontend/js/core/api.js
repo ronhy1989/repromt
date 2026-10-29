@@ -4,7 +4,7 @@
 
 let ApiService = {
     token: localStorage.getItem('repromt_token'),
-    baseUrl: 'http://localhost:8000/api',
+    baseUrl: 'https://repromt-api-856844207258.us-central1.run.app/api',
     timeout: 30000, // 30 segundos timeout
 
     setToken(token) {
@@ -194,7 +194,7 @@ let ApiService = {
     // ========== HEALTH CHECK ==========
     async checkHealth() {
         try {
-            const response = await fetch('http://localhost:8000/api/health', {
+            const response = await fetch('https://repromt-api-856844207258.us-central1.run.app/api/health', {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
             });

@@ -249,7 +249,7 @@ let UIManager = {
         const top = Math.max(50, Math.min(80, (this.openWindows.size * 30) + 50));
         
         const windowHtml = `
-            <div id="${windowId}" class="os-window" style="width: 900px; height: 700px; left: ${left}px; top: ${top}px; z-index: ${++this.windowZIndex};">
+            <div id="${windowId}" class="os-window" style="width: ${window.innerWidth <= 768 ? "100vw" : "900px"}; height: ${window.innerWidth <= 768 ? "100vh" : "700px"}; left: ${window.innerWidth <= 768 ? "0" : left + "px"}; top: ${window.innerWidth <= 768 ? "0" : top + "px"}; z-index: ${++this.windowZIndex};">
                 <div class="window-header">
                     <span class="window-title">
                         <i class="fas ${cfg.icon}" style="color:${cfg.color}"></i>

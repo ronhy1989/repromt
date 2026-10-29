@@ -49,3 +49,4 @@ build/
 .idea/
 .DS_Store
 Thumbs.db
+frontend/js/core/reprompt-intelligence.js

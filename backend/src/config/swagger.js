@@ -25,7 +25,7 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:8000/api',
+        url: 'https://repromt-api-856844207258.us-central1.run.app/api',
         description: 'Servidor local'
       }
     ],

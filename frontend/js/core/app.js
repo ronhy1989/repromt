@@ -4,28 +4,28 @@
 
 let APP_CONFIG = {
     // ========== FILA 1 (6 apps) ==========
-    dashboard: { title: 'Dashboard', icon: 'fa-chart-line', color: '#6366F1', premium: false, url: '/apps/dashboard/index.html', description: 'Visión general de tu progreso' },
-    emocional: { title: 'Emocional', icon: 'fa-heart', color: '#ec4899', premium: false, url: '/apps/emocional/index.html', description: 'Seguimiento de estados de ánimo' },
-    profesionales: { title: 'Profesionales', icon: 'fa-user-md', color: '#10b981', premium: true, price: 5.99, url: '/apps/profesionales/index.html', description: 'Conecta con profesionales de salud' },
-    metas: { title: 'Metas y Proyectos', icon: 'fa-bullseye', color: '#f59e0b', premium: false, url: '/apps/metas/index.html', description: 'Gestiona tus objetivos' },
-    habitos: { title: 'Hábitos', icon: 'fa-repeat', color: '#8b5cf6', premium: false, url: '/apps/habitos/index.html', description: 'Seguimiento de hábitos diarios' },
-    ejercicios: { title: 'Ejercicios', icon: 'fa-dumbbell', color: '#06b6d4', premium: false, url: '/apps/ejercicios/index.html', description: 'Rutinas de ejercicio' },
+    dashboard: { title: 'Dashboard', icon: 'fa-chart-line', color: '#6366F1', premium: false, url: 'apps/dashboard/index.html', description: 'Visión general de tu progreso' },
+    emocional: { title: 'Emocional', icon: 'fa-heart', color: '#ec4899', premium: false, url: 'apps/emocional/index.html', description: 'Seguimiento de estados de ánimo' },
+    profesionales: { title: 'Profesionales', icon: 'fa-user-md', color: '#10b981', premium: true, price: 5.99, url: 'apps/profesionales/index.html', description: 'Conecta con profesionales de salud' },
+    metas: { title: 'Metas y Proyectos', icon: 'fa-bullseye', color: '#f59e0b', premium: false, url: 'apps/metas/index.html', description: 'Gestiona tus objetivos' },
+    habitos: { title: 'Hábitos', icon: 'fa-repeat', color: '#8b5cf6', premium: false, url: 'apps/habitos/index.html', description: 'Seguimiento de hábitos diarios' },
+    ejercicios: { title: 'Ejercicios', icon: 'fa-dumbbell', color: '#06b6d4', premium: false, url: 'apps/ejercicios/index.html', description: 'Rutinas de ejercicio' },
     
     // ========== FILA 2 (6 apps - Asistente IA en posición 3, ocupa 2 columnas) ==========
-    sueno: { title: 'Sueño', icon: 'fa-bed', color: '#a855f7', premium: false, url: '/apps/sueno/index.html', description: 'Registro de calidad de sueño' },
-    musica: { title: 'Música', icon: 'fa-music', color: '#1DB954', premium: true, price: 4.99, url: '/apps/musica/index.html', description: 'Música para concentración y relajación' },
-    asistente: { title: 'Asistente IA', icon: 'fa-robot', color: '#8b5cf6', premium: false, url: '/apps/asistente/index.html', description: 'Tu asistente virtual', isCenter: true },
-    comunidad: { title: 'Comunidad', icon: 'fa-users', color: '#3b82f6', premium: true, price: 2.99, url: '/apps/comunidad/index.html', description: 'Conecta con otros usuarios' },
-    crisis: { title: 'Crisis', icon: 'fa-life-ring', color: '#ef4444', premium: true, price: 5.99, url: '/apps/crisis/index.html', description: 'Recursos para momentos difíciles' },
-    'plugin-store': { title: 'Plugin Store', icon: 'fa-store', color: '#f59e0b', premium: false, url: '/apps/store/index.html', description: 'Expande tu experiencia' },
+    sueno: { title: 'Sueño', icon: 'fa-bed', color: '#a855f7', premium: false, url: 'apps/sueno/index.html', description: 'Registro de calidad de sueño' },
+    musica: { title: 'Música', icon: 'fa-music', color: '#1DB954', premium: true, price: 4.99, url: 'apps/musica/index.html', description: 'Música para concentración y relajación' },
+    asistente: { title: 'Asistente IA', icon: 'fa-robot', color: '#8b5cf6', premium: false, url: 'apps/asistente/index.html', description: 'Tu asistente virtual', isCenter: true },
+    comunidad: { title: 'Comunidad', icon: 'fa-users', color: '#3b82f6', premium: true, price: 2.99, url: 'apps/comunidad/index.html', description: 'Conecta con otros usuarios' },
+    crisis: { title: 'Crisis', icon: 'fa-life-ring', color: '#ef4444', premium: true, price: 5.99, url: 'apps/crisis/index.html', description: 'Recursos para momentos difíciles' },
+    'plugin-store': { title: 'Plugin Store', icon: 'fa-store', color: '#f59e0b', premium: false, url: 'apps/store/index.html', description: 'Expande tu experiencia' },
     
     // ========== FILA 3 (6 apps) ==========
-    cuestionarios: { title: 'Cuestionarios', icon: 'fa-clipboard-list', color: '#14b8a6', premium: true, price: 4.99, url: '/apps/cuestionarios/index.html', description: 'Evaluaciones personalizadas' },
-    biblioteca: { title: 'Biblioteca Personal', icon: 'fa-book-open', color: '#6366f1', premium: true, price: 4.99, url: '/apps/biblioteca/index.html', description: 'Artículos y guías' },
-    logros: { title: 'Logros', icon: 'fa-trophy', color: '#f59e0b', premium: true, price: 1.99, url: '/apps/logros/index.html', description: 'Recompensas y medallas' },
-    database: { title: 'Base de Datos', icon: 'fa-server', color: '#0ea5e9', premium: false, url: '/apps/database/index.html', description: 'Gestión de datos' },
-    organizador: { title: 'Organizador', icon: 'fa-calendar-alt', color: '#3b82f6', premium: false, url: '/apps/organizador/index.html', description: 'Organiza tu día con IA, integra hábitos, metas y más' },
-    gamer: { title: 'Zona Gamer', icon: 'fa-gamepad', color: '#ec4899', premium: false, url: '/apps/gamer/index.html', description: 'Brick Game: Gusanito, Tanques, Carreras y Tetris' },
+    cuestionarios: { title: 'Cuestionarios', icon: 'fa-clipboard-list', color: '#14b8a6', premium: true, price: 4.99, url: 'apps/cuestionarios/index.html', description: 'Evaluaciones personalizadas' },
+    biblioteca: { title: 'Biblioteca Personal', icon: 'fa-book-open', color: '#6366f1', premium: true, price: 4.99, url: 'apps/biblioteca/index.html', description: 'Artículos y guías' },
+    logros: { title: 'Logros', icon: 'fa-trophy', color: '#f59e0b', premium: true, price: 1.99, url: 'apps/logros/index.html', description: 'Recompensas y medallas' },
+    database: { title: 'Base de Datos', icon: 'fa-server', color: '#0ea5e9', premium: false, url: 'apps/database/index.html', description: 'Gestión de datos' },
+    organizador: { title: 'Organizador', icon: 'fa-calendar-alt', color: '#3b82f6', premium: false, url: 'apps/organizador/index.html', description: 'Organiza tu día con IA, integra hábitos, metas y más' },
+    gamer: { title: 'Zona Gamer', icon: 'fa-gamepad', color: '#ec4899', premium: false, url: 'apps/gamer/index.html', description: 'Brick Game: Gusanito, Tanques, Carreras y Tetris' },
 };
 
 let RepromptApp = {
@@ -199,6 +199,75 @@ let RepromptApp = {
     
     injectGlobalBridge(iframe, appName) {
         if (this.injectedBridges.has(appName)) return;
+        // ===== INYECTAR CSS RESPONSIVO EN EL IFRAME (TODAS LAS APPS) =====
+        try {
+            const injectMobileCSS = () => {
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    if (doc && !doc.getElementById('reprompt-mobile-css')) {
+                        const style = doc.createElement('style');
+                        style.id = 'reprompt-mobile-css';
+                        style.textContent = `
+                            @media (max-width: 768px) {
+                                html, body { max-width: 100vw !important; overflow-x: hidden !important; }
+                                * { box-sizing: border-box !important; }
+                                img, video, iframe, table { max-width: 100% !important; height: auto !important; }
+
+                                /* Contenedores generales */
+                                .container, .app-container, .dashboard-app, .metas-app, .game-controller, .wrapper, .main, .content {
+                                    width: 100% !important; max-width: 100vw !important;
+                                    padding: 10px !important; margin: 0 !important;
+                                }
+
+                                /* Headers */
+                                .header, .app-header, .game-header { padding: 10px !important; margin-bottom: 15px !important; }
+                                .header h1, .app-header h1, .game-header h1 { font-size: 1.4rem !important; }
+                                .header-top { flex-direction: column !important; gap: 8px !important; }
+
+                                /* Grids: de 2+ columnas a 1 columna */
+                                .main-grid, .stats-grid, .game-selector, .games-grid {
+                                    grid-template-columns: 1fr !important; gap: 12px !important;
+                                }
+                                .stat-card, .game-card { width: 100% !important; }
+
+                                /* Asistente */
+                                .avatar-container { flex-direction: column !important; align-items: center !important; }
+                                .avatar-large { font-size: 60px !important; }
+                                .chat-bubble { padding: 14px !important; }
+                                .ia-message { font-size: 14px !important; }
+                                .input-group { flex-direction: column !important; }
+                                .input-group input, .input-group button { width: 100% !important; }
+
+                                /* Sidebars y paneles laterales: ocultar */
+                                .sidebar, .side-menu, .nav-sidebar, .left-panel, .right-panel { display: none !important; }
+
+                                /* Botones y formularios */
+                                button, .btn, .ia-btn, .feedback-btn { font-size: 14px !important; padding: 10px 14px !important; }
+                                input, textarea, select { width: 100% !important; font-size: 16px !important; }
+
+                                /* Tablas: scroll horizontal en vez de desbordar */
+                                table { display: block !important; overflow-x: auto !important; white-space: nowrap !important; }
+
+                                /* Ajustes de texto */
+                                h1 { font-size: 1.4em !important; }
+                                h2 { font-size: 1.2em !important; }
+                                h3 { font-size: 1.1em !important; }
+                            }
+                        `;
+                        doc.head.appendChild(style);
+                        console.log('✅ CSS móvil inyectado en', '${appName}');
+                    }
+                } catch (e) {
+                    console.warn('No se pudo inyectar CSS móvil:', e);
+                }
+            };
+            injectMobileCSS();
+            iframe.addEventListener('load', injectMobileCSS);
+        } catch (e) {
+            console.warn('Error al inyectar CSS móvil:', e);
+        }
+        // ===== FIN CSS RESPONSIVO =====
+
         
         const bridgeScript = `
             (function() {
@@ -291,7 +360,7 @@ let RepromptApp = {
     },
     
     syncWithApp(appName, data) {
-        const iframe = document.querySelector(`iframe[src*="/apps/${appName}/"]`);
+        const iframe = document.querySelector(`iframe[src*="apps/${appName}/"]`);
         if (iframe && iframe.contentWindow) {
             iframe.contentWindow.postMessage({
                 type: 'GLOBAL_DATA_UPDATE',
@@ -547,12 +616,17 @@ let RepromptApp = {
         if (window.ui && window.ui.createWindow) {
             const win = window.ui.createWindow(appName, cfg, content);
             
-            setTimeout(() => {
-                const iframe = document.getElementById(iframeId);
-                if (iframe) {
+            const iframe = document.getElementById(iframeId);
+            if (iframe) {
+                // Inyectar cuando el iframe termine de cargar (event-driven, no timeout)
+                iframe.addEventListener('load', () => {
+                    this.injectGlobalBridge(iframe, appName);
+                });
+                // Fallback: si ya cargó antes de agregar el listener
+                if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
                     this.injectGlobalBridge(iframe, appName);
                 }
-            }, 500);
+            }
         } else {
             console.error('UI Manager no disponible');
         }

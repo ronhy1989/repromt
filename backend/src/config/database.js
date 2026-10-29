@@ -5,10 +5,10 @@ dotenv.config();
 
 // =============================================
 // POOL DE CONEXIONES - repromt_cognitive
+// Soporta Cloud Run (socketPath) y local (host/port)
 // =============================================
-const pool = mysql.createPool({
-    host: process.env.DB_HOST || '127.0.0.1',
-    port: process.env.DB_PORT || 3306,
+
+const poolConfig = {
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'repromt_cognitive',
@@ -18,7 +18,19 @@ const pool = mysql.createPool({
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
     charset: 'utf8mb4'
-});
+};
+
+// En Cloud Run usamos socketPath; en local, host/port
+if (process.env.INSTANCE_UNIX_SOCKET) {
+    poolConfig.socketPath = process.env.INSTANCE_UNIX_SOCKET;
+    console.log('🔌 BD por socketPath (Cloud Run):', process.env.INSTANCE_UNIX_SOCKET);
+} else {
+    poolConfig.host = process.env.DB_HOST || '127.0.0.1';
+    poolConfig.port = process.env.DB_PORT || 3306;
+    console.log('🔌 BD por host/port (local):', poolConfig.host, poolConfig.port);
+}
+
+const pool = mysql.createPool(poolConfig);
 
 // =============================================
 // FUNCIÓN PARA PROBAR CONEXIÓN
@@ -26,10 +38,9 @@ const pool = mysql.createPool({
 export async function testConnection() {
     try {
         const connection = await pool.getConnection();
-        // ✅ CORREGIDO: Usar 'db_name' en lugar de 'database' (palabra reservada)
         const [rows] = await connection.query('SELECT 1 as connected, NOW() as timestamp, VERSION() as version, DATABASE() as db_name');
         connection.release();
-        
+
         console.log('✅ Base de datos conectada');
         console.log(`   📅 Timestamp: ${rows[0].timestamp}`);
         console.log(`   📦 Versión MySQL: ${rows[0].version}`);
@@ -79,7 +90,7 @@ export async function getLastInsertId() {
 }
 
 // =============================================
-// FUNCIÓN PARA TRANSACCIONES
+// FUNCIONES DE TRANSACCIONES
 // =============================================
 export async function beginTransaction() {
     const connection = await pool.getConnection();
@@ -98,6 +109,6 @@ export async function rollbackTransaction(connection) {
 }
 
 // =============================================
-// ✅ EXPORT DEFAULT - OBLIGATORIO
+// EXPORT DEFAULT - OBLIGATORIO
 // =============================================
 export default pool;

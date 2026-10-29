@@ -18,18 +18,21 @@ import Scheduler from './core/Scheduler.js';
 // Configuración
 dotenv.config();
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
 // ================= 🛡️ CONFIGURACIÓN CORS COMPLETA =================
 // ✅ SOLUCIÓN PARA EL ERROR DE CORS
 const allowedOrigins = [
     'http://localhost:5500',
     'http://127.0.0.1:5500',
-    'http://localhost:8000',
+    'https://repromt-api-856844207258.us-central1.run.app',
     'http://127.0.0.1:8000',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'file://'  // Para desarrollo local directo
+    'file://',
+    'https://storage.googleapis.com',
+    'https://repromt-frontend-gmp-demo-project-100798822.storage.googleapis.com',
+    'https://repromt-api-856844207258.us-central1.run.app'
 ];
 
 app.use(cors({
@@ -149,7 +152,7 @@ app.use('/api', async (req, res, next) => {
             
             console.timeEnd('⏱️  Tiempo de generación');
             console.log('✅ Endpoints inteligentes generados y listos');
-            console.log('📌 Descubre todos los endpoints en: http://localhost:8000/api/system/discover\n');
+            console.log('📌 Descubre todos los endpoints en: https://repromt-api-856844207258.us-central1.run.app/api/system/discover\n');
         }
         
         global.endpointRouter(req, res, next);
@@ -173,7 +176,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     }
 }));
 
-console.log('📚 Documentación API: http://localhost:8000/api-docs');
+console.log('📚 Documentación API: https://repromt-api-856844207258.us-central1.run.app/api-docs');
 
 // ================= 💚 RUTA DE SALUD PERSONALIZADA =================
 app.get('/api/health', async (req, res) => {
@@ -190,8 +193,8 @@ app.get('/api/health', async (req, res) => {
         base_datos: dbStatus ? 'conectado' : 'desconectado',
         version: '1.0.0',
         puerto: PORT,
-        documentacion: 'http://localhost:8000/api-docs',
-        generador_inteligente: 'http://localhost:8000/api/system/discover',
+        documentacion: 'https://repromt-api-856844207258.us-central1.run.app/api-docs',
+        generador_inteligente: 'https://repromt-api-856844207258.us-central1.run.app/api/system/discover',
         scheduler: Scheduler.isRunning ? '✅ activo' : '⏳ iniciando',
         endpoints: {
             auth: '/api/auth',
@@ -217,85 +220,85 @@ app.get('/', (req, res) => {
         
         // ================= 📍 TODAS LAS URLS DISPONIBLES =================
         urls_principales: {
-            home: 'http://localhost:8000/',
-            health: 'http://localhost:8000/api/health',
-            documentacion_swagger: 'http://localhost:8000/api-docs',
-            descubrir_api: 'http://localhost:8000/api/system/discover'
+            home: 'https://repromt-api-856844207258.us-central1.run.app/',
+            health: 'https://repromt-api-856844207258.us-central1.run.app/api/health',
+            documentacion_swagger: 'https://repromt-api-856844207258.us-central1.run.app/api-docs',
+            descubrir_api: 'https://repromt-api-856844207258.us-central1.run.app/api/system/discover'
         },
         
         // ================= 🔐 AUTENTICACIÓN =================
         auth: {
             registrar: {
                 metodo: 'POST',
-                url: 'http://localhost:8000/api/auth/register',
+                url: 'https://repromt-api-856844207258.us-central1.run.app/api/auth/register',
                 body: { nombre: 'string', email: 'string', password: 'string' }
             },
             login: {
                 metodo: 'POST',
-                url: 'http://localhost:8000/api/auth/login',
+                url: 'https://repromt-api-856844207258.us-central1.run.app/api/auth/login',
                 body: { email: 'string', password: 'string' }
             },
             perfil: {
                 metodo: 'GET',
-                url: 'http://localhost:8000/api/auth/profile',
+                url: 'https://repromt-api-856844207258.us-central1.run.app/api/auth/profile',
                 auth: 'Bearer token'
             }
         },
         
         // ================= 📊 HÁBITOS =================
         habitos: {
-            listar: 'GET http://localhost:8000/api/habits',
-            crear: 'POST http://localhost:8000/api/habits',
-            estadisticas: 'GET http://localhost:8000/api/habits/stats',
-            seguimiento: 'POST http://localhost:8000/api/habits/track',
-            seguimiento_diario: 'GET http://localhost:8000/api/habits/tracking/daily'
+            listar: 'GET https://repromt-api-856844207258.us-central1.run.app/api/habits',
+            crear: 'POST https://repromt-api-856844207258.us-central1.run.app/api/habits',
+            estadisticas: 'GET https://repromt-api-856844207258.us-central1.run.app/api/habits/stats',
+            seguimiento: 'POST https://repromt-api-856844207258.us-central1.run.app/api/habits/track',
+            seguimiento_diario: 'GET https://repromt-api-856844207258.us-central1.run.app/api/habits/tracking/daily'
         },
         
         // ================= 🧠 PIED PIPER IA =================
         piedpiper: {
-            recomendaciones: 'GET http://localhost:8000/api/piedpiper/recommendations',
-            analisis: 'POST http://localhost:8000/api/piedpiper/analyze',
-            dashboard: 'GET http://localhost:8000/api/piedpiper/dashboard',
-            estadisticas: 'GET http://localhost:8000/api/piedpiper/stats',
-            marcar_vista: 'PUT http://localhost:8000/api/piedpiper/:id/view',
-            aplicar_feedback: 'POST http://localhost:8000/api/piedpiper/:id/apply',
-            entrenar: 'POST http://localhost:8000/api/piedpiper/train',
-            estado_entrenamiento: 'GET http://localhost:8000/api/piedpiper/train/status',
-            historial_entrenamiento: 'GET http://localhost:8000/api/piedpiper/train/history'
+            recomendaciones: 'GET https://repromt-api-856844207258.us-central1.run.app/api/piedpiper/recommendations',
+            analisis: 'POST https://repromt-api-856844207258.us-central1.run.app/api/piedpiper/analyze',
+            dashboard: 'GET https://repromt-api-856844207258.us-central1.run.app/api/piedpiper/dashboard',
+            estadisticas: 'GET https://repromt-api-856844207258.us-central1.run.app/api/piedpiper/stats',
+            marcar_vista: 'PUT https://repromt-api-856844207258.us-central1.run.app/api/piedpiper/:id/view',
+            aplicar_feedback: 'POST https://repromt-api-856844207258.us-central1.run.app/api/piedpiper/:id/apply',
+            entrenar: 'POST https://repromt-api-856844207258.us-central1.run.app/api/piedpiper/train',
+            estado_entrenamiento: 'GET https://repromt-api-856844207258.us-central1.run.app/api/piedpiper/train/status',
+            historial_entrenamiento: 'GET https://repromt-api-856844207258.us-central1.run.app/api/piedpiper/train/history'
         },
         
         // ================= 🆕 SINCRONIZACIÓN =================
         sync: {
-            global: 'POST http://localhost:8000/api/sync/global',
-            usuario: 'GET http://localhost:8000/api/sync/user/:userId',
-            app: 'POST http://localhost:8000/api/sync/app',
-            all: 'POST http://localhost:8000/api/sync/all'
+            global: 'POST https://repromt-api-856844207258.us-central1.run.app/api/sync/global',
+            usuario: 'GET https://repromt-api-856844207258.us-central1.run.app/api/sync/user/:userId',
+            app: 'POST https://repromt-api-856844207258.us-central1.run.app/api/sync/app',
+            all: 'POST https://repromt-api-856844207258.us-central1.run.app/api/sync/all'
         },
         
         // ================= 🧠 MEMORIA (NUEVO) =================
         memoria: {  // 🆕 AGREGADO
-            crear: 'POST http://localhost:8000/api/memoria/crear',
-            preguntar: 'POST http://localhost:8000/api/memoria/preguntar',
-            listar: 'GET http://localhost:8000/api/memoria/listar',
-            heads_up: 'GET http://localhost:8000/api/memoria/heads-up',
-            colecciones: 'GET http://localhost:8000/api/memoria/colecciones',
-            patrones: 'GET http://localhost:8000/api/memoria/patrones',
-            contexto: 'GET http://localhost:8000/api/memoria/contexto/:memoriaId',
-            estadisticas: 'GET http://localhost:8000/api/memoria/estadisticas',
-            detalle: 'GET http://localhost:8000/api/memoria/:id',
-            eliminar: 'DELETE http://localhost:8000/api/memoria/:id',
-            crear_coleccion: 'POST http://localhost:8000/api/memoria/coleccion',
-            asignar_coleccion: 'POST http://localhost:8000/api/memoria/asignar-coleccion'
+            crear: 'POST https://repromt-api-856844207258.us-central1.run.app/api/memoria/crear',
+            preguntar: 'POST https://repromt-api-856844207258.us-central1.run.app/api/memoria/preguntar',
+            listar: 'GET https://repromt-api-856844207258.us-central1.run.app/api/memoria/listar',
+            heads_up: 'GET https://repromt-api-856844207258.us-central1.run.app/api/memoria/heads-up',
+            colecciones: 'GET https://repromt-api-856844207258.us-central1.run.app/api/memoria/colecciones',
+            patrones: 'GET https://repromt-api-856844207258.us-central1.run.app/api/memoria/patrones',
+            contexto: 'GET https://repromt-api-856844207258.us-central1.run.app/api/memoria/contexto/:memoriaId',
+            estadisticas: 'GET https://repromt-api-856844207258.us-central1.run.app/api/memoria/estadisticas',
+            detalle: 'GET https://repromt-api-856844207258.us-central1.run.app/api/memoria/:id',
+            eliminar: 'DELETE https://repromt-api-856844207258.us-central1.run.app/api/memoria/:id',
+            crear_coleccion: 'POST https://repromt-api-856844207258.us-central1.run.app/api/memoria/coleccion',
+            asignar_coleccion: 'POST https://repromt-api-856844207258.us-central1.run.app/api/memoria/asignar-coleccion'
         },
         
         // ================= 🤖 ENDPOINTS INTELIGENTES (Auto-generados) =================
         inteligentes: {
-            descubrir_todas: 'GET http://localhost:8000/api/system/discover',
-            listar_tabla: 'GET http://localhost:8000/api/[nombre_tabla]',
-            obtener_registro: 'GET http://localhost:8000/api/[nombre_tabla]/:id',
-            crear_registro: 'POST http://localhost:8000/api/[nombre_tabla]',
-            actualizar_registro: 'PUT http://localhost:8000/api/[nombre_tabla]/:id',
-            eliminar_registro: 'DELETE http://localhost:8000/api/[nombre_tabla]/:id'
+            descubrir_todas: 'GET https://repromt-api-856844207258.us-central1.run.app/api/system/discover',
+            listar_tabla: 'GET https://repromt-api-856844207258.us-central1.run.app/api/[nombre_tabla]',
+            obtener_registro: 'GET https://repromt-api-856844207258.us-central1.run.app/api/[nombre_tabla]/:id',
+            crear_registro: 'POST https://repromt-api-856844207258.us-central1.run.app/api/[nombre_tabla]',
+            actualizar_registro: 'PUT https://repromt-api-856844207258.us-central1.run.app/api/[nombre_tabla]/:id',
+            eliminar_registro: 'DELETE https://repromt-api-856844207258.us-central1.run.app/api/[nombre_tabla]/:id'
         },
         
         // ================= ⏰ TAREAS AUTOMÁTICAS =================
@@ -323,10 +326,10 @@ app.get('/', (req, res) => {
         ],
         
         // ================= 📖 DOCUMENTACIÓN =================
-        documentacion: 'http://localhost:8000/api-docs',
+        documentacion: 'https://repromt-api-856844207258.us-central1.run.app/api-docs',
         sugerencias: [
             '👉 Usa /api/system/discover para descubrir TODOS los endpoints disponibles',
-            '👉 Prueba los endpoints en Swagger: http://localhost:8000/api-docs',
+            '👉 Prueba los endpoints en Swagger: https://repromt-api-856844207258.us-central1.run.app/api-docs',
             '👉 Los endpoints inteligentes se generan automáticamente desde la BD',
             '👉 Pied Piper genera recomendaciones basadas en tus datos'
         ]
@@ -390,10 +393,10 @@ app.use('*', (req, res) => {
         success: false,
         message: `❌ Ruta no encontrada: ${req.originalUrl}`,
         sugerencias: [
-            '📚 Verifica la documentación en: http://localhost:8000/api-docs',
-            '🔍 Descubre todos los endpoints en: http://localhost:8000/api/system/discover',
-            '📋 Lista de endpoints: http://localhost:8000/api/endpoints',
-            '💚 Estado del sistema: http://localhost:8000/api/health'
+            '📚 Verifica la documentación en: https://repromt-api-856844207258.us-central1.run.app/api-docs',
+            '🔍 Descubre todos los endpoints en: https://repromt-api-856844207258.us-central1.run.app/api/system/discover',
+            '📋 Lista de endpoints: https://repromt-api-856844207258.us-central1.run.app/api/endpoints',
+            '💚 Estado del sistema: https://repromt-api-856844207258.us-central1.run.app/api/health'
         ]
     });
 });
